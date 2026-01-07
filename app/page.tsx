@@ -10,6 +10,7 @@ import { AppSidebar } from "./components/app-sidebar"
 import { QuoteHeader } from "./components/quote-header"
 import { QuoteProgress } from "./components/quote-progress"
 import { ClientInfoForm } from "./components/client-info-form"
+import { DriversTable } from "./components/drivers-table/drivers-table"
 import { QuoteNavigation } from "./components/quote-navigation"
 
 export default function Home() {
@@ -20,7 +21,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-auto bg-white pb-0 pt-[88px]">
-        <div className="mx-auto flex w-full max-w-[768px] flex-col gap-8 px-0">
+        <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6">
           {/* Breadcrumbs */}
           <Breadcrumb>
             <BreadcrumbList className="gap-1.5">
@@ -61,6 +62,9 @@ export default function Home() {
 
           {/* Client Information Form */}
           <ClientInfoForm />
+
+          {/* Drivers Table */}
+          <DriversTable />
 
           {/* Navigation Buttons */}
           <QuoteNavigation />
