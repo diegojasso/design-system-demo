@@ -4,7 +4,7 @@ import * as React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, UserPlus } from "lucide-react"
+import { Plus, UserPlus, X, Trash2 } from "lucide-react"
 import { Driver, ColumnDef } from "./types"
 import { DRIVER_FIELDS } from "./columns"
 import { EditableTableCell } from "./editable-table-cell"
@@ -62,13 +62,14 @@ export function DriversTable({
   fields = DRIVER_FIELDS 
 }: DriversTableProps) {
   const [drivers, setDrivers] = React.useState<Driver[]>(initialDrivers)
+  const [newDriverIds, setNewDriverIds] = React.useState<Set<string>>(new Set())
 
   // Update drivers when initialDrivers changes
   React.useEffect(() => {
     setDrivers(initialDrivers)
   }, [initialDrivers])
 
-  // Keyboard navigation hook
+  // Keyboard navigation hook - update when drivers change
   const {
     activeCell,
     editingCell,
@@ -80,6 +81,16 @@ export function DriversTable({
     driverCount: drivers.length,
     fieldCount: fields.length,
   })
+
+  // Update navigation when drivers change
+  React.useEffect(() => {
+    // If active cell is beyond current driver count, reset to last driver
+    if (activeCell && activeCell.driverIndex >= drivers.length) {
+      if (drivers.length > 0) {
+        moveToCell(drivers.length - 1, activeCell.fieldIndex, false)
+      }
+    }
+  }, [drivers.length, activeCell, moveToCell])
 
   const handleCellChange = (driverIndex: number, fieldIndex: number, value: any) => {
     const field = fields[fieldIndex]
@@ -124,6 +135,70 @@ export function DriversTable({
     return activeCell.driverIndex === driverIndex && activeCell.fieldIndex === fieldIndex
   }
 
+  const handleAddDriver = () => {
+    const newDriver: Driver = {
+      id: `driver-${Date.now()}`,
+      firstName: '',
+      lastName: '',
+      relationship: '',
+      dateOfBirth: '',
+      gender: '',
+      maritalStatus: '',
+      email: '',
+      phone: '',
+      includeInPolicy: false,
+      licenseNumber: '',
+      licenseState: '',
+      licenseStatus: '',
+      yearsLicensed: '',
+    }
+    setDrivers((prev) => [...prev, newDriver])
+    setNewDriverIds((prev) => new Set(prev).add(newDriver.id))
+    // Focus on the new driver's first cell
+    setTimeout(() => {
+      moveToCell(drivers.length, 0, true)
+    }, 100)
+  }
+
+  const handleDeleteDriver = (driverId: string) => {
+    setDrivers((prev) => prev.filter((driver) => driver.id !== driverId))
+    setNewDriverIds((prev) => {
+      const newSet = new Set(prev)
+      newSet.delete(driverId)
+      return newSet
+    })
+  }
+
+  const handleAddFromMVR = () => {
+    // Add the MVR driver as a new driver
+    const mvrDriver: Driver = {
+      id: `mvr-${Date.now()}`,
+      firstName: 'Jennifer',
+      lastName: 'Gomez',
+      relationship: 'Child',
+      dateOfBirth: SAMPLE_MVR_DRIVER.dateOfBirth,
+      gender: '',
+      maritalStatus: '',
+      email: '',
+      phone: '',
+      includeInPolicy: false,
+      licenseNumber: '',
+      licenseState: '',
+      licenseStatus: '',
+      yearsLicensed: '',
+      isFromMVR: true,
+      mvrData: {
+        source: 'MVR',
+        confidence: 0.95,
+      },
+    }
+    setDrivers((prev) => [...prev, mvrDriver])
+    // Focus on the new driver's first cell
+    setTimeout(() => {
+      moveToCell(drivers.length, 0, true)
+    }, 100)
+  }
+
   const getDriverBadges = (driver: Driver, index: number) => {
     const badges = []
     if (index === 0) {
@@ -134,26 +209,51 @@ export function DriversTable({
     if (driver.includeInPolicy) {
       badges.push('Covered')
     }
+    if (newDriverIds.has(driver.id)) {
+      badges.push('New')
+    }
+    if (driver.isFromMVR) {
+      badges.push('MVR')
+    }
     return badges
   }
 
+  const isNewDriver = (driverId: string) => newDriverIds.has(driverId)
+  const isMVRDriver = (driver: Driver) => driver.isFromMVR === true
+
   return (
-    <div className="mb-8 w-full">
-      <div className="flex gap-4">
+    <div className="mb-8 w-full bg-white rounded-lg border border-[#e5e7eb] overflow-hidden">
+      <div className="flex">
         {/* Main Table Area */}
         <div className="flex-1 overflow-x-auto relative" ref={containerRef}>
-          <div className="inline-flex min-w-full">
-            {/* Field Labels Column - Fixed */}
-            <Card 
-              className="border border-[#cdd7e1] bg-[#fbfcfe] rounded-[12px] shadow-sm shrink-0 sticky left-0 z-10" 
-              style={{ width: '321px' }}
-            >
-              <CardContent className="p-0">
+          {drivers.length === 0 ? (
+            <div className="flex items-center justify-center h-64 text-[#6b7280]">
+              <div className="text-center">
+                <p className="text-sm mb-2" style={{ fontFamily: "Inter, sans-serif" }}>
+                  No drivers added yet
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={handleAddDriver}
+                  className="h-9 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] text-[#111827] text-sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Driver
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="inline-flex min-w-full">
+              {/* Field Labels Column - Fixed */}
+              <div 
+                className="bg-white shrink-0 sticky left-0 z-10 border-r border-[#e5e7eb]" 
+                style={{ width: '321px' }}
+              >
                 {/* Header */}
-                <div className="h-[84px] px-4 py-2 flex items-center border-b border-[#cdd7e1] bg-[#fbfcfe]">
+                <div className="h-[52px] px-4 flex items-center border-b border-[#e5e7eb] bg-white">
                   <span
-                    className="text-[24px] font-semibold leading-[1.2] tracking-[-0.48px] text-[#0a0a0a]"
-                    style={{ fontFamily: "Geist, sans-serif" }}
+                    className="text-sm font-medium text-[#6b7280]"
+                    style={{ fontFamily: "Inter, sans-serif" }}
                   >
                     Drivers
                   </span>
@@ -162,133 +262,154 @@ export function DriversTable({
                 {fields.map((field) => (
                   <div
                     key={field.id}
-                    className="h-[52px] px-4 py-3 flex items-center border-b border-[#cdd7e1] last:border-b-0 bg-[#fbfcfe]"
+                    className="h-[44px] px-4 flex items-center border-b border-[#f3f4f6] last:border-b-0 bg-white"
                   >
                     <span
-                      className="text-sm font-normal leading-[1.5] text-[#0a0a0a]"
+                      className="text-sm font-normal text-[#111827]"
                       style={{ fontFamily: "Inter, sans-serif" }}
                     >
                       {field.label}
                     </span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
 
             {/* Driver Columns */}
             {drivers.map((driver, driverIndex) => (
-              <Card
+              <div
                 key={driver.id}
-                className="border border-[#cdd7e1] bg-[#fbfcfe] rounded-[12px] shadow-sm shrink-0 ml-4"
+                className={`bg-white shrink-0 border-r border-[#e5e7eb] last:border-r-0 relative ${
+                  isNewDriver(driver.id) ? 'ring-1 ring-blue-500/20' : ''
+                }`}
                 style={{ width: '348px' }}
               >
-                <CardContent className="p-0">
-                  {/* Header */}
-                  <div className="h-[84px] px-4 py-2 flex flex-col justify-center border-b border-[#cdd7e1]">
+                {/* Header */}
+                <div className="h-[52px] px-4 flex items-center justify-between border-b border-[#e5e7eb] bg-white group">
+                  <div className="flex items-center gap-2">
                     <span
-                      className="text-[24px] font-semibold leading-[1.2] tracking-[-0.48px] text-[#0a0a0a] mb-2"
-                      style={{ fontFamily: "Geist, sans-serif" }}
+                      className="text-sm font-medium text-[#111827]"
+                      style={{ fontFamily: "Inter, sans-serif" }}
                     >
                       Driver {driverIndex + 1}
                     </span>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex gap-1.5">
                       {getDriverBadges(driver, driverIndex).map((badge, idx) => (
                         <Badge
                           key={idx}
                           variant="secondary"
-                          className="text-xs font-medium bg-[#f0f0f0] text-[#0a0a0a] border-0"
+                          className={`text-xs font-medium border-0 px-1.5 py-0.5 h-5 ${
+                            badge === 'New' 
+                              ? 'bg-blue-50 text-blue-700' 
+                              : badge === 'MVR'
+                              ? 'bg-green-50 text-green-700'
+                              : 'bg-[#f3f4f6] text-[#6b7280]'
+                          }`}
                         >
                           {badge}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                  {/* Field Values */}
-                  {fields.map((field, fieldIndex) => {
-                    const isEditing = getEditingState(driverIndex, fieldIndex)
-                    const isActive = getActiveState(driverIndex, fieldIndex)
-                    const cellValue = driver[field.id as keyof Driver]
+                  {/* Delete Button - Show on hover */}
+                  {drivers.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteDriver(driver.id)}
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-[#6b7280] hover:text-[#111827] hover:bg-[#f3f4f6]"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {/* Field Values */}
+                {fields.map((field, fieldIndex) => {
+                  const isEditing = getEditingState(driverIndex, fieldIndex)
+                  const isActive = getActiveState(driverIndex, fieldIndex)
+                  const cellValue = driver[field.id as keyof Driver]
 
-                    return (
-                      <div
-                        key={field.id}
-                        data-cell-id={`driver-${driverIndex}-field-${fieldIndex}`}
-                        className={`border-b border-[#cdd7e1] last:border-b-0 transition-colors ${
-                          isActive ? 'bg-[#f0f7ff] ring-1 ring-[#0a0a0a] ring-inset' : ''
-                        }`}
-                      >
-                        <EditableTableCell
-                          value={cellValue}
-                          field={field}
-                          isEditing={isEditing}
-                          onFocus={() => handleCellFocus(driverIndex, fieldIndex)}
-                          onBlur={(moveNext) => handleCellBlur(moveNext)}
-                          onChange={(value) => handleCellChange(driverIndex, fieldIndex, value)}
-                          onDoubleClick={() => handleCellFocus(driverIndex, fieldIndex)}
-                        />
-                      </div>
-                    )
-                  })}
-                </CardContent>
-              </Card>
+                  return (
+                    <div
+                      key={field.id}
+                      data-cell-id={`driver-${driverIndex}-field-${fieldIndex}`}
+                      className={`border-b border-[#f3f4f6] last:border-b-0 transition-colors ${
+                        isActive ? 'bg-[#f9fafb]' : ''
+                      }`}
+                    >
+                      <EditableTableCell
+                        value={cellValue}
+                        field={field}
+                        isEditing={isEditing}
+                        onFocus={() => handleCellFocus(driverIndex, fieldIndex)}
+                        onBlur={(moveNext) => handleCellBlur(moveNext)}
+                        onChange={(value) => handleCellChange(driverIndex, fieldIndex, value)}
+                        onDoubleClick={() => handleCellFocus(driverIndex, fieldIndex)}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
             ))}
 
-            {/* Right Sidebar - Inside scrollable container, scrolls with content */}
-            <Card className="border border-[#cdd7e1] bg-[#fbfcfe] rounded-[12px] shadow-sm shrink-0 ml-4" style={{ width: '323px' }}>
-          <CardContent className="p-6">
-            {/* Add Another Driver Button */}
-            <Button
-              variant="outline"
-              className="w-full h-12 mb-6 border border-[#cdd7e1] bg-white hover:bg-[#f5f7fa] text-[#0a0a0a]"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Add Another Driver
-            </Button>
-
-            {/* Drivers Found Section */}
-            <div>
-              <h3
-                className="text-[24px] font-semibold leading-[1.2] tracking-[-0.48px] text-[#0a0a0a] mb-4"
-                style={{ fontFamily: "Geist, sans-serif" }}
-              >
-                Drivers Found
-              </h3>
-              
-              {/* MVR Driver Card */}
-              <Card className="border border-[#cdd7e1] bg-white rounded-lg p-3 mb-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p
-                      className="text-base font-medium text-[#0a0a0a] mb-1"
-                      style={{ fontFamily: "Inter, sans-serif" }}
-                    >
-                      {SAMPLE_MVR_DRIVER.name}
-                    </p>
-                    <p
-                      className="text-sm text-[#737373]"
-                      style={{ fontFamily: "Inter, sans-serif" }}
-                    >
-                      {(() => {
-                        const date = new Date(SAMPLE_MVR_DRIVER.dateOfBirth)
-                        const month = String(date.getMonth() + 1).padStart(2, '0')
-                        const year = date.getFullYear()
-                        return `${month}/../${year}`
-                      })()}
-                    </p>
-                  </div>
+              {/* Right Sidebar - Inside scrollable container, scrolls with content */}
+              <div className="bg-white shrink-0 border-l border-[#e5e7eb]" style={{ width: '323px' }}>
+                <div className="p-4">
+                  {/* Add Another Driver Button */}
                   <Button
                     variant="outline"
-                    size="icon"
-                    className="h-10 w-10 border border-[#cdd7e1] bg-white hover:bg-[#f5f7fa] shrink-0"
+                    onClick={handleAddDriver}
+                    className="w-full h-9 mb-4 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] text-[#111827] text-sm"
                   >
-                    <UserPlus className="h-5 w-5" />
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Another Driver
                   </Button>
+
+                  {/* Drivers Found Section */}
+                  <div>
+                    <h3
+                      className="text-sm font-medium text-[#111827] mb-3"
+                      style={{ fontFamily: "Inter, sans-serif" }}
+                    >
+                      Drivers Found
+                    </h3>
+                    
+                    {/* MVR Driver Card */}
+                    <div className="border border-[#e5e7eb] bg-white rounded-md p-3 mb-2 hover:bg-[#f9fafb] transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p
+                            className="text-sm font-medium text-[#111827] mb-0.5"
+                            style={{ fontFamily: "Inter, sans-serif" }}
+                          >
+                            {SAMPLE_MVR_DRIVER.name}
+                          </p>
+                          <p
+                            className="text-xs text-[#6b7280]"
+                            style={{ fontFamily: "Inter, sans-serif" }}
+                          >
+                            {(() => {
+                              const date = new Date(SAMPLE_MVR_DRIVER.dateOfBirth)
+                              const month = String(date.getMonth() + 1).padStart(2, '0')
+                              const year = date.getFullYear()
+                              return `${month}/../${year}`
+                            })()}
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleAddFromMVR}
+                          className="h-8 w-8 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] shrink-0"
+                        >
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </Card>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-          </div>
+          )}
         </div>
       </div>
     </div>

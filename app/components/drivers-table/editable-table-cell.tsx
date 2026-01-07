@@ -93,7 +93,7 @@ export function EditableTableCell({
     // Display mode
     return (
       <div
-        className="h-[52px] px-4 py-3 flex items-center cursor-text hover:bg-[#f5f7fa] transition-colors"
+        className="h-[44px] px-4 flex items-center cursor-text hover:bg-[#f9fafb] transition-colors"
         onDoubleClick={onDoubleClick}
         onClick={onFocus}
         onFocus={(e) => {
@@ -104,8 +104,8 @@ export function EditableTableCell({
         tabIndex={0}
         style={{ fontFamily: "Inter, sans-serif" }}
       >
-        <span className="text-sm font-normal leading-[1.5] text-[#0a0a0a] w-full">
-          {formatDisplayValue() || <span className="text-[#9fa6ad]">—</span>}
+        <span className="text-sm font-normal text-[#111827] w-full">
+          {formatDisplayValue() || <span className="text-[#9ca3af]">—</span>}
         </span>
       </div>
     )
@@ -114,7 +114,7 @@ export function EditableTableCell({
   // Editing mode
   if (field.type === 'text') {
     return (
-      <div className="h-[52px] px-4 py-3 flex items-center">
+      <div className="h-[44px] px-4 flex items-center">
         <Input
           ref={inputRef}
           type="text"
@@ -122,7 +122,7 @@ export function EditableTableCell({
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           onKeyDown={handleKeyDown}
-          className="h-8 text-sm border border-[#cdd7e1] bg-white focus:border-[#0a0a0a] focus:ring-0"
+          className="h-8 text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
           style={{ fontFamily: "Inter, sans-serif" }}
         />
       </div>
@@ -132,7 +132,7 @@ export function EditableTableCell({
   if (field.type === 'date') {
     const dateValue = formatDateForInput(value || '')
     return (
-      <div className="h-[52px] px-4 py-3 flex items-center">
+      <div className="h-[44px] px-4 flex items-center">
         <Input
           ref={inputRef}
           type="date"
@@ -140,7 +140,7 @@ export function EditableTableCell({
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           onKeyDown={handleKeyDown}
-          className="h-8 text-sm border border-[#cdd7e1] bg-white focus:border-[#0a0a0a] focus:ring-0"
+          className="h-8 text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
           style={{ fontFamily: "Inter, sans-serif" }}
         />
       </div>
@@ -149,7 +149,7 @@ export function EditableTableCell({
 
   if (field.type === 'dropdown' && field.options) {
     return (
-      <div className="h-[52px] px-4 py-3 flex items-center">
+      <div className="h-[44px] px-4 flex items-center">
         <Select
           value={value || ''}
           onValueChange={(newValue) => {
@@ -164,7 +164,7 @@ export function EditableTableCell({
             }
           }}
         >
-          <SelectTrigger className="h-8 w-full text-sm border border-[#cdd7e1] bg-white focus:border-[#0a0a0a] focus:ring-0">
+          <SelectTrigger className="h-8 w-full text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 shadow-none">
             <SelectValue placeholder="Select..." />
           </SelectTrigger>
           <SelectContent>
@@ -182,7 +182,7 @@ export function EditableTableCell({
   if (field.type === 'boolean') {
     const booleanValue = value === true || value === 'true' || value === 'yes'
     return (
-      <div className="h-[52px] px-4 py-3 flex items-center">
+      <div className="h-[44px] px-4 flex items-center">
         <RadioGroup
           value={booleanValue ? 'yes' : 'no'}
           onValueChange={(val) => {
@@ -196,7 +196,7 @@ export function EditableTableCell({
             <RadioGroupItem value="yes" id={`${field.id}-yes`} />
             <Label
               htmlFor={`${field.id}-yes`}
-              className="text-sm font-normal leading-[1.5] text-[#0a0a0a] cursor-pointer"
+              className="text-sm font-normal text-[#111827] cursor-pointer"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               Yes
@@ -206,7 +206,7 @@ export function EditableTableCell({
             <RadioGroupItem value="no" id={`${field.id}-no`} />
             <Label
               htmlFor={`${field.id}-no`}
-              className="text-sm font-normal leading-[1.5] text-[#0a0a0a] cursor-pointer"
+              className="text-sm font-normal text-[#111827] cursor-pointer"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               No
@@ -219,7 +219,7 @@ export function EditableTableCell({
 
   // Fallback for number or other types
   return (
-    <div className="h-[52px] px-4 py-3 flex items-center">
+    <div className="h-[44px] px-4 flex items-center">
       <Input
         ref={inputRef}
         type={field.type === 'number' ? 'number' : 'text'}
@@ -227,7 +227,7 @@ export function EditableTableCell({
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         onKeyDown={handleKeyDown}
-        className="h-8 text-sm border border-[#cdd7e1] bg-white focus:border-[#0a0a0a] focus:ring-0"
+        className="h-8 text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
         style={{ fontFamily: "Inter, sans-serif" }}
       />
     </div>

@@ -1,40 +1,42 @@
 import { User, Car, Shield, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const steps = [
+export const steps = [
   {
     id: "client-info",
     label: "Client Info",
     icon: User,
-    active: true,
   },
   {
     id: "vehicle",
     label: "Vehicle",
     icon: Car,
-    active: false,
   },
   {
     id: "driver",
     label: "Driver",
     icon: User,
-    active: false,
   },
   {
     id: "coverage",
     label: "Coverage",
     icon: Shield,
-    active: false,
   },
   {
     id: "review",
     label: "Review",
     icon: FileText,
-    active: false,
   },
-]
+] as const
 
-export function QuoteProgress() {
+interface QuoteProgressProps {
+  currentStep?: "client-info" | "vehicle" | "driver" | "coverage" | "review"
+}
+
+export function QuoteProgress({ currentStep = "client-info" }: QuoteProgressProps) {
+  const activeStepIndex = steps.findIndex((step) => step.id === currentStep)
+  const progressPercentage = ((activeStepIndex + 1) / steps.length) * 100
+
   return (
     <div className="mb-8 flex w-full flex-col gap-4">
       {/* Steps */}
@@ -42,6 +44,7 @@ export function QuoteProgress() {
         {steps.map((step, index) => {
           const Icon = step.icon
           const isLast = index === steps.length - 1
+          const isActive = step.id === currentStep
 
           return (
             <div key={step.id} className="flex flex-1 items-center gap-4">
@@ -49,7 +52,7 @@ export function QuoteProgress() {
                 <div
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-full border-2 p-0.5 shrink-0",
-                    step.active
+                    isActive
                       ? "border-black bg-black"
                       : "border-[#cdd7e1] bg-white"
                   )}
@@ -57,14 +60,14 @@ export function QuoteProgress() {
                   <Icon
                     className={cn(
                       "h-5 w-5 shrink-0",
-                      step.active ? "text-white" : "text-[#555e68]"
+                      isActive ? "text-white" : "text-[#555e68]"
                     )}
                   />
                 </div>
                 <span
                   className={cn(
                     "text-sm leading-5 whitespace-nowrap",
-                    step.active
+                    isActive
                       ? "font-medium text-black"
                       : "font-normal text-[#555e68]"
                   )}
@@ -84,8 +87,8 @@ export function QuoteProgress() {
       {/* Progress Bar */}
       <div className="h-2 w-full overflow-hidden rounded-full bg-[rgba(11,107,203,0.2)]">
         <div
-          className="h-2 w-full rounded-full bg-black transition-all"
-          style={{ width: "20%", maxWidth: "100%" }}
+          className="h-2 rounded-full bg-black transition-all"
+          style={{ width: `${progressPercentage}%`, maxWidth: "100%" }}
         />
       </div>
     </div>

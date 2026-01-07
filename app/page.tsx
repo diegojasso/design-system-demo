@@ -1,3 +1,6 @@
+"use client"
+
+import * as React from "react"
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -13,7 +16,11 @@ import { ClientInfoForm } from "./components/client-info-form"
 import { DriversTable } from "./components/drivers-table/drivers-table"
 import { QuoteNavigation } from "./components/quote-navigation"
 
+type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "review"
+
 export default function Home() {
+  const [currentStep, setCurrentStep] = React.useState<StepId>("client-info")
+
   return (
     <div className="flex h-screen w-full bg-white">
       {/* Sidebar */}
@@ -58,16 +65,32 @@ export default function Home() {
           <QuoteHeader />
 
           {/* Progress Indicator */}
-          <QuoteProgress />
+          <QuoteProgress currentStep={currentStep} />
 
-          {/* Client Information Form */}
-          <ClientInfoForm />
-
-          {/* Drivers Table */}
-          <DriversTable />
+          {/* Step Content */}
+          {currentStep === "client-info" && <ClientInfoForm />}
+          {currentStep === "driver" && <DriversTable />}
+          {currentStep === "vehicle" && (
+            <div className="mb-8 w-full text-center text-[#737373] py-12">
+              Vehicle step - Coming soon
+            </div>
+          )}
+          {currentStep === "coverage" && (
+            <div className="mb-8 w-full text-center text-[#737373] py-12">
+              Coverage step - Coming soon
+            </div>
+          )}
+          {currentStep === "review" && (
+            <div className="mb-8 w-full text-center text-[#737373] py-12">
+              Review step - Coming soon
+            </div>
+          )}
 
           {/* Navigation Buttons */}
-          <QuoteNavigation />
+          <QuoteNavigation 
+            currentStep={currentStep}
+            onStepChange={setCurrentStep}
+          />
         </div>
       </div>
     </div>
