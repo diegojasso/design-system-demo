@@ -14,6 +14,7 @@ import { QuoteHeader } from "./components/quote-header"
 import { QuoteProgress } from "./components/quote-progress"
 import { ClientInfoForm } from "./components/client-info-form"
 import { DriversTable } from "./components/drivers-table/drivers-table"
+import { VehiclesTable } from "./components/vehicles-table/vehicles-table"
 import { QuoteNavigation } from "./components/quote-navigation"
 
 type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "review"
@@ -70,11 +71,7 @@ export default function Home() {
           {/* Step Content */}
           {currentStep === "client-info" && <ClientInfoForm />}
           {currentStep === "driver" && <DriversTable />}
-          {currentStep === "vehicle" && (
-            <div className="mb-8 w-full text-center text-[#737373] py-12">
-              Vehicle step - Coming soon
-            </div>
-          )}
+          {currentStep === "vehicle" && <VehiclesTable />}
           {currentStep === "coverage" && (
             <div className="mb-8 w-full text-center text-[#737373] py-12">
               Coverage step - Coming soon
