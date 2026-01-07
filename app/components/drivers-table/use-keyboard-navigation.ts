@@ -9,20 +9,22 @@ interface UseKeyboardNavigationProps {
   driverCount: number
   fieldCount: number
   onCellChange?: (driverIndex: number, fieldIndex: number, value: any) => void
+  onAddDriver?: () => void
 }
 
 export function useKeyboardNavigation({
   driverCount,
   fieldCount,
   onCellChange,
+  onAddDriver,
 }: UseKeyboardNavigationProps) {
   const [activeCell, setActiveCell] = useState<ActiveCell>(null)
   const [editingCell, setEditingCell] = useState<ActiveCell>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Move to a specific cell
+  // Move to a specific cell (navigation only - does NOT enter edit mode)
   const moveToCell = useCallback(
-    (driverIndex: number, fieldIndex: number, startEditing = false) => {
+    (driverIndex: number, fieldIndex: number) => {
       // Clamp indices to valid ranges
       const clampedDriverIndex = Math.max(0, Math.min(driverIndex, driverCount - 1))
       const clampedFieldIndex = Math.max(0, Math.min(fieldIndex, fieldCount - 1))
@@ -33,12 +35,8 @@ export function useKeyboardNavigation({
       }
 
       setActiveCell(newCell)
-      if (startEditing) {
-        setEditingCell(newCell)
-      } else {
-        // Don't clear editing cell if we're just moving focus
-        // Only clear if explicitly stopping edit
-      }
+      // Don't automatically enter edit mode - just move focus
+      // Edit mode is only entered via Enter key or click
 
       // Scroll cell into view and focus it (with a small delay to ensure DOM is updated)
       setTimeout(() => {
@@ -48,9 +46,17 @@ export function useKeyboardNavigation({
 
         if (cellElement) {
           // Focus the cell div so it can receive keyboard events
+          // Look for the inner div with tabindex
           const focusableElement = cellElement.querySelector('div[tabindex]') as HTMLElement
           if (focusableElement) {
-            focusableElement.focus()
+            // Use setTimeout to ensure DOM is ready and prevent focus conflicts
+            setTimeout(() => {
+              // Only focus if this is still the active cell
+              if (activeCell?.driverIndex === clampedDriverIndex && 
+                  activeCell?.fieldIndex === clampedFieldIndex) {
+                focusableElement.focus()
+              }
+            }, 20)
           }
           
           cellElement.scrollIntoView({
@@ -168,42 +174,59 @@ export function useKeyboardNavigation({
       // Don't handle keys if user is typing in an input
       const target = e.target as HTMLElement
       const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable
+      const isSelect = target.closest('[data-slot="select"]') !== null
       
-      if (isInput) {
-        // For inputs, only handle Tab and Arrow keys for navigation
-        // Let Enter and Escape be handled by the input itself
-        if (e.key === "Tab") {
-          e.preventDefault()
-          if (e.shiftKey) {
-            movePrevious()
-          } else {
-            moveNext()
+      // Handle Tab key for navigation (both in inputs and display mode)
+      if (e.key === "Tab") {
+        e.preventDefault()
+        e.stopPropagation()
+        
+        if (isInput || isSelect) {
+          // If in an input/select, stop editing first, then navigate
+          if (editingCell) {
+            stopEditing()
           }
-          return
+          // Small delay to let blur/stopEditing complete, then navigate
+          setTimeout(() => {
+            if (e.shiftKey) {
+              movePrevious()
+            } else {
+              moveNext()
+            }
+          }, 50)
+        } else {
+          // In display mode, navigate immediately
+          // Blur any currently focused element first to prevent conflicts
+          if (document.activeElement && document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur()
+          }
+          // Small delay to ensure blur completes
+          setTimeout(() => {
+            if (e.shiftKey) {
+              movePrevious()
+            } else {
+              moveNext()
+            }
+          }, 10)
         }
-        if (
-          e.key === "ArrowUp" ||
-          e.key === "ArrowDown" ||
-          e.key === "ArrowLeft" ||
-          e.key === "ArrowRight"
-        ) {
-          // Allow arrow keys to work in inputs for text selection
-          // But also navigate if at edge
-          return
+        return
+      }
+      
+      // Handle Ctrl/Cmd + N to add new driver (only when not in input/select)
+      if ((e.ctrlKey || e.metaKey) && e.key === "n" && !isInput && !isSelect) {
+        e.preventDefault()
+        if (onAddDriver) {
+          onAddDriver()
         }
-        // For other keys in inputs, let them work normally
+        return
+      }
+
+      if (isInput || isSelect) {
+        // For other keys in inputs/selects, let them work normally
         return
       }
 
       switch (e.key) {
-        case "Tab":
-          e.preventDefault()
-          if (e.shiftKey) {
-            movePrevious()
-          } else {
-            moveNext()
-          }
-          break
 
         case "ArrowUp":
           e.preventDefault()
@@ -228,6 +251,7 @@ export function useKeyboardNavigation({
         case "Enter":
           if (!editingCell) {
             e.preventDefault()
+            // Enter key is the only way to enter edit mode via keyboard
             startEditing()
           }
           // If already editing, let the input handle it (it will call onBlur which stops editing)
@@ -241,7 +265,7 @@ export function useKeyboardNavigation({
           break
       }
     },
-    [editingCell, moveNext, movePrevious, moveUp, moveDown, moveLeft, moveRight, startEditing, stopEditing]
+    [editingCell, moveNext, movePrevious, moveUp, moveDown, moveLeft, moveRight, startEditing, stopEditing, onAddDriver]
   )
 
   // Set up keyboard listeners

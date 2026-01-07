@@ -4,11 +4,14 @@ import * as React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, UserPlus, X, Trash2 } from "lucide-react"
-import { Driver, ColumnDef } from "./types"
+import { Plus, UserPlus, X, Trash2, AlertCircle } from "lucide-react"
+import { Driver, ColumnDef, MVRDriver } from "./types"
 import { DRIVER_FIELDS } from "./columns"
 import { EditableTableCell } from "./editable-table-cell"
 import { useKeyboardNavigation, ActiveCell } from "./use-keyboard-navigation"
+import { MVRSuggestions } from "./mvr-suggestions"
+import { validateCellValue, ValidationError } from "./validation"
+import { KeyboardShortcuts } from "./keyboard-shortcuts"
 
 interface DriversTableProps {
   drivers?: Driver[]
@@ -51,11 +54,29 @@ const SAMPLE_DRIVERS: Driver[] = [
   },
 ]
 
-// Sample MVR driver
-const SAMPLE_MVR_DRIVER = {
-  name: 'Jennifer Gomez',
-  dateOfBirth: '2010-11-05',
-}
+// Sample MVR drivers
+const SAMPLE_MVR_DRIVERS: MVRDriver[] = [
+  {
+    name: 'Jennifer Gomez',
+    dateOfBirth: '2010-11-05',
+    licenseNumber: '',
+    licenseState: '',
+    violations: 0,
+    accidents: 0,
+    confidence: 0.95,
+    source: 'MVR',
+  },
+  {
+    name: 'Michael Gomez',
+    dateOfBirth: '2008-03-12',
+    licenseNumber: '',
+    licenseState: '',
+    violations: 0,
+    accidents: 0,
+    confidence: 0.88,
+    source: 'MVR',
+  },
+]
 
 export function DriversTable({ 
   drivers: initialDrivers = SAMPLE_DRIVERS, 
@@ -63,11 +84,17 @@ export function DriversTable({
 }: DriversTableProps) {
   const [drivers, setDrivers] = React.useState<Driver[]>(initialDrivers)
   const [newDriverIds, setNewDriverIds] = React.useState<Set<string>>(new Set())
+  const [mvrDrivers] = React.useState<MVRDriver[]>(SAMPLE_MVR_DRIVERS)
+  const [validationErrors, setValidationErrors] = React.useState<Map<string, string>>(new Map())
+  const [isLoadingMVR, setIsLoadingMVR] = React.useState(false)
 
   // Update drivers when initialDrivers changes
   React.useEffect(() => {
     setDrivers(initialDrivers)
   }, [initialDrivers])
+
+  // Use a ref to store the add driver function to avoid circular dependency
+  const handleAddDriverRef = React.useRef<(() => void) | null>(null)
 
   // Keyboard navigation hook - update when drivers change
   const {
@@ -80,6 +107,7 @@ export function DriversTable({
   } = useKeyboardNavigation({
     driverCount: drivers.length,
     fieldCount: fields.length,
+    onAddDriver: () => handleAddDriverRef.current?.(),
   })
 
   // Update navigation when drivers change
@@ -87,7 +115,7 @@ export function DriversTable({
     // If active cell is beyond current driver count, reset to last driver
     if (activeCell && activeCell.driverIndex >= drivers.length) {
       if (drivers.length > 0) {
-        moveToCell(drivers.length - 1, activeCell.fieldIndex, false)
+        moveToCell(drivers.length - 1, activeCell.fieldIndex)
       }
     }
   }, [drivers.length, activeCell, moveToCell])
@@ -96,16 +124,38 @@ export function DriversTable({
     const field = fields[fieldIndex]
     const driver = drivers[driverIndex]
     
-    setDrivers((prev) =>
-      prev.map((d, idx) =>
-        idx === driverIndex
-          ? { ...d, [field.id]: value }
-          : d
-      )
+    // Update driver value
+    const updatedDrivers = drivers.map((d, idx) =>
+      idx === driverIndex
+        ? { ...d, [field.id]: value }
+        : d
     )
+    setDrivers(updatedDrivers)
+    
+    // Validate the cell value
+    const updatedDriver = updatedDrivers[driverIndex]
+    const error = validateCellValue(value, field)
+    const errorKey = `${driverIndex}-${field.id}`
+    
+    setValidationErrors((prev) => {
+      const newErrors = new Map(prev)
+      if (error) {
+        newErrors.set(errorKey, error)
+      } else {
+        newErrors.delete(errorKey)
+      }
+      return newErrors
+    })
   }
 
+  // Handle cell focus (navigation only - no edit mode)
   const handleCellFocus = (driverIndex: number, fieldIndex: number) => {
+    moveToCell(driverIndex, fieldIndex)
+    // Don't automatically enter edit mode - just move focus
+  }
+
+  // Handle cell edit (enters edit mode - for click/double-click)
+  const handleCellEdit = (driverIndex: number, fieldIndex: number) => {
     moveToCell(driverIndex, fieldIndex)
     startEditing()
   }
@@ -116,9 +166,9 @@ export function DriversTable({
     if (moveNextAfterBlur && activeCell) {
       const { driverIndex, fieldIndex } = activeCell
       if (fieldIndex < fields.length - 1) {
-        moveToCell(driverIndex, fieldIndex + 1, true)
+        moveToCell(driverIndex, fieldIndex + 1)
       } else if (driverIndex < drivers.length - 1) {
-        moveToCell(driverIndex + 1, 0, true)
+        moveToCell(driverIndex + 1, 0)
       }
     }
   }
@@ -135,7 +185,8 @@ export function DriversTable({
     return activeCell.driverIndex === driverIndex && activeCell.fieldIndex === fieldIndex
   }
 
-  const handleAddDriver = () => {
+  // Define handleAddDriver after hook so we can use moveToCell and startEditing
+  const handleAddDriver = React.useCallback(() => {
     const newDriver: Driver = {
       id: `driver-${Date.now()}`,
       firstName: '',
@@ -156,9 +207,15 @@ export function DriversTable({
     setNewDriverIds((prev) => new Set(prev).add(newDriver.id))
     // Focus on the new driver's first cell
     setTimeout(() => {
-      moveToCell(drivers.length, 0, true)
+      moveToCell(drivers.length, 0)
+      startEditing()
     }, 100)
-  }
+  }, [drivers.length, moveToCell, startEditing])
+
+  // Update the ref whenever handleAddDriver changes
+  React.useEffect(() => {
+    handleAddDriverRef.current = handleAddDriver
+  }, [handleAddDriver])
 
   const handleDeleteDriver = (driverId: string) => {
     setDrivers((prev) => prev.filter((driver) => driver.id !== driverId))
@@ -169,33 +226,46 @@ export function DriversTable({
     })
   }
 
-  const handleAddFromMVR = () => {
+  const handleAddFromMVR = async (mvrDriver: MVRDriver) => {
+    setIsLoadingMVR(true)
+    // Simulate async operation (e.g., API call to add driver)
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    
+    // Parse name into first and last name
+    const nameParts = mvrDriver.name.trim().split(/\s+/)
+    const firstName = nameParts[0] || ''
+    const lastName = nameParts.slice(1).join(' ') || ''
+    
     // Add the MVR driver as a new driver
-    const mvrDriver: Driver = {
-      id: `mvr-${Date.now()}`,
-      firstName: 'Jennifer',
-      lastName: 'Gomez',
-      relationship: 'Child',
-      dateOfBirth: SAMPLE_MVR_DRIVER.dateOfBirth,
+    const newDriver: Driver = {
+      id: `mvr-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      firstName,
+      lastName,
+      relationship: 'Child', // Default relationship, user can change
+      dateOfBirth: mvrDriver.dateOfBirth,
       gender: '',
       maritalStatus: '',
       email: '',
       phone: '',
       includeInPolicy: false,
-      licenseNumber: '',
-      licenseState: '',
+      licenseNumber: mvrDriver.licenseNumber || '',
+      licenseState: mvrDriver.licenseState || '',
       licenseStatus: '',
       yearsLicensed: '',
       isFromMVR: true,
       mvrData: {
-        source: 'MVR',
-        confidence: 0.95,
+        source: mvrDriver.source || 'MVR',
+        confidence: mvrDriver.confidence || 0.95,
       },
     }
-    setDrivers((prev) => [...prev, mvrDriver])
+    setDrivers((prev) => [...prev, newDriver])
+    setNewDriverIds((prev) => new Set(prev).add(newDriver.id))
+    setIsLoadingMVR(false)
+    
     // Focus on the new driver's first cell
     setTimeout(() => {
-      moveToCell(drivers.length, 0, true)
+      moveToCell(drivers.length, 0)
+      startEditing()
     }, 100)
   }
 
@@ -222,10 +292,20 @@ export function DriversTable({
   const isMVRDriver = (driver: Driver) => driver.isFromMVR === true
 
   return (
-    <div className="mb-8 w-full bg-white rounded-lg border border-[#e5e7eb] overflow-hidden">
+    <div 
+      className="mb-8 w-full bg-white rounded-lg border border-[#e5e7eb] overflow-hidden"
+      role="table"
+      aria-label="Drivers table"
+    >
       <div className="flex">
         {/* Main Table Area */}
-        <div className="flex-1 overflow-x-auto relative" ref={containerRef}>
+        <div 
+          className="flex-1 overflow-x-auto relative" 
+          ref={containerRef}
+          role="grid"
+          aria-rowcount={fields.length + 1}
+          aria-colcount={drivers.length + 1}
+        >
           {drivers.length === 0 ? (
             <div className="flex items-center justify-center h-64 text-[#6b7280]">
               <div className="text-center">
@@ -248,9 +328,14 @@ export function DriversTable({
               <div 
                 className="bg-white shrink-0 sticky left-0 z-10 border-r border-[#e5e7eb]" 
                 style={{ width: '321px' }}
+                role="rowgroup"
               >
                 {/* Header */}
-                <div className="h-[52px] px-4 flex items-center border-b border-[#e5e7eb] bg-white">
+                <div 
+                  className="h-[52px] px-4 flex items-center border-b border-[#e5e7eb] bg-white"
+                  role="columnheader"
+                  aria-label="Field labels"
+                >
                   <span
                     className="text-sm font-medium text-[#6b7280]"
                     style={{ fontFamily: "Inter, sans-serif" }}
@@ -259,16 +344,21 @@ export function DriversTable({
                   </span>
                 </div>
                 {/* Field Rows */}
-                {fields.map((field) => (
+                {fields.map((field, fieldIndex) => (
                   <div
                     key={field.id}
                     className="h-[44px] px-4 flex items-center border-b border-[#f3f4f6] last:border-b-0 bg-white"
+                    role="rowheader"
+                    aria-rowindex={fieldIndex + 2}
                   >
                     <span
                       className="text-sm font-normal text-[#111827]"
                       style={{ fontFamily: "Inter, sans-serif" }}
                     >
                       {field.label}
+                      {field.required && (
+                        <span className="text-red-600 ml-1" aria-label="required">*</span>
+                      )}
                     </span>
                   </div>
                 ))}
@@ -282,9 +372,15 @@ export function DriversTable({
                   isNewDriver(driver.id) ? 'ring-1 ring-blue-500/20' : ''
                 }`}
                 style={{ width: '348px' }}
+                role="column"
+                aria-label={`Driver ${driverIndex + 1}`}
               >
                 {/* Header */}
-                <div className="h-[52px] px-4 flex items-center justify-between border-b border-[#e5e7eb] bg-white group">
+                <div 
+                  className="h-[52px] px-4 flex items-center justify-between border-b border-[#e5e7eb] bg-white group"
+                  role="columnheader"
+                  aria-colindex={driverIndex + 2}
+                >
                   <div className="flex items-center gap-2">
                     <span
                       className="text-sm font-medium text-[#111827]"
@@ -322,32 +418,39 @@ export function DriversTable({
                     </Button>
                   )}
                 </div>
-                {/* Field Values */}
-                {fields.map((field, fieldIndex) => {
-                  const isEditing = getEditingState(driverIndex, fieldIndex)
-                  const isActive = getActiveState(driverIndex, fieldIndex)
-                  const cellValue = driver[field.id as keyof Driver]
+                  {/* Field Values */}
+                  {fields.map((field, fieldIndex) => {
+                    const isEditing = getEditingState(driverIndex, fieldIndex)
+                    const isActive = getActiveState(driverIndex, fieldIndex)
+                    const cellValue = driver[field.id as keyof Driver]
+                    const errorKey = `${driverIndex}-${field.id}`
+                    const error = validationErrors.get(errorKey)
 
-                  return (
-                    <div
-                      key={field.id}
-                      data-cell-id={`driver-${driverIndex}-field-${fieldIndex}`}
-                      className={`border-b border-[#f3f4f6] last:border-b-0 transition-colors ${
-                        isActive ? 'bg-[#f9fafb]' : ''
-                      }`}
-                    >
-                      <EditableTableCell
-                        value={cellValue}
-                        field={field}
-                        isEditing={isEditing}
-                        onFocus={() => handleCellFocus(driverIndex, fieldIndex)}
-                        onBlur={(moveNext) => handleCellBlur(moveNext)}
-                        onChange={(value) => handleCellChange(driverIndex, fieldIndex, value)}
-                        onDoubleClick={() => handleCellFocus(driverIndex, fieldIndex)}
-                      />
-                    </div>
-                  )
-                })}
+                    return (
+                      <div
+                        key={field.id}
+                        data-cell-id={`driver-${driverIndex}-field-${fieldIndex}`}
+                        className={`h-[44px] border-b border-[#f3f4f6] last:border-b-0 transition-colors ${
+                          isActive ? 'bg-[#f9fafb]' : ''
+                        } ${error ? 'bg-red-50/30' : ''}`}
+                        role="gridcell"
+                        aria-rowindex={fieldIndex + 2}
+                        aria-colindex={driverIndex + 2}
+                      >
+                        <EditableTableCell
+                          value={cellValue}
+                          field={field}
+                          isEditing={isEditing}
+                          onFocus={() => handleCellFocus(driverIndex, fieldIndex)}
+                          onEdit={() => handleCellEdit(driverIndex, fieldIndex)}
+                          onBlur={(moveNext) => handleCellBlur(moveNext)}
+                          onChange={(value) => handleCellChange(driverIndex, fieldIndex, value)}
+                          onDoubleClick={() => handleCellEdit(driverIndex, fieldIndex)}
+                          error={error}
+                        />
+                      </div>
+                    )
+                  })}
               </div>
             ))}
 
@@ -365,47 +468,15 @@ export function DriversTable({
                   </Button>
 
                   {/* Drivers Found Section */}
-                  <div>
-                    <h3
-                      className="text-sm font-medium text-[#111827] mb-3"
-                      style={{ fontFamily: "Inter, sans-serif" }}
-                    >
-                      Drivers Found
-                    </h3>
-                    
-                    {/* MVR Driver Card */}
-                    <div className="border border-[#e5e7eb] bg-white rounded-md p-3 mb-2 hover:bg-[#f9fafb] transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p
-                            className="text-sm font-medium text-[#111827] mb-0.5"
-                            style={{ fontFamily: "Inter, sans-serif" }}
-                          >
-                            {SAMPLE_MVR_DRIVER.name}
-                          </p>
-                          <p
-                            className="text-xs text-[#6b7280]"
-                            style={{ fontFamily: "Inter, sans-serif" }}
-                          >
-                            {(() => {
-                              const date = new Date(SAMPLE_MVR_DRIVER.dateOfBirth)
-                              const month = String(date.getMonth() + 1).padStart(2, '0')
-                              const year = date.getFullYear()
-                              return `${month}/../${year}`
-                            })()}
-                          </p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handleAddFromMVR}
-                          className="h-8 w-8 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] shrink-0"
-                        >
-                          <UserPlus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  <MVRSuggestions
+                    mvrDrivers={mvrDrivers}
+                    existingDrivers={drivers}
+                    onAddDriver={handleAddFromMVR}
+                    isLoading={isLoadingMVR}
+                  />
+
+                  {/* Keyboard Shortcuts */}
+                  <KeyboardShortcuts />
                 </div>
               </div>
             </div>
