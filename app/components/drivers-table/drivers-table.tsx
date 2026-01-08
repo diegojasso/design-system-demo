@@ -4,6 +4,7 @@ import * as React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
 import { Plus, UserPlus, X, Trash2, AlertCircle, CheckCircle } from "lucide-react"
 import { Driver, ColumnDef, MVRDriver } from "./types"
 import { DRIVER_FIELDS } from "./columns"
@@ -89,6 +90,7 @@ export function DriversTable({
   const [validationErrors, setValidationErrors] = React.useState<Map<string, string>>(new Map())
   const [isLoadingMVR, setIsLoadingMVR] = React.useState(false)
   const [missingFields, setMissingFields] = React.useState<Set<string>>(new Set())
+  const [showMissingOnly, setShowMissingOnly] = React.useState(false)
 
   // Update drivers when initialDrivers changes
   React.useEffect(() => {
@@ -113,10 +115,64 @@ export function DriversTable({
     setMissingFields(missing)
   }, [drivers, fields])
 
+  // Filter fields to show only missing ones when toggle is on
+  const visibleFields = React.useMemo(() => {
+    if (!showMissingOnly) return fields
+    
+    return fields.filter((field) => {
+      // Check if any driver has missing data for this field
+      return drivers.some((driver, driverIndex) => {
+        if (!field.required) return false
+        const errorKey = `${driverIndex}-${field.id}`
+        return missingFields.has(errorKey)
+      })
+    })
+  }, [fields, drivers, missingFields, showMissingOnly])
+
+  // Create mapping from visible field index to original field index
+  const getOriginalFieldIndex = React.useCallback((visibleIndex: number): number => {
+    if (!showMissingOnly) return visibleIndex
+    const field = visibleFields[visibleIndex]
+    return fields.findIndex(f => f.id === field.id)
+  }, [showMissingOnly, visibleFields, fields])
+
+  // Create mapping from original field index to visible field index
+  const getVisibleFieldIndex = React.useCallback((originalIndex: number): number | null => {
+    if (!showMissingOnly) return originalIndex
+    const field = fields[originalIndex]
+    return visibleFields.findIndex(f => f.id === field.id)
+  }, [showMissingOnly, visibleFields, fields])
+
   // Use a ref to store the add driver function to avoid circular dependency
   const handleAddDriverRef = React.useRef<(() => void) | null>(null)
 
-  // Keyboard navigation hook - update when drivers change
+  // Helper to find next visible field index from a given original index
+  const findNextVisibleField = React.useCallback((originalIndex: number): number | null => {
+    if (!showMissingOnly) {
+      return originalIndex < fields.length - 1 ? originalIndex + 1 : null
+    }
+    for (let i = originalIndex + 1; i < fields.length; i++) {
+      if (getVisibleFieldIndex(i) !== null) {
+        return i
+      }
+    }
+    return null
+  }, [showMissingOnly, fields.length, getVisibleFieldIndex])
+
+  // Helper to find previous visible field index from a given original index
+  const findPreviousVisibleField = React.useCallback((originalIndex: number): number | null => {
+    if (!showMissingOnly) {
+      return originalIndex > 0 ? originalIndex - 1 : null
+    }
+    for (let i = originalIndex - 1; i >= 0; i--) {
+      if (getVisibleFieldIndex(i) !== null) {
+        return i
+      }
+    }
+    return null
+  }, [showMissingOnly, getVisibleFieldIndex])
+
+  // Keyboard navigation hook - keep using original field count for bounds checking
   const {
     activeCell,
     editingCell,
@@ -139,6 +195,74 @@ export function DriversTable({
       }
     }
   }, [drivers.length, activeCell, moveToCell])
+
+  // Handle active cell when toggle changes - move to visible field if current is hidden
+  React.useEffect(() => {
+    if (!activeCell || !showMissingOnly) return
+    
+    const visibleIndex = getVisibleFieldIndex(activeCell.fieldIndex)
+    if (visibleIndex === null) {
+      // Current field is hidden, find nearest visible field
+      if (visibleFields.length > 0) {
+        const nextVisible = findNextVisibleField(activeCell.fieldIndex)
+        const prevVisible = findPreviousVisibleField(activeCell.fieldIndex)
+        if (nextVisible !== null) {
+          moveToCell(activeCell.driverIndex, nextVisible)
+        } else if (prevVisible !== null) {
+          moveToCell(activeCell.driverIndex, prevVisible)
+        } else {
+          // Fallback to first visible field
+          const firstVisibleOriginalIndex = getOriginalFieldIndex(0)
+          moveToCell(activeCell.driverIndex, firstVisibleOriginalIndex)
+        }
+      } else {
+        // No visible fields, move to first field
+        moveToCell(activeCell.driverIndex, 0)
+      }
+    }
+  }, [showMissingOnly, activeCell, visibleFields.length, getVisibleFieldIndex, getOriginalFieldIndex, findNextVisibleField, findPreviousVisibleField, moveToCell])
+
+  // Ensure active cell is always visible when filtering (handles navigation to hidden fields)
+  React.useEffect(() => {
+    if (!activeCell || !showMissingOnly) return
+    
+    const visibleIndex = getVisibleFieldIndex(activeCell.fieldIndex)
+    if (visibleIndex === null && visibleFields.length > 0) {
+      // Active cell is on a hidden field, move to nearest visible
+      const nextVisible = findNextVisibleField(activeCell.fieldIndex)
+      const prevVisible = findPreviousVisibleField(activeCell.fieldIndex)
+      if (nextVisible !== null) {
+        moveToCell(activeCell.driverIndex, nextVisible)
+      } else if (prevVisible !== null) {
+        moveToCell(activeCell.driverIndex, prevVisible)
+      } else {
+        moveToCell(activeCell.driverIndex, getOriginalFieldIndex(0))
+      }
+    }
+  }, [activeCell, showMissingOnly, visibleFields.length, getVisibleFieldIndex, findNextVisibleField, findPreviousVisibleField, getOriginalFieldIndex, moveToCell])
+
+  // Keyboard shortcut to toggle missing fields filter (Ctrl/Cmd + M)
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      const target = event.target as HTMLElement
+      const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable
+      const isSelect = target.closest('[data-slot="select"]') !== null
+      
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === 'm' &&
+        !isInput &&
+        !isSelect
+      ) {
+        event.preventDefault()
+        setShowMissingOnly((prev) => !prev)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [])
 
   const handleCellChange = (driverIndex: number, fieldIndex: number, value: any) => {
     const field = fields[fieldIndex]
@@ -185,10 +309,17 @@ export function DriversTable({
     // After blur, if Enter was pressed, move to next cell
     if (moveNextAfterBlur && activeCell) {
       const { driverIndex, fieldIndex } = activeCell
-      if (fieldIndex < fields.length - 1) {
-        moveToCell(driverIndex, fieldIndex + 1)
+      
+      // Find next visible field
+      const nextFieldIndex = findNextVisibleField(fieldIndex)
+      if (nextFieldIndex !== null) {
+        moveToCell(driverIndex, nextFieldIndex)
       } else if (driverIndex < drivers.length - 1) {
-        moveToCell(driverIndex + 1, 0)
+        // Move to next driver, first visible field
+        const firstVisibleIndex = showMissingOnly && visibleFields.length > 0 
+          ? getOriginalFieldIndex(0) 
+          : 0
+        moveToCell(driverIndex + 1, firstVisibleIndex)
       }
     }
   }
@@ -339,7 +470,7 @@ export function DriversTable({
           className="flex-1 overflow-x-auto relative" 
           ref={containerRef}
           role="grid"
-          aria-rowcount={fields.length + 1}
+          aria-rowcount={visibleFields.length + 1}
           aria-colcount={drivers.length + 1}
         >
           {drivers.length === 0 ? (
@@ -368,7 +499,7 @@ export function DriversTable({
               >
                 {/* Header */}
                 <div 
-                  className="h-[64px] px-4 flex items-center border-b border-[#e5e7eb] bg-white"
+                  className="h-[64px] px-4 flex flex-col justify-center gap-2 border-b border-[#e5e7eb] bg-white"
                   role="columnheader"
                   aria-label="Field labels"
                 >
@@ -378,26 +509,53 @@ export function DriversTable({
                   >
                     Drivers
                   </span>
-                </div>
-                {/* Field Rows */}
-                {fields.map((field, fieldIndex) => (
-                  <div
-                    key={field.id}
-                    className="h-[44px] px-4 flex items-center border-b border-[#f3f4f6] last:border-b-0 bg-white"
-                    role="rowheader"
-                    aria-rowindex={fieldIndex + 2}
-                  >
-                    <span
-                      className="text-sm font-normal text-[#111827]"
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Switch
+                      checked={showMissingOnly}
+                      onCheckedChange={setShowMissingOnly}
+                      className="data-[state=checked]:bg-blue-600"
+                    />
+                    <span 
+                      className="text-xs text-[#6b7280]"
                       style={{ fontFamily: "Inter, sans-serif" }}
                     >
-                      {field.label}
-                      {field.required && (
-                        <span className="text-red-600 ml-1" aria-label="required">*</span>
-                      )}
+                      Show missing questions only
+                    </span>
+                  </label>
+                </div>
+                {/* Field Rows */}
+                {visibleFields.length === 0 && showMissingOnly ? (
+                  <div className="h-[44px] px-4 flex items-center border-b border-[#f3f4f6] bg-white">
+                    <span
+                      className="text-sm font-normal text-[#6b7280] italic"
+                      style={{ fontFamily: "Inter, sans-serif" }}
+                    >
+                      No missing fields
                     </span>
                   </div>
-                ))}
+                ) : (
+                  visibleFields.map((field, visibleIndex) => {
+                    const originalFieldIndex = getOriginalFieldIndex(visibleIndex)
+                    return (
+                      <div
+                        key={field.id}
+                        className="h-[44px] px-4 flex items-center border-b border-[#f3f4f6] last:border-b-0 bg-white"
+                        role="rowheader"
+                        aria-rowindex={visibleIndex + 2}
+                      >
+                        <span
+                          className="text-sm font-normal text-[#111827]"
+                          style={{ fontFamily: "Inter, sans-serif" }}
+                        >
+                          {field.label}
+                          {field.required && (
+                            <span className="text-red-600 ml-1" aria-label="required">*</span>
+                          )}
+                        </span>
+                      </div>
+                    )
+                  })
+                )}
               </div>
 
             {/* Driver Columns */}
@@ -485,43 +643,55 @@ export function DriversTable({
                   )}
                 </div>
                   {/* Field Values */}
-                  {fields.map((field, fieldIndex) => {
-                    const isEditing = getEditingState(driverIndex, fieldIndex)
-                    const isActive = getActiveState(driverIndex, fieldIndex)
-                    const cellValue = driver[field.id as keyof Driver]
-                    const errorKey = `${driverIndex}-${field.id}`
-                    const error = validationErrors.get(errorKey)
-                    const isMissing = missingFields.has(errorKey)
-                    const hasError = !!error
-
-                    return (
-                      <div
-                        key={field.id}
-                        data-cell-id={`driver-${driverIndex}-field-${fieldIndex}`}
-                        className={`h-[44px] border-b border-[#f3f4f6] last:border-b-0 transition-colors ${
-                          isActive ? 'bg-[#f9fafb]' : ''
-                        } ${hasError ? 'bg-red-50/30' : ''} ${
-                          isMissing && !hasError ? 'bg-amber-50' : ''
-                        }`}
-                        role="gridcell"
-                        aria-rowindex={fieldIndex + 2}
-                        aria-colindex={driverIndex + 2}
+                  {visibleFields.length === 0 && showMissingOnly ? (
+                    <div className="h-[44px] border-b border-[#f3f4f6] bg-white flex items-center justify-center">
+                      <span
+                        className="text-xs text-[#6b7280] italic"
+                        style={{ fontFamily: "Inter, sans-serif" }}
                       >
-                        <EditableTableCell
-                          value={cellValue}
-                          field={field}
-                          isEditing={isEditing}
-                          onFocus={() => handleCellFocus(driverIndex, fieldIndex)}
-                          onEdit={() => handleCellEdit(driverIndex, fieldIndex)}
-                          onBlur={(moveNext) => handleCellBlur(moveNext)}
-                          onChange={(value) => handleCellChange(driverIndex, fieldIndex, value)}
-                          onDoubleClick={() => handleCellEdit(driverIndex, fieldIndex)}
-                          error={error}
-                          isMissing={isMissing && !hasError}
-                        />
-                      </div>
-                    )
-                  })}
+                        All fields complete
+                      </span>
+                    </div>
+                  ) : (
+                    visibleFields.map((field, visibleIndex) => {
+                      const originalFieldIndex = getOriginalFieldIndex(visibleIndex)
+                      const isEditing = getEditingState(driverIndex, originalFieldIndex)
+                      const isActive = getActiveState(driverIndex, originalFieldIndex)
+                      const cellValue = driver[field.id as keyof Driver]
+                      const errorKey = `${driverIndex}-${field.id}`
+                      const error = validationErrors.get(errorKey)
+                      const isMissing = missingFields.has(errorKey)
+                      const hasError = !!error
+
+                      return (
+                        <div
+                          key={field.id}
+                          data-cell-id={`driver-${driverIndex}-field-${originalFieldIndex}`}
+                          className={`h-[44px] border-b border-[#f3f4f6] last:border-b-0 transition-colors ${
+                            isActive ? 'bg-[#f9fafb]' : ''
+                          } ${hasError ? 'bg-red-50/30' : ''} ${
+                            isMissing && !hasError ? 'bg-amber-50' : ''
+                          }`}
+                          role="gridcell"
+                          aria-rowindex={visibleIndex + 2}
+                          aria-colindex={driverIndex + 2}
+                        >
+                          <EditableTableCell
+                            value={cellValue}
+                            field={field}
+                            isEditing={isEditing}
+                            onFocus={() => handleCellFocus(driverIndex, originalFieldIndex)}
+                            onEdit={() => handleCellEdit(driverIndex, originalFieldIndex)}
+                            onBlur={(moveNext) => handleCellBlur(moveNext)}
+                            onChange={(value) => handleCellChange(driverIndex, originalFieldIndex, value)}
+                            onDoubleClick={() => handleCellEdit(driverIndex, originalFieldIndex)}
+                            error={error}
+                            isMissing={isMissing && !hasError}
+                          />
+                        </div>
+                      )
+                    })
+                  )}
               </div>
             ))}
 

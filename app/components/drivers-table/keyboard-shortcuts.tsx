@@ -50,6 +50,18 @@ export function KeyboardShortcuts() {
             <Kbd>N</Kbd>
           </div>
         </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-[#111827]" style={{ fontFamily: "Inter, sans-serif" }}>
+            Toggle missing fields
+          </span>
+          <div className="flex items-center gap-1">
+            <Kbd>Ctrl</Kbd>
+            <span className="text-[#6b7280]">/</span>
+            <Kbd>⌘</Kbd>
+            <span className="text-[#6b7280]">+</span>
+            <Kbd>M</Kbd>
+          </div>
+        </div>
       </div>
     </div>
   )

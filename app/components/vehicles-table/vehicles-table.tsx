@@ -280,11 +280,6 @@ export function VehiclesTable({
   const getVehicleBadges = (vehicle: Vehicle, vehicleIndex: number) => {
     const badges: Array<string | { type: 'incomplete' | 'complete'; text: string; count?: number }> = []
     
-    // Status badges
-    if (vehicleIndex === 0) {
-      badges.push('Primary Vehicle')
-    }
-    
     // Data source badges
     if (vehicle.isFromDiscovery) {
       badges.push('Discovery')
@@ -480,7 +475,7 @@ export function VehiclesTable({
                         }
                         
                         // Style badges differently based on type
-                        const isStatusBadge = badge === 'Primary Vehicle' || badge === 'New' || badge === 'Discovery'
+                        const isStatusBadge = badge === 'New' || badge === 'Discovery'
                         const isConditionBadge = badge === 'Clean title' || badge === 'Carfax ✓'
                         
                         return (
