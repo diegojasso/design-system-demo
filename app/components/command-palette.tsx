@@ -14,10 +14,12 @@ import {
 import { useCommandPalette } from "./hooks/use-command-palette"
 import { commandFilter } from "./command-palette/fuzzy-search"
 import { useRecentQuotes } from "./command-palette/use-recent-quotes"
+import { useCommandHistory } from "./command-palette/use-command-history"
 import type { StepId } from "./quote-progress"
 import type { Command } from "./command-palette/commands"
 import type { RecentQuote } from "./command-palette/quote-types"
 import { Badge } from "@/components/ui/badge"
+import { Star } from "lucide-react"
 
 interface CommandPaletteProps {
   currentStep?: StepId
@@ -32,6 +34,8 @@ interface CommandPaletteProps {
 }
 
 const groupLabels: Record<string, string> = {
+  favorites: "Favorites",
+  history: "Recently Used",
   "quick-actions": "Quick Actions",
   navigation: "Jump to Section",
   "quote-actions": "Reports & Actions",
@@ -50,6 +54,18 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   // Get recent quotes
   const { recentQuotes, addRecentQuote } = useRecentQuotes()
+
+  // Get command history and favorites
+  const {
+    history,
+    favorites,
+    customShortcuts,
+    trackCommand,
+    toggleFavorite,
+    getUsageCount,
+    getMostUsed,
+    isFavorite,
+  } = useCommandHistory()
 
   // Wrap onOpenQuote to track recent quotes
   const handleOpenQuoteWithTracking = (quoteId: string) => {
@@ -74,6 +90,9 @@ export function CommandPalette({
     onDownloadPDF,
     recentQuotes,
     onOpenQuote: handleOpenQuoteWithTracking,
+    history,
+    favorites,
+    customShortcuts,
   })
 
   const [search, setSearch] = useState("")
@@ -108,9 +127,21 @@ export function CommandPalette({
   }, [search, allCommands])
 
   const handleSelect = (command: Command) => {
+    // Track command execution
+    trackCommand(command.id)
     command.action()
     setIsOpen(false)
     setSearch("")
+  }
+
+  // Handle right-click or long-press to favorite (for future enhancement)
+  const handleFavoriteToggle = (
+    e: React.MouseEvent,
+    command: Command
+  ) => {
+    e.preventDefault()
+    e.stopPropagation()
+    toggleFavorite(command.id)
   }
 
   // Reset search when dialog closes
@@ -182,11 +213,14 @@ export function CommandPalette({
                 accepted: "bg-green-500/10 text-green-600 dark:text-green-500",
                 rejected: "bg-red-500/10 text-red-600 dark:text-red-500",
               }
+              const favorite = isFavorite(command.id)
+              const displayShortcut = command.customShortcut || command.shortcut
               return (
                 <CommandItem
                   key={command.id}
-                  value={`${command.id} ${command.label} ${command.keywords.join(" ")} ${command.shortcut || ""} ${command.meta || ""}`}
+                  value={`${command.id} ${command.label} ${command.keywords.join(" ")} ${displayShortcut || ""} ${command.meta || ""}`}
                   onSelect={() => handleSelect(command)}
+                  className="group/item"
                 >
                   <Icon className="h-4 w-4" />
                   <div className="flex flex-1 items-center gap-2">
@@ -204,10 +238,20 @@ export function CommandPalette({
                         {command.status}
                       </Badge>
                     )}
+                    {command.usageCount !== undefined && command.usageCount > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        ({command.usageCount}x)
+                      </span>
+                    )}
                   </div>
-                  {command.shortcut && (
-                    <CommandShortcut>{command.shortcut}</CommandShortcut>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {favorite && (
+                      <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                    )}
+                    {displayShortcut && (
+                      <CommandShortcut>{displayShortcut}</CommandShortcut>
+                    )}
+                  </div>
                 </CommandItem>
               )
             })}

@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import type { RecentQuote } from "./quote-types"
+import type { CommandHistoryEntry } from "./use-command-history"
 
 export interface Command {
   id: string
@@ -21,12 +22,22 @@ export interface Command {
   keywords: string[]
   shortcut?: string
   icon: LucideIcon
-  group: "quick-actions" | "navigation" | "quote-actions" | "recent"
+  group:
+    | "quick-actions"
+    | "navigation"
+    | "quote-actions"
+    | "recent"
+    | "favorites"
+    | "history"
   context: "always" | "in-quote" | "has-quote"
   action: () => void
   // Optional metadata for display
   meta?: string
   status?: "draft" | "pending" | "sent" | "accepted" | "rejected"
+  // History and favorites
+  usageCount?: number
+  isFavorite?: boolean
+  customShortcut?: string
 }
 
 interface CommandContext {
@@ -41,6 +52,10 @@ interface CommandContext {
   // Recent quotes
   recentQuotes?: RecentQuote[]
   onOpenQuote?: (quoteId: string) => void
+  // History and favorites
+  history?: CommandHistoryEntry[]
+  favorites?: Set<string>
+  customShortcuts?: Map<string, string>
 }
 
 export function buildCommands(context: CommandContext): Command[] {
