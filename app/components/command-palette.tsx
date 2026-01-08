@@ -13,14 +13,23 @@ import {
 } from "@/components/ui/command"
 import { useCommandPalette } from "./hooks/use-command-palette"
 import { commandFilter } from "./command-palette/fuzzy-search"
+import { useRecentQuotes } from "./command-palette/use-recent-quotes"
 import type { StepId } from "./quote-progress"
 import type { Command } from "./command-palette/commands"
+import type { RecentQuote } from "./command-palette/quote-types"
+import { Badge } from "@/components/ui/badge"
 
 interface CommandPaletteProps {
   currentStep?: StepId
   onStepChange?: (step: StepId) => void
   onSaveDraft?: () => void
   onFindClient?: () => void
+  // Quote context
+  currentQuoteId?: string
+  onRunReports?: () => void
+  onSendQuote?: () => void
+  onDownloadPDF?: () => void
+  onOpenQuote?: (quoteId: string) => void
 }
 
 const groupLabels: Record<string, string> = {
@@ -35,12 +44,39 @@ export function CommandPalette({
   onStepChange,
   onSaveDraft,
   onFindClient,
+  currentQuoteId,
+  onRunReports,
+  onSendQuote,
+  onDownloadPDF,
+  onOpenQuote,
 }: CommandPaletteProps) {
+  // Get recent quotes
+  const { recentQuotes, addRecentQuote } = useRecentQuotes()
+
+  // Wrap onOpenQuote to track recent quotes
+  const handleOpenQuoteWithTracking = (quoteId: string) => {
+    // Add to recent quotes (with mock data for demo)
+    // In a real app, you'd fetch quote data first
+    addRecentQuote({
+      id: quoteId,
+      quoteNumber: `Q-${quoteId.slice(-6)}`,
+      clientName: `Client ${quoteId.slice(-3)}`,
+      status: "draft",
+    })
+    onOpenQuote?.(quoteId)
+  }
+
   const { isOpen, setIsOpen, commands } = useCommandPalette({
     currentStep,
     onStepChange,
     onSaveDraft,
     onFindClient,
+    currentQuoteId,
+    onRunReports,
+    onSendQuote,
+    onDownloadPDF,
+    recentQuotes,
+    onOpenQuote: handleOpenQuoteWithTracking,
   })
 
   const [search, setSearch] = useState("")
@@ -142,14 +178,36 @@ export function CommandPalette({
           <CommandGroup key={group} heading={groupLabels[group] || group}>
             {groupCommands.map((command: Command) => {
               const Icon = command.icon
+              const statusColors: Record<string, string> = {
+                draft: "bg-muted text-muted-foreground",
+                pending: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-500",
+                sent: "bg-blue-500/10 text-blue-600 dark:text-blue-500",
+                accepted: "bg-green-500/10 text-green-600 dark:text-green-500",
+                rejected: "bg-red-500/10 text-red-600 dark:text-red-500",
+              }
               return (
                 <CommandItem
                   key={command.id}
-                  value={`${command.id} ${command.label} ${command.keywords.join(" ")} ${command.shortcut || ""}`}
+                  value={`${command.id} ${command.label} ${command.keywords.join(" ")} ${command.shortcut || ""} ${command.meta || ""}`}
                   onSelect={() => handleSelect(command)}
                 >
                   <Icon className="h-4 w-4" />
-                  <span>{command.label}</span>
+                  <div className="flex flex-1 items-center gap-2">
+                    <span>{command.label}</span>
+                    {command.meta && (
+                      <span className="text-xs text-muted-foreground">
+                        {command.meta}
+                      </span>
+                    )}
+                    {command.status && (
+                      <Badge
+                        variant="outline"
+                        className={`h-5 text-xs ${statusColors[command.status] || ""}`}
+                      >
+                        {command.status}
+                      </Badge>
+                    )}
+                  </div>
                   {command.shortcut && (
                     <CommandShortcut>{command.shortcut}</CommandShortcut>
                   )}

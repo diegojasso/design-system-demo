@@ -22,6 +22,11 @@ type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "review"
 
 export default function Home() {
   const [currentStep, setCurrentStep] = React.useState<StepId>("client-info")
+  // Mock quote ID - in real app, this would come from quote state/context
+  const currentQuoteId = React.useMemo(() => {
+    // For demo purposes, generate a quote ID if we're in the workflow
+    return currentStep ? "quote-123" : undefined
+  }, [currentStep])
 
   const handleSaveDraft = () => {
     // TODO: Implement save draft functionality
@@ -39,6 +44,28 @@ export default function Home() {
     // - Open a client search modal/dialog
     // - Navigate to client search page
     // - Show client search results
+  }
+
+  const handleRunReports = () => {
+    console.log("Running all reports (MVR + CLUE)...")
+    // TODO: Implement report generation
+  }
+
+  const handleSendQuote = () => {
+    console.log("Sending quote to client...")
+    // TODO: Implement send quote functionality
+  }
+
+  const handleDownloadPDF = () => {
+    console.log("Downloading PDF...")
+    // TODO: Implement PDF generation and download
+  }
+
+  const handleOpenQuote = (quoteId: string) => {
+    console.log("Opening quote:", quoteId)
+    // TODO: Navigate to quote or load quote data
+    // For now, just navigate to first step
+    setCurrentStep("client-info")
   }
 
   return (
@@ -121,6 +148,11 @@ export default function Home() {
         onStepChange={setCurrentStep}
         onSaveDraft={handleSaveDraft}
         onFindClient={handleFindClient}
+        currentQuoteId={currentQuoteId}
+        onRunReports={handleRunReports}
+        onSendQuote={handleSendQuote}
+        onDownloadPDF={handleDownloadPDF}
+        onOpenQuote={handleOpenQuote}
       />
     </>
   )

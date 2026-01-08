@@ -3,12 +3,21 @@
 import { useState, useEffect, useMemo } from "react"
 import { buildCommands, Command } from "../command-palette/commands"
 import type { StepId } from "../quote-progress"
+import type { RecentQuote } from "../command-palette/quote-types"
 
 interface UseCommandPaletteProps {
   currentStep?: StepId
   onStepChange?: (step: StepId) => void
   onSaveDraft?: () => void
   onFindClient?: () => void
+  // Quote context
+  currentQuoteId?: string
+  onRunReports?: () => void
+  onSendQuote?: () => void
+  onDownloadPDF?: () => void
+  // Recent quotes
+  recentQuotes?: RecentQuote[]
+  onOpenQuote?: (quoteId: string) => void
 }
 
 interface GroupedCommand {
@@ -27,6 +36,12 @@ export function useCommandPalette({
   onStepChange,
   onSaveDraft,
   onFindClient,
+  currentQuoteId,
+  onRunReports,
+  onSendQuote,
+  onDownloadPDF,
+  recentQuotes,
+  onOpenQuote,
 }: UseCommandPaletteProps): UseCommandPaletteReturn {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -38,8 +53,25 @@ export function useCommandPalette({
         onStepChange,
         onSaveDraft,
         onFindClient,
+        currentQuoteId,
+        onRunReports,
+        onSendQuote,
+        onDownloadPDF,
+        recentQuotes,
+        onOpenQuote,
       }),
-    [currentStep, onStepChange, onSaveDraft, onFindClient]
+    [
+      currentStep,
+      onStepChange,
+      onSaveDraft,
+      onFindClient,
+      currentQuoteId,
+      onRunReports,
+      onSendQuote,
+      onDownloadPDF,
+      recentQuotes,
+      onOpenQuote,
+    ]
   )
 
   // Group commands by category

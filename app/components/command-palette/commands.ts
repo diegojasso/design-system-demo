@@ -8,8 +8,13 @@ import {
   Users,
   Shield,
   FileCheck,
+  RefreshCw,
+  Send,
+  Download,
+  FileText,
   type LucideIcon,
 } from "lucide-react"
+import type { RecentQuote } from "./quote-types"
 
 export interface Command {
   id: string
@@ -18,8 +23,11 @@ export interface Command {
   shortcut?: string
   icon: LucideIcon
   group: "quick-actions" | "navigation" | "quote-actions" | "recent"
-  context: "always" | "in-quote"
+  context: "always" | "in-quote" | "has-quote"
   action: () => void
+  // Optional metadata for display
+  meta?: string
+  status?: "draft" | "pending" | "sent" | "accepted" | "rejected"
 }
 
 interface CommandContext {
@@ -27,6 +35,14 @@ interface CommandContext {
   onStepChange?: (step: StepId) => void
   onSaveDraft?: () => void
   onFindClient?: () => void
+  // Quote context
+  currentQuoteId?: string
+  onRunReports?: () => void
+  onSendQuote?: () => void
+  onDownloadPDF?: () => void
+  // Recent quotes
+  recentQuotes?: RecentQuote[]
+  onOpenQuote?: (quoteId: string) => void
 }
 
 export function buildCommands(context: CommandContext): Command[] {
@@ -124,6 +140,69 @@ export function buildCommands(context: CommandContext): Command[] {
         context: "in-quote",
         action: () => {
           context.onStepChange?.(id as StepId)
+        },
+      })
+    })
+  }
+
+  // Quote-specific actions (only when a quote exists)
+  if (context.currentQuoteId) {
+    commands.push({
+      id: "run-reports",
+      label: "Run All Reports (MVR + CLUE)",
+      keywords: ["run", "reports", "mvr", "clue", "generate"],
+      icon: RefreshCw,
+      group: "quote-actions",
+      context: "has-quote",
+      action: () => {
+        context.onRunReports?.()
+      },
+    })
+
+    commands.push({
+      id: "send-quote",
+      label: "Send Quote to Client",
+      keywords: ["send", "quote", "client", "email"],
+      icon: Send,
+      group: "quote-actions",
+      context: "has-quote",
+      action: () => {
+        context.onSendQuote?.()
+      },
+    })
+
+    commands.push({
+      id: "download-pdf",
+      label: "Download PDF",
+      keywords: ["download", "pdf", "export", "print"],
+      icon: Download,
+      group: "quote-actions",
+      context: "has-quote",
+      action: () => {
+        context.onDownloadPDF?.()
+      },
+    })
+  }
+
+  // Recent Quotes (if available)
+  if (context.recentQuotes && context.recentQuotes.length > 0) {
+    context.recentQuotes.forEach((quote) => {
+      commands.push({
+        id: `recent-${quote.id}`,
+        label: quote.clientName,
+        keywords: [
+          quote.clientName.toLowerCase(),
+          quote.quoteNumber.toLowerCase(),
+          "recent",
+          "quote",
+        ],
+        icon: FileText,
+        group: "recent",
+        context: "always",
+        meta: quote.quoteNumber,
+        status: quote.status,
+        action: () => {
+          context.onOpenQuote?.(quote.id)
         },
       })
     })
