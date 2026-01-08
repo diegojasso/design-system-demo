@@ -368,7 +368,7 @@ export function DriversTable({
               >
                 {/* Header */}
                 <div 
-                  className="h-[52px] px-4 flex items-center border-b border-[#e5e7eb] bg-white"
+                  className="h-[64px] px-4 flex items-center border-b border-[#e5e7eb] bg-white"
                   role="columnheader"
                   aria-label="Field labels"
                 >
@@ -413,11 +413,11 @@ export function DriversTable({
               >
                 {/* Header */}
                 <div 
-                  className="h-[52px] px-4 flex items-center justify-between border-b border-[#e5e7eb] bg-white group"
+                  className="h-[64px] px-4 flex items-center justify-between border-b border-[#e5e7eb] bg-white group"
                   role="columnheader"
                   aria-colindex={driverIndex + 2}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-start justify-start gap-2">
                     <span
                       className="text-sm font-medium text-[#111827]"
                       style={{ fontFamily: "Inter, sans-serif" }}

@@ -8,6 +8,7 @@ export interface ColumnDef {
   required?: boolean
   width?: string
   editable?: boolean
+  placeholder?: string // Optional explicit placeholder override
 }
 
 export interface Driver {

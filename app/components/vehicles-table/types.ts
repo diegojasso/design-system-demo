@@ -10,6 +10,7 @@ export interface ColumnDef {
   width?: string
   editable?: boolean
   unit?: string // For number-with-unit type (e.g., "mi")
+  placeholder?: string // Optional explicit placeholder override
 }
 
 export interface Vehicle {

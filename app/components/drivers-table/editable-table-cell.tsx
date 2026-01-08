@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { ColumnDef } from "./types"
 import { validateCellValue } from "./validation"
+import { getDisplayPlaceholder, getEditPlaceholder } from "./utils/placeholders"
 
 interface EditableTableCellProps {
   value: any
@@ -129,6 +130,10 @@ export const EditableTableCell = React.memo(function EditableTableCell({
   // Render based on field type
   if (!isEditing) {
     // Display mode - click/double-click enters edit mode, Enter key also enters edit mode
+    const displayValue = formatDisplayValue()
+    const isEmpty = !displayValue || displayValue === ''
+    const placeholder = isEmpty ? getDisplayPlaceholder(field, field.required) : null
+    
     return (
       <div
         className={`h-full px-4 flex items-center cursor-text hover:bg-[#f9fafb] transition-colors ${
@@ -144,16 +149,21 @@ export const EditableTableCell = React.memo(function EditableTableCell({
         onKeyDown={handleKeyDownDisplay}
         tabIndex={0}
         role="gridcell"
-        aria-label={`${field.label}, ${error ? `Error: ${error}` : isMissing ? 'Required field is empty' : ''} ${formatDisplayValue() || 'empty'}`}
+        aria-label={`${field.label}, ${error ? `Error: ${error}` : isMissing ? 'Required field is empty' : ''} ${displayValue || placeholder || 'empty'}`}
         aria-invalid={error ? 'true' : 'false'}
         aria-required={field.required ? 'true' : 'false'}
         style={{ fontFamily: "Inter, sans-serif" }}
       >
         <div className="flex items-center gap-2 w-full">
           <span className={`text-sm font-normal w-full ${
-            error ? 'text-red-700' : isMissing && !error ? 'text-amber-900' : 'text-[#111827]'
+            error ? 'text-red-700' : 
+            isMissing && !error && isEmpty ? 'text-amber-600 italic' :
+            isEmpty && field.required ? 'text-amber-600 italic' :
+            isEmpty ? 'text-[#9ca3af] italic' :
+            isMissing && !error ? 'text-amber-900' : 
+            'text-[#111827]'
           }`}>
-            {formatDisplayValue() || <span className="text-[#9ca3af]">—</span>}
+            {displayValue || (placeholder ? placeholder : <span className="text-[#9ca3af]">—</span>)}
           </span>
           {error && (
             <span className="text-xs text-red-600 shrink-0" title={error}>
@@ -173,12 +183,14 @@ export const EditableTableCell = React.memo(function EditableTableCell({
   // Editing mode
   if (field.type === 'text') {
     const inputType = field.id === 'email' ? 'email' : field.id === 'phone' ? 'tel' : 'text'
+    const placeholder = getEditPlaceholder(field)
     return (
       <div className="h-full px-4 flex items-center">
         <Input
           ref={inputRef}
           type={inputType}
           value={value || ''}
+          placeholder={placeholder || undefined}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           onKeyDown={handleKeyDown}
@@ -200,12 +212,14 @@ export const EditableTableCell = React.memo(function EditableTableCell({
 
   if (field.type === 'date') {
     const dateValue = formatDateForInput(value || '')
+    const placeholder = getEditPlaceholder(field)
     return (
       <div className="h-full px-4 flex items-center">
         <Input
           ref={inputRef}
           type="date"
           value={dateValue}
+          placeholder={placeholder || undefined}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
           onKeyDown={handleKeyDown}
@@ -226,6 +240,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
   }
 
   if (field.type === 'dropdown' && field.options) {
+    const placeholder = getEditPlaceholder(field)
     return (
       <div className="h-full px-4 flex items-center">
         <Select
@@ -246,7 +261,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
             ref={selectTriggerRef}
             className="h-8 w-full text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 shadow-none"
           >
-            <SelectValue placeholder="Select..." />
+            <SelectValue placeholder={placeholder || "Select..."} />
           </SelectTrigger>
           <SelectContent>
             {field.options.map((option) => (
@@ -299,12 +314,14 @@ export const EditableTableCell = React.memo(function EditableTableCell({
   }
 
   // Fallback for number or other types
+  const placeholder = getEditPlaceholder(field)
   return (
     <div className="h-full px-4 flex items-center">
       <Input
         ref={inputRef}
         type={field.type === 'number' ? 'number' : 'text'}
         value={value || ''}
+        placeholder={placeholder || undefined}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         onKeyDown={handleKeyDown}
