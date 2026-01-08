@@ -38,13 +38,13 @@ export function MVRSuggestions({
     return (
       <div>
         <h3
-          className="text-sm font-medium text-[#111827] mb-3"
+          className="text-sm font-medium text-foreground mb-3"
           style={{ fontFamily: "Inter, sans-serif" }}
         >
           Drivers Found
         </h3>
         <p
-          className="text-xs text-[#6b7280]"
+          className="text-xs text-muted-foreground"
           style={{ fontFamily: "Inter, sans-serif" }}
         >
           No additional drivers found
@@ -56,7 +56,7 @@ export function MVRSuggestions({
   return (
     <div>
       <h3
-        className="text-sm font-medium text-[#111827] mb-3"
+        className="text-sm font-medium text-foreground mb-3"
         style={{ fontFamily: "Inter, sans-serif" }}
       >
         Drivers Found
@@ -96,19 +96,19 @@ function MVRSuggestionCard({ mvrDriver, onAdd, isLoading = false }: MVRSuggestio
   }
 
   return (
-    <div className="border border-[#e5e7eb] bg-white rounded-md p-3 hover:bg-[#f9fafb] transition-colors">
+    <div className="border border-border bg-card rounded-md p-3 hover:bg-muted transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <p
-              className="text-sm font-medium text-[#111827] truncate"
+              className="text-sm font-medium text-foreground truncate"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               {mvrDriver.name}
             </p>
             {mvrDriver.confidence && (
               <span
-                className="text-xs text-[#6b7280] shrink-0"
+                className="text-xs text-muted-foreground shrink-0"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 {formatConfidence(mvrDriver.confidence)}
@@ -117,14 +117,14 @@ function MVRSuggestionCard({ mvrDriver, onAdd, isLoading = false }: MVRSuggestio
           </div>
           <div className="flex items-center gap-3">
             <p
-              className="text-xs text-[#6b7280]"
+              className="text-xs text-muted-foreground"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               {formatDate(mvrDriver.dateOfBirth)}
             </p>
             {mvrDriver.source && (
               <span
-                className="text-xs text-[#6b7280]"
+                className="text-xs text-muted-foreground"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 • {mvrDriver.source}
@@ -137,7 +137,7 @@ function MVRSuggestionCard({ mvrDriver, onAdd, isLoading = false }: MVRSuggestio
           size="icon"
           onClick={onAdd}
           disabled={isLoading}
-          className="h-8 w-8 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] shrink-0 ml-2"
+          className="h-8 w-8 shrink-0 ml-2"
           aria-label={isLoading ? "Adding driver..." : "Add driver"}
         >
           <UserPlus className={`h-4 w-4 ${isLoading ? 'opacity-50' : ''}`} />

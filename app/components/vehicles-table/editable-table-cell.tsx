@@ -125,9 +125,9 @@ export const EditableTableCell = React.memo(function EditableTableCell({
     
     return (
       <div
-        className={`h-full px-4 flex items-center cursor-text hover:bg-[#f9fafb] transition-colors ${
-          error ? 'bg-red-50' : ''
-        } ${isMissing && !error ? 'bg-amber-50' : ''}`}
+        className={`h-full px-4 flex items-center cursor-text hover:bg-muted transition-colors ${
+          error ? 'bg-red-50 dark:bg-red-950/30' : ''
+        } ${isMissing && !error ? 'bg-amber-50 dark:bg-amber-950/30' : ''}`}
         onDoubleClick={onDoubleClick}
         onClick={onEdit}
         onFocus={(e) => {
@@ -145,14 +145,14 @@ export const EditableTableCell = React.memo(function EditableTableCell({
       >
         <div className="flex items-center gap-2 w-full">
           <span className={`text-sm font-normal w-full ${
-            error ? 'text-red-700' : 
-            isMissing && !error && isEmpty ? 'text-amber-600 italic' :
-            isEmpty && field.required ? 'text-amber-600 italic' :
-            isEmpty ? 'text-[#9ca3af] italic' :
-            isMissing && !error ? 'text-amber-900' : 
-            'text-[#111827]'
+            error ? 'text-red-700 dark:text-red-400' : 
+            isMissing && !error && isEmpty ? 'text-amber-600 dark:text-amber-400 italic' :
+            isEmpty && field.required ? 'text-amber-600 dark:text-amber-400 italic' :
+            isEmpty ? 'text-muted-foreground italic' :
+            isMissing && !error ? 'text-amber-900 dark:text-amber-300' : 
+            'text-foreground'
           }`}>
-            {displayValue || (placeholder ? placeholder : <span className="text-[#9ca3af]">—</span>)}
+            {displayValue || (placeholder ? placeholder : <span className="text-muted-foreground">—</span>)}
           </span>
           {error && (
             <span className="text-xs text-red-600 shrink-0" title={error}>
@@ -218,7 +218,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
           aria-describedby={error ? `${field.id}-error` : undefined}
           style={{ fontFamily: "Inter, sans-serif" }}
         />
-        <span className="text-sm text-[#6b7280] shrink-0" style={{ fontFamily: "Inter, sans-serif" }}>
+        <span className="text-sm text-muted-foreground shrink-0" style={{ fontFamily: "Inter, sans-serif" }}>
           {field.unit || ''}
         </span>
         {error && (
@@ -316,7 +316,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
               />
               <Label
                 htmlFor={`${field.id}-${option.value}`}
-                className="text-sm font-normal text-[#111827] cursor-pointer"
+                className="text-sm font-normal text-foreground cursor-pointer"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 {option.label}
@@ -348,7 +348,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
             <RadioGroupItem value="yes" id={`${field.id}-yes`} className="h-4 w-4" />
             <Label
               htmlFor={`${field.id}-yes`}
-              className="text-sm font-normal text-[#111827] cursor-pointer"
+              className="text-sm font-normal text-foreground cursor-pointer"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               Yes
@@ -358,7 +358,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
             <RadioGroupItem value="no" id={`${field.id}-no`} className="h-4 w-4" />
             <Label
               htmlFor={`${field.id}-no`}
-              className="text-sm font-normal text-[#111827] cursor-pointer"
+              className="text-sm font-normal text-foreground cursor-pointer"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               No

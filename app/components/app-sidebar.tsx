@@ -49,14 +49,14 @@ const menuItems = [
 export function AppSidebar() {
   return (
     <div
-      className="flex h-screen w-[240px] flex-col border-r border-[rgba(99,107,116,0.3)] bg-[#f0f4f8] pb-4 pt-6"
+      className="flex h-screen w-[240px] flex-col border-r border-sidebar-border bg-sidebar pb-4 pt-6"
     >
       {/* Logo Section */}
       <div className="mb-8 px-4">
         <div className="mb-2 flex h-5 items-center">
-          <span className="text-xl font-bold leading-none tracking-tight text-black">novo</span>
+          <span className="text-xl font-bold leading-none tracking-tight text-sidebar-foreground">novo</span>
         </div>
-        <p className="text-base font-semibold leading-[1.5] text-[#32383e]" style={{ fontFamily: "Inter, sans-serif" }}>
+        <p className="text-base font-semibold leading-[1.5] text-sidebar-foreground" style={{ fontFamily: "Inter, sans-serif" }}>
           Canary
         </p>
       </div>
@@ -71,14 +71,14 @@ export function AppSidebar() {
               className={cn(
                 "flex items-center gap-5 rounded-md px-3 py-1.5 transition-colors",
                 item.active
-                  ? "bg-[#dde7ee] text-[#32383e]"
-                  : "text-[#32383e] hover:bg-[#e8edf2]"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
-              <Icon className="h-5 w-5 shrink-0 text-[#32383e]" />
+              <Icon className="h-5 w-5 shrink-0 text-sidebar-foreground" />
               <span
                 className={cn(
-                  "flex-1 text-base leading-[1.5] text-[#32383e]",
+                  "flex-1 text-base leading-[1.5] text-sidebar-foreground",
                   item.active ? "font-medium" : "font-normal"
                 )}
                 style={{ fontFamily: "Inter, sans-serif" }}
@@ -86,9 +86,9 @@ export function AppSidebar() {
                 {item.label}
               </span>
               {item.badge && (
-                <div className="flex h-5 w-5 items-center justify-center rounded-[12px] bg-[#c41c1c] px-[7px] py-0">
+                <div className="flex h-5 w-5 items-center justify-center rounded-[12px] bg-destructive px-[7px] py-0">
                   <span
-                    className="text-sm font-medium leading-[1.5] text-white"
+                    className="text-sm font-medium leading-[1.5] text-destructive-foreground"
                     style={{ fontFamily: "Inter, sans-serif" }}
                   >
                     {item.badge}
@@ -109,20 +109,20 @@ export function AppSidebar() {
           </Avatar>
           <div className="flex-1">
             <p
-              className="text-base font-normal text-[#171a1c]"
+              className="text-base font-normal text-sidebar-foreground"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               Kaiya Yehia
             </p>
             <p
-              className="text-sm font-normal text-[#555e68]"
+              className="text-sm font-normal text-sidebar-foreground/70"
               style={{ fontFamily: "Inter, sans-serif", lineHeight: 1.42 }}
             >
               CSR
             </p>
           </div>
-          <button className="flex h-10 w-10 items-center justify-center rounded-md hover:bg-[#e8edf2]">
-            <ChevronRight className="h-5 w-5 text-[#32383e]" />
+          <button className="flex h-10 w-10 items-center justify-center rounded-md hover:bg-sidebar-accent/50">
+            <ChevronRight className="h-5 w-5 text-sidebar-foreground" />
           </button>
         </div>
       </div>

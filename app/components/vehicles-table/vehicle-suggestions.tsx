@@ -49,13 +49,13 @@ export function VehicleSuggestions({
     return (
       <div>
         <h3
-          className="text-sm font-medium text-[#111827] mb-3"
+          className="text-sm font-medium text-foreground mb-3"
           style={{ fontFamily: "Inter, sans-serif" }}
         >
           Vehicles Found
         </h3>
         <p
-          className="text-xs text-[#6b7280]"
+          className="text-xs text-muted-foreground"
           style={{ fontFamily: "Inter, sans-serif" }}
         >
           No additional vehicles found
@@ -67,7 +67,7 @@ export function VehicleSuggestions({
   return (
     <div>
       <h3
-        className="text-sm font-medium text-[#111827] mb-3"
+        className="text-sm font-medium text-foreground mb-3"
         style={{ fontFamily: "Inter, sans-serif" }}
       >
         Vehicles Found
@@ -103,19 +103,19 @@ function VehicleSuggestionCard({ discoveredVehicle, onAdd, isLoading = false }: 
   }
 
   return (
-    <div className="border border-[#e5e7eb] bg-white rounded-md p-3 hover:bg-[#f9fafb] transition-colors">
+    <div className="border border-border bg-card rounded-md p-3 hover:bg-muted transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <p
-              className="text-sm font-medium text-[#111827] truncate"
+              className="text-sm font-medium text-foreground truncate"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               {getVehicleDisplay()}
             </p>
             {discoveredVehicle.confidence && (
               <span
-                className="text-xs text-[#6b7280] shrink-0"
+                className="text-xs text-muted-foreground shrink-0"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 {formatConfidence(discoveredVehicle.confidence)}
@@ -125,7 +125,7 @@ function VehicleSuggestionCard({ discoveredVehicle, onAdd, isLoading = false }: 
           <div className="flex items-center gap-3 flex-wrap">
             {discoveredVehicle.vin && (
               <p
-                className="text-xs text-[#6b7280] font-mono"
+                className="text-xs text-muted-foreground font-mono"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 {discoveredVehicle.vin}
@@ -133,7 +133,7 @@ function VehicleSuggestionCard({ discoveredVehicle, onAdd, isLoading = false }: 
             )}
             {discoveredVehicle.source && (
               <span
-                className="text-xs text-[#6b7280]"
+                className="text-xs text-muted-foreground"
                 style={{ fontFamily: "Inter, sans-serif" }}
               >
                 • {discoveredVehicle.source}
@@ -145,7 +145,7 @@ function VehicleSuggestionCard({ discoveredVehicle, onAdd, isLoading = false }: 
             <div className="flex items-center gap-1 mt-2">
               {discoveredVehicle.badges.cleanTitle && (
                 <span
-                  className="text-xs px-1.5 py-0.5 bg-[#f3f4f6] text-[#6b7280] rounded"
+                  className="text-xs px-1.5 py-0.5 bg-muted text-muted-foreground rounded"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
                   Clean title
@@ -153,7 +153,7 @@ function VehicleSuggestionCard({ discoveredVehicle, onAdd, isLoading = false }: 
               )}
               {discoveredVehicle.badges.carfaxVerified && (
                 <span
-                  className="text-xs px-1.5 py-0.5 bg-[#f3f4f6] text-[#6b7280] rounded"
+                  className="text-xs px-1.5 py-0.5 bg-muted text-muted-foreground rounded"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
                   Carfax ✓
@@ -167,7 +167,7 @@ function VehicleSuggestionCard({ discoveredVehicle, onAdd, isLoading = false }: 
           size="icon"
           onClick={onAdd}
           disabled={isLoading}
-          className="h-8 w-8 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] shrink-0 ml-2"
+          className="h-8 w-8 shrink-0 ml-2"
           aria-label={isLoading ? "Adding vehicle..." : "Add vehicle"}
         >
           <Car className={`h-4 w-4 ${isLoading ? 'opacity-50' : ''}`} />

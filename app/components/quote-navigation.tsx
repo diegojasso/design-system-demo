@@ -45,7 +45,7 @@ export function QuoteNavigation({ currentStep, onStepChange }: QuoteNavigationPr
         size="lg"
         disabled={isLastStep}
         onClick={handleNext}
-        className="h-9 gap-2 bg-black text-white hover:bg-black/90"
+        className="h-9 gap-2"
       >
         Next
         <ChevronRight className="h-5 w-5" />

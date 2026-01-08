@@ -460,7 +460,7 @@ export function DriversTable({
 
   return (
     <div 
-      className="mb-8 w-full bg-white rounded-lg border border-[#e5e7eb] overflow-hidden"
+      className="mb-8 w-full bg-card rounded-lg border border-border overflow-hidden"
       role="table"
       aria-label="Drivers table"
     >
@@ -474,7 +474,7 @@ export function DriversTable({
           aria-colcount={drivers.length + 1}
         >
           {drivers.length === 0 ? (
-            <div className="flex items-center justify-center h-64 text-[#6b7280]">
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
               <div className="text-center">
                 <p className="text-sm mb-2" style={{ fontFamily: "Inter, sans-serif" }}>
                   No drivers added yet
@@ -482,7 +482,7 @@ export function DriversTable({
                 <Button
                   variant="outline"
                   onClick={handleAddDriver}
-                  className="h-9 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] text-[#111827] text-sm"
+                  className="h-9 text-sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add First Driver
@@ -493,18 +493,18 @@ export function DriversTable({
             <div className="inline-flex min-w-full">
               {/* Field Labels Column - Fixed */}
               <div 
-                className="bg-white shrink-0 sticky left-0 z-10 border-r border-[#e5e7eb]" 
+                className="bg-card shrink-0 sticky left-0 z-10 border-r border-border" 
                 style={{ width: '321px' }}
                 role="rowgroup"
               >
                 {/* Header */}
                 <div 
-                  className="h-[64px] px-4 flex flex-col justify-center gap-2 border-b border-[#e5e7eb] bg-white"
+                  className="h-[64px] px-4 flex flex-col justify-center gap-2 border-b border-border bg-card"
                   role="columnheader"
                   aria-label="Field labels"
                 >
                   <span
-                    className="text-sm font-medium text-[#6b7280]"
+                    className="text-sm font-medium text-muted-foreground"
                     style={{ fontFamily: "Inter, sans-serif" }}
                   >
                     Drivers
@@ -516,7 +516,7 @@ export function DriversTable({
                       className="data-[state=checked]:bg-blue-600"
                     />
                     <span 
-                      className="text-xs text-[#6b7280]"
+                      className="text-xs text-muted-foreground"
                       style={{ fontFamily: "Inter, sans-serif" }}
                     >
                       Show missing questions only
@@ -525,9 +525,9 @@ export function DriversTable({
                 </div>
                 {/* Field Rows */}
                 {visibleFields.length === 0 && showMissingOnly ? (
-                  <div className="h-[44px] px-4 flex items-center border-b border-[#f3f4f6] bg-white">
+                  <div className="h-[44px] px-4 flex items-center border-b border-border bg-card">
                     <span
-                      className="text-sm font-normal text-[#6b7280] italic"
+                      className="text-sm font-normal text-muted-foreground italic"
                       style={{ fontFamily: "Inter, sans-serif" }}
                     >
                       No missing fields
@@ -539,12 +539,12 @@ export function DriversTable({
                     return (
                       <div
                         key={field.id}
-                        className="h-[44px] px-4 flex items-center border-b border-[#f3f4f6] last:border-b-0 bg-white"
+                        className="h-[44px] px-4 flex items-center border-b border-border last:border-b-0 bg-card"
                         role="rowheader"
                         aria-rowindex={visibleIndex + 2}
                       >
                         <span
-                          className="text-sm font-normal text-[#111827]"
+                          className="text-sm font-normal text-foreground"
                           style={{ fontFamily: "Inter, sans-serif" }}
                         >
                           {field.label}
@@ -562,7 +562,7 @@ export function DriversTable({
             {drivers.map((driver, driverIndex) => (
               <div
                 key={driver.id}
-                className={`bg-white shrink-0 border-r border-[#e5e7eb] last:border-r-0 relative ${
+                className={`bg-card shrink-0 border-r border-border last:border-r-0 relative ${
                   isNewDriver(driver.id) ? 'ring-1 ring-blue-500/20' : ''
                 }`}
                 style={{ width: '348px' }}
@@ -571,13 +571,13 @@ export function DriversTable({
               >
                 {/* Header */}
                 <div 
-                  className="h-[64px] px-4 flex items-center justify-between border-b border-[#e5e7eb] bg-white group"
+                  className="h-[64px] px-4 flex items-center justify-between border-b border-border bg-card group"
                   role="columnheader"
                   aria-colindex={driverIndex + 2}
                 >
                   <div className="flex flex-col items-start justify-start gap-2">
                     <span
-                      className="text-sm font-medium text-[#111827]"
+                      className="text-sm font-medium text-foreground"
                       style={{ fontFamily: "Inter, sans-serif" }}
                     >
                       Driver {driverIndex + 1}
@@ -621,7 +621,7 @@ export function DriversTable({
                                 ? 'bg-blue-50 text-blue-700' 
                                 : badge === 'MVR'
                                 ? 'bg-green-50 text-green-700'
-                                : 'bg-[#f3f4f6] text-[#6b7280]'
+                                : 'bg-muted text-muted-foreground'
                             }`}
                           >
                             {badge}
@@ -636,7 +636,7 @@ export function DriversTable({
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDeleteDriver(driver.id)}
-                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-[#6b7280] hover:text-[#111827] hover:bg-[#f3f4f6]"
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground hover:bg-muted"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -644,9 +644,9 @@ export function DriversTable({
                 </div>
                   {/* Field Values */}
                   {visibleFields.length === 0 && showMissingOnly ? (
-                    <div className="h-[44px] border-b border-[#f3f4f6] bg-white flex items-center justify-center">
+                    <div className="h-[44px] border-b border-border bg-card flex items-center justify-center">
                       <span
-                        className="text-xs text-[#6b7280] italic"
+                        className="text-xs text-muted-foreground italic"
                         style={{ fontFamily: "Inter, sans-serif" }}
                       >
                         All fields complete
@@ -667,10 +667,10 @@ export function DriversTable({
                         <div
                           key={field.id}
                           data-cell-id={`driver-${driverIndex}-field-${originalFieldIndex}`}
-                          className={`h-[44px] border-b border-[#f3f4f6] last:border-b-0 transition-colors ${
-                            isActive ? 'bg-[#f9fafb]' : ''
-                          } ${hasError ? 'bg-red-50/30' : ''} ${
-                            isMissing && !hasError ? 'bg-amber-50' : ''
+                          className={`h-[44px] border-b border-border last:border-b-0 transition-colors ${
+                            isActive ? 'bg-muted' : ''
+                          } ${hasError ? 'bg-red-50/30 dark:bg-red-950/30' : ''} ${
+                            isMissing && !hasError ? 'bg-amber-50 dark:bg-amber-950/30' : ''
                           }`}
                           role="gridcell"
                           aria-rowindex={visibleIndex + 2}
@@ -696,13 +696,13 @@ export function DriversTable({
             ))}
 
               {/* Right Sidebar - Inside scrollable container, scrolls with content */}
-              <div className="bg-white shrink-0 border-l border-[#e5e7eb]" style={{ width: '323px' }}>
+              <div className="bg-card shrink-0 border-l border-border" style={{ width: '323px' }}>
                 <div className="p-4">
                   {/* Add Another Driver Button */}
                   <Button
                     variant="outline"
                     onClick={handleAddDriver}
-                    className="w-full h-9 mb-4 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] text-[#111827] text-sm"
+                    className="w-full h-9 mb-4 text-sm"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Another Driver
