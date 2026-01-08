@@ -14,6 +14,8 @@ import { MVRSuggestions } from "./mvr-suggestions"
 import { validateCellValue, ValidationError } from "./validation"
 import { KeyboardShortcuts } from "./keyboard-shortcuts"
 import { getRowMissingCount, isRowComplete } from "./utils/missing-data"
+import { useQuote } from "@/app/contexts/quote-context"
+import { useAutoSave } from "@/hooks/use-auto-save"
 
 interface DriversTableProps {
   drivers?: Driver[]
@@ -81,21 +83,59 @@ const SAMPLE_MVR_DRIVERS: MVRDriver[] = [
 ]
 
 export function DriversTable({ 
-  drivers: initialDrivers = SAMPLE_DRIVERS, 
+  drivers: initialDrivers, 
   fields = DRIVER_FIELDS 
 }: DriversTableProps) {
-  const [drivers, setDrivers] = React.useState<Driver[]>(initialDrivers)
+  const { quoteData, updateDrivers, saveQuote } = useQuote()
+  
+  // Use quote data if available, otherwise use initialDrivers prop, otherwise use sample data
+  const defaultDrivers = React.useMemo(() => {
+    if (quoteData.drivers && quoteData.drivers.length > 0) {
+      return quoteData.drivers
+    }
+    if (initialDrivers && initialDrivers.length > 0) {
+      return initialDrivers
+    }
+    return SAMPLE_DRIVERS
+  }, [quoteData.drivers, initialDrivers])
+  
+  const [drivers, setDrivers] = React.useState<Driver[]>(defaultDrivers)
   const [newDriverIds, setNewDriverIds] = React.useState<Set<string>>(new Set())
   const [mvrDrivers] = React.useState<MVRDriver[]>(SAMPLE_MVR_DRIVERS)
   const [validationErrors, setValidationErrors] = React.useState<Map<string, string>>(new Map())
   const [isLoadingMVR, setIsLoadingMVR] = React.useState(false)
   const [missingFields, setMissingFields] = React.useState<Set<string>>(new Set())
   const [showMissingOnly, setShowMissingOnly] = React.useState(false)
+  const [originalEditingValue, setOriginalEditingValue] = React.useState<{
+    driverIndex: number
+    fieldIndex: number
+    value: any
+  } | null>(null)
+  
+  // Track if we've initialized from quote context
+  const hasInitialized = React.useRef(false)
 
-  // Update drivers when initialDrivers changes
+  // Update drivers when quote data changes (on initial load)
   React.useEffect(() => {
-    setDrivers(initialDrivers)
-  }, [initialDrivers])
+    if (!hasInitialized.current && quoteData.drivers && quoteData.drivers.length > 0) {
+      setDrivers(quoteData.drivers)
+      hasInitialized.current = true
+    } else if (initialDrivers && initialDrivers.length > 0 && !hasInitialized.current) {
+      setDrivers(initialDrivers)
+      hasInitialized.current = true
+    }
+  }, [quoteData.drivers, initialDrivers])
+
+  // Auto-save when drivers change
+  useAutoSave({
+    data: drivers,
+    saveFn: async (data) => {
+      updateDrivers(data)
+      await saveQuote()
+    },
+    debounceMs: 2000,
+    enabled: drivers.length > 0, // Only save if there are drivers
+  })
 
   // Recompute missing fields when drivers or fields change
   React.useEffect(() => {
@@ -302,12 +342,51 @@ export function DriversTable({
   const handleCellEdit = (driverIndex: number, fieldIndex: number) => {
     moveToCell(driverIndex, fieldIndex)
     startEditing()
+    // Store original value when editing starts
+    const field = fields[fieldIndex]
+    const driver = drivers[driverIndex]
+    setOriginalEditingValue({
+      driverIndex,
+      fieldIndex,
+      value: driver[field.id as keyof Driver]
+    })
   }
 
-  const handleCellBlur = (moveNextAfterBlur = false) => {
+  // Handle undo - restore original value
+  const handleCellUndo = () => {
+    if (!originalEditingValue) return
+    const { driverIndex, fieldIndex, value } = originalEditingValue
+    const field = fields[fieldIndex]
+    
+    // Restore original value
+    const updatedDrivers = drivers.map((d, idx) =>
+      idx === driverIndex
+        ? { ...d, [field.id]: value }
+        : d
+    )
+    setDrivers(updatedDrivers)
+    
+    // Clear validation errors for this cell
+    const errorKey = `${driverIndex}-${field.id}`
+    setValidationErrors((prev) => {
+      const newErrors = new Map(prev)
+      newErrors.delete(errorKey)
+      return newErrors
+    })
+    
+    // Clear original value tracking
+    setOriginalEditingValue(null)
+  }
+
+  const handleCellBlur = (moveNextAfterBlur = false, undo = false) => {
+    if (undo && originalEditingValue) {
+      handleCellUndo()
+    }
     stopEditing()
+    setOriginalEditingValue(null)
+    
     // After blur, if Enter was pressed, move to next cell
-    if (moveNextAfterBlur && activeCell) {
+    if (moveNextAfterBlur && !undo && activeCell) {
       const { driverIndex, fieldIndex } = activeCell
       
       // Find next visible field
@@ -682,7 +761,7 @@ export function DriversTable({
                             isEditing={isEditing}
                             onFocus={() => handleCellFocus(driverIndex, originalFieldIndex)}
                             onEdit={() => handleCellEdit(driverIndex, originalFieldIndex)}
-                            onBlur={(moveNext) => handleCellBlur(moveNext)}
+                            onBlur={(moveNext, undo) => handleCellBlur(moveNext, undo)}
                             onChange={(value) => handleCellChange(driverIndex, originalFieldIndex, value)}
                             onDoubleClick={() => handleCellEdit(driverIndex, originalFieldIndex)}
                             error={error}

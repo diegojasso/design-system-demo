@@ -14,6 +14,8 @@ import { KeyboardShortcuts } from "./keyboard-shortcuts"
 import { VehicleSuggestions } from "./vehicle-suggestions"
 import { validateCellValue, ValidationError } from "./validation"
 import { getRowMissingCount, isRowComplete } from "./utils/missing-data"
+import { useQuote } from "@/app/contexts/quote-context"
+import { useAutoSave } from "@/hooks/use-auto-save"
 
 interface VehiclesTableProps {
   vehicles?: Vehicle[]
@@ -85,21 +87,59 @@ const SAMPLE_DISCOVERED_VEHICLES: DiscoveredVehicle[] = [
 ]
 
 export function VehiclesTable({ 
-  vehicles: initialVehicles = SAMPLE_VEHICLES, 
+  vehicles: initialVehicles, 
   fields = VEHICLE_FIELDS 
 }: VehiclesTableProps) {
-  const [vehicles, setVehicles] = React.useState<Vehicle[]>(initialVehicles)
+  const { quoteData, updateVehicles, saveQuote } = useQuote()
+  
+  // Use quote data if available, otherwise use initialVehicles prop, otherwise use sample data
+  const defaultVehicles = React.useMemo(() => {
+    if (quoteData.vehicles && quoteData.vehicles.length > 0) {
+      return quoteData.vehicles
+    }
+    if (initialVehicles && initialVehicles.length > 0) {
+      return initialVehicles
+    }
+    return SAMPLE_VEHICLES
+  }, [quoteData.vehicles, initialVehicles])
+  
+  const [vehicles, setVehicles] = React.useState<Vehicle[]>(defaultVehicles)
   const [newVehicleIds, setNewVehicleIds] = React.useState<Set<string>>(new Set())
   const [discoveredVehicles] = React.useState<DiscoveredVehicle[]>(SAMPLE_DISCOVERED_VEHICLES)
   const [isLoadingDiscovery, setIsLoadingDiscovery] = React.useState(false)
   const [validationErrors, setValidationErrors] = React.useState<Map<string, string>>(new Map())
   const [missingFields, setMissingFields] = React.useState<Set<string>>(new Set())
   const [showMissingOnly, setShowMissingOnly] = React.useState(false)
+  const [originalEditingValue, setOriginalEditingValue] = React.useState<{
+    vehicleIndex: number
+    fieldIndex: number
+    value: any
+  } | null>(null)
+  
+  // Track if we've initialized from quote context
+  const hasInitialized = React.useRef(false)
 
-  // Update vehicles when initialVehicles changes
+  // Update vehicles when quote data changes (on initial load)
   React.useEffect(() => {
-    setVehicles(initialVehicles)
-  }, [initialVehicles])
+    if (!hasInitialized.current && quoteData.vehicles && quoteData.vehicles.length > 0) {
+      setVehicles(quoteData.vehicles)
+      hasInitialized.current = true
+    } else if (initialVehicles && initialVehicles.length > 0 && !hasInitialized.current) {
+      setVehicles(initialVehicles)
+      hasInitialized.current = true
+    }
+  }, [quoteData.vehicles, initialVehicles])
+
+  // Auto-save when vehicles change
+  useAutoSave({
+    data: vehicles,
+    saveFn: async (data) => {
+      updateVehicles(data)
+      await saveQuote()
+    },
+    debounceMs: 2000,
+    enabled: vehicles.length > 0, // Only save if there are vehicles
+  })
 
   // Recompute missing fields when vehicles or fields change
   React.useEffect(() => {
@@ -304,12 +344,51 @@ export function VehiclesTable({
   const handleCellEdit = (vehicleIndex: number, fieldIndex: number) => {
     moveToCell(vehicleIndex, fieldIndex)
     startEditing()
+    // Store original value when editing starts
+    const field = fields[fieldIndex]
+    const vehicle = vehicles[vehicleIndex]
+    setOriginalEditingValue({
+      vehicleIndex,
+      fieldIndex,
+      value: vehicle[field.id as keyof Vehicle]
+    })
   }
 
-  const handleCellBlur = (moveNextAfterBlur = false) => {
+  // Handle undo - restore original value
+  const handleCellUndo = () => {
+    if (!originalEditingValue) return
+    const { vehicleIndex, fieldIndex, value } = originalEditingValue
+    const field = fields[fieldIndex]
+    
+    // Restore original value
+    const updatedVehicles = vehicles.map((v, idx) =>
+      idx === vehicleIndex
+        ? { ...v, [field.id]: value }
+        : v
+    )
+    setVehicles(updatedVehicles)
+    
+    // Clear validation errors for this cell
+    const errorKey = `${vehicleIndex}-${field.id}`
+    setValidationErrors((prev) => {
+      const newErrors = new Map(prev)
+      newErrors.delete(errorKey)
+      return newErrors
+    })
+    
+    // Clear original value tracking
+    setOriginalEditingValue(null)
+  }
+
+  const handleCellBlur = (moveNextAfterBlur = false, undo = false) => {
+    if (undo && originalEditingValue) {
+      handleCellUndo()
+    }
     stopEditing()
+    setOriginalEditingValue(null)
+    
     // After blur, if Enter was pressed, move to next cell
-    if (moveNextAfterBlur && activeCell) {
+    if (moveNextAfterBlur && !undo && activeCell) {
       const { vehicleIndex, fieldIndex } = activeCell
       
       // Find next visible field
@@ -713,7 +792,7 @@ export function VehiclesTable({
                           isEditing={isEditing}
                           onFocus={() => handleCellFocus(vehicleIndex, originalFieldIndex)}
                           onEdit={() => handleCellEdit(vehicleIndex, originalFieldIndex)}
-                          onBlur={(moveNext) => handleCellBlur(moveNext)}
+                          onBlur={(moveNext, undo) => handleCellBlur(moveNext, undo)}
                           onChange={(value) => handleCellChange(vehicleIndex, originalFieldIndex, value)}
                           onDoubleClick={() => handleCellEdit(vehicleIndex, originalFieldIndex)}
                           error={error}

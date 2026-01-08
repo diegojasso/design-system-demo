@@ -1,7 +1,6 @@
 import type { StepId } from "../quote-progress"
 import {
   Plus,
-  Save,
   Search,
   User,
   Car,
@@ -33,7 +32,6 @@ export interface Command {
 interface CommandContext {
   currentStep?: StepId
   onStepChange?: (step: StepId) => void
-  onSaveDraft?: () => void
   onFindClient?: () => void
   // Quote context
   currentQuoteId?: string
@@ -60,19 +58,6 @@ export function buildCommands(context: CommandContext): Command[] {
     action: () => {
       // Navigate to new quote / reset to first step
       context.onStepChange?.("client-info")
-    },
-  })
-
-  commands.push({
-    id: "save-draft",
-    label: "Save Draft",
-    keywords: ["save", "draft", "store"],
-    shortcut: "⌘S",
-    icon: Save,
-    group: "quick-actions",
-    context: "always",
-    action: () => {
-      context.onSaveDraft?.()
     },
   })
 

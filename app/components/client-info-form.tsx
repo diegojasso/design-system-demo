@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
+import { useQuote } from "@/app/contexts/quote-context"
+import { useAutoSave } from "@/hooks/use-auto-save"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import {
@@ -145,19 +147,115 @@ const clientInfoSchema = z.object({
 type ClientInfoFormValues = z.infer<typeof clientInfoSchema>
 
 export function ClientInfoForm() {
-  const form = useForm<ClientInfoFormValues>({
-    resolver: zodResolver(clientInfoSchema),
-    defaultValues: {
+  const { quoteData, updateClientInfo, saveQuote } = useQuote()
+  
+  // Track if we've initialized the form
+  const hasInitialized = React.useRef(false)
+
+  // Load initial values from quote context if available, otherwise use defaults
+  const defaultValues = React.useMemo<ClientInfoFormValues>(() => {
+    if (quoteData.clientInfo) {
+      return {
+        ...quoteData.clientInfo,
+        // Ensure dateOfBirth is a Date object
+        dateOfBirth: quoteData.clientInfo.dateOfBirth instanceof Date 
+          ? quoteData.clientInfo.dateOfBirth 
+          : new Date(quoteData.clientInfo.dateOfBirth),
+      }
+    }
+    return {
       firstName: "James",
       lastName: "McNulty",
+      dateOfBirth: new Date("1990-01-01"),
       email: "john@example.com",
       phone: "(555) 123-4567",
       address: "5211 S McQueen Rd, Chandler, AZ 85249",
-    },
+    }
+  }, [quoteData.clientInfo])
+
+  const form = useForm<ClientInfoFormValues>({
+    resolver: zodResolver(clientInfoSchema),
+    defaultValues,
   })
+
+  // Reset form when quote data is loaded (only once on initial load)
+  React.useEffect(() => {
+    if (!hasInitialized.current && quoteData.clientInfo) {
+      form.reset(defaultValues)
+      hasInitialized.current = true
+    }
+  }, [quoteData.clientInfo, defaultValues, form])
+
+  // Watch form values for auto-save
+  const formValues = form.watch()
+
+  // Auto-save when form values change
+  useAutoSave({
+    data: formValues,
+    saveFn: async (data) => {
+      updateClientInfo(data)
+      await saveQuote()
+    },
+    debounceMs: 2000,
+    enabled: form.formState.isDirty,
+  })
+
+  // Track form snapshot for undo functionality
+  const [formSnapshot, setFormSnapshot] = React.useState<ClientInfoFormValues | null>(null)
+
+  // Capture snapshot when user starts editing (on focus of any field)
+  const handleFieldFocus = React.useCallback(() => {
+    if (!formSnapshot) {
+      setFormSnapshot(form.getValues())
+    }
+  }, [form, formSnapshot])
+
+  // Track if snapshot was set by submission (vs initial edit)
+  const snapshotFromSubmissionRef = React.useRef(false)
+
+  // Reset snapshot when form becomes clean (after undo, but not after submission)
+  React.useEffect(() => {
+    if (!form.formState.isDirty && formSnapshot && !snapshotFromSubmissionRef.current) {
+      // Form is clean after undo, reset snapshot so we can capture a new one when editing starts again
+      setFormSnapshot(null)
+    }
+    // Reset the flag when form becomes dirty again
+    if (form.formState.isDirty) {
+      snapshotFromSubmissionRef.current = false
+    }
+  }, [form.formState.isDirty, formSnapshot])
+
+  // Handle ESC key to undo changes
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle ESC if form has been modified and we have a snapshot
+      if (
+        e.key === 'Escape' &&
+        form.formState.isDirty &&
+        formSnapshot
+      ) {
+        // Don't trigger if user is interacting with a select dropdown
+        const target = e.target as HTMLElement
+        const isSelect = target.closest('[data-slot="select"]') !== null
+        const isPopover = target.closest('[data-radix-popper-content-wrapper]') !== null
+        
+        // Allow ESC in input fields and buttons, but not in select dropdowns or popovers
+        if (!isSelect && !isPopover) {
+          e.preventDefault()
+          form.reset(formSnapshot)
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [form, formSnapshot])
 
   const onSubmit = (data: ClientInfoFormValues) => {
     console.log("Form submitted:", data)
+    // Update snapshot to current values after successful submission
+    snapshotFromSubmissionRef.current = true
+    setFormSnapshot(data)
     // TODO: Handle form submission
   }
 
@@ -210,6 +308,7 @@ export function ClientInfoForm() {
                                   {...field}
                                   className="h-10 text-base leading-[1.5]"
                                   style={{ fontFamily: "Inter, sans-serif" }}
+                                  onFocus={handleFieldFocus}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") {
                                       e.preventDefault()
@@ -239,6 +338,7 @@ export function ClientInfoForm() {
                                   {...field}
                                   className="h-10 text-base leading-[1.5]"
                                   style={{ fontFamily: "Inter, sans-serif" }}
+                                  onFocus={handleFieldFocus}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") {
                                       e.preventDefault()
@@ -278,6 +378,7 @@ export function ClientInfoForm() {
                                       !field.value && "text-muted-foreground"
                                     )}
                                     style={{ fontFamily: "Inter, sans-serif" }}
+                                    onFocus={handleFieldFocus}
                                   >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                     {field.value ? (
@@ -334,6 +435,7 @@ export function ClientInfoForm() {
                                   placeholder="Driver's License"
                                   className="h-10 text-base leading-[1.5]"
                                   style={{ fontFamily: "Inter, sans-serif" }}
+                                  onFocus={handleFieldFocus}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") {
                                       e.preventDefault()
@@ -366,6 +468,7 @@ export function ClientInfoForm() {
                                   <SelectTrigger
                                     className="h-10 text-base"
                                     style={{ fontFamily: "Inter, sans-serif" }}
+                                    onFocus={handleFieldFocus}
                                   >
                                     <SelectValue placeholder="Select state" />
                                   </SelectTrigger>
@@ -410,6 +513,7 @@ export function ClientInfoForm() {
                                   type="email"
                                   className="h-10 text-base leading-[1.5]"
                                   style={{ fontFamily: "Inter, sans-serif" }}
+                                  onFocus={handleFieldFocus}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") {
                                       e.preventDefault()
@@ -441,6 +545,7 @@ export function ClientInfoForm() {
                                   placeholder="(555) 123-4567"
                                   className="h-10 text-base leading-[1.5]"
                                   style={{ fontFamily: "Inter, sans-serif" }}
+                                  onFocus={handleFieldFocus}
                                   onChange={(e) => {
                                     const formatted = formatPhoneNumber(e.target.value)
                                     field.onChange(formatted)
@@ -478,6 +583,7 @@ export function ClientInfoForm() {
                                 {...field}
                                 className="h-10 text-base leading-[1.5]"
                                 style={{ fontFamily: "Inter, sans-serif" }}
+                                onFocus={handleFieldFocus}
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") {
                                     e.preventDefault()

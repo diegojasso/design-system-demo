@@ -17,25 +17,22 @@ import { DriversTable } from "./components/drivers-table/drivers-table"
 import { VehiclesTable } from "./components/vehicles-table/vehicles-table"
 import { QuoteNavigation } from "./components/quote-navigation"
 import { CommandPalette } from "./components/command-palette"
-
-type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "review"
+import { useQuote, StepId } from "./contexts/quote-context"
 
 export default function Home() {
-  const [currentStep, setCurrentStep] = React.useState<StepId>("client-info")
-  // Mock quote ID - in real app, this would come from quote state/context
-  const currentQuoteId = React.useMemo(() => {
-    // For demo purposes, generate a quote ID if we're in the workflow
-    return currentStep ? "quote-123" : undefined
-  }, [currentStep])
+  const { quoteData, setCurrentStep, quoteId } = useQuote()
+  const currentStep = quoteData.currentStep || "client-info"
+  
+  // Sync step changes to context (fire-and-forget save)
+  const handleStepChange = React.useCallback((step: StepId) => {
+    setCurrentStep(step).catch((error) => {
+      console.error("Failed to save step change:", error)
+    })
+  }, [setCurrentStep])
+  
+  const currentQuoteId = quoteId || undefined
 
-  const handleSaveDraft = () => {
-    // TODO: Implement save draft functionality
-    console.log("Saving draft...")
-    // In the future, this could:
-    // - Save quote data to localStorage or backend
-    // - Show a toast notification
-    // - Update UI to indicate draft is saved
-  }
+  // Save draft is now handled automatically via auto-save
 
   const handleFindClient = () => {
     // TODO: Implement find client functionality
@@ -115,7 +112,7 @@ export default function Home() {
             {/* Progress Indicator */}
             <QuoteProgress 
               currentStep={currentStep}
-              onStepChange={setCurrentStep}
+              onStepChange={handleStepChange}
             />
 
             {/* Step Content */}
@@ -136,7 +133,7 @@ export default function Home() {
             {/* Navigation Buttons */}
             <QuoteNavigation 
               currentStep={currentStep}
-              onStepChange={setCurrentStep}
+              onStepChange={handleStepChange}
             />
           </div>
         </div>
@@ -145,8 +142,7 @@ export default function Home() {
       {/* Command Palette */}
       <CommandPalette
         currentStep={currentStep}
-        onStepChange={setCurrentStep}
-        onSaveDraft={handleSaveDraft}
+        onStepChange={handleStepChange}
         onFindClient={handleFindClient}
         currentQuoteId={currentQuoteId}
         onRunReports={handleRunReports}

@@ -20,7 +20,7 @@ interface EditableTableCellProps {
   isEditing: boolean
   onFocus: () => void
   onEdit: () => void
-  onBlur: (moveNext?: boolean) => void
+  onBlur: (moveNext?: boolean, undo?: boolean) => void
   onChange: (value: any) => void
   onDoubleClick?: () => void
   error?: string
@@ -91,14 +91,14 @@ export const EditableTableCell = React.memo(function EditableTableCell({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      onBlur(true) // Move to next cell after saving
+      onBlur(true, false) // Apply changes and move to next cell
     } else if (e.key === 'Escape') {
       e.preventDefault()
-      onBlur(false) // Cancel editing
+      onBlur(false, true) // Undo changes and cancel editing
     } else if (e.key === 'Tab') {
       e.preventDefault()
       e.stopPropagation()
-      onBlur(!e.shiftKey) // Move to next/previous cell
+      onBlur(!e.shiftKey, false) // Apply changes and move to next/previous cell
     }
   }
 
@@ -267,7 +267,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
           value={value || ''}
           onValueChange={(newValue) => {
             onChange(newValue)
-            onBlur(false)
+            onBlur(false, false) // Apply changes, don't move to next
           }}
         >
           <SelectTrigger
@@ -303,7 +303,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
           onValueChange={(newValue) => {
             onChange(newValue)
             // Auto-blur after selection for better UX
-            setTimeout(() => onBlur(true), 100)
+            setTimeout(() => onBlur(true, false), 100) // Apply changes and move to next
           }}
           className="flex flex-row gap-4"
         >
@@ -340,7 +340,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
           value={value ? 'yes' : 'no'}
           onValueChange={(newValue) => {
             onChange(newValue === 'yes')
-            setTimeout(() => onBlur(true), 100)
+            setTimeout(() => onBlur(true, false), 100) // Apply changes and move to next
           }}
           className="flex flex-row gap-4"
         >

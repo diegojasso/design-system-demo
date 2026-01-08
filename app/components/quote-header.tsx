@@ -1,8 +1,12 @@
-import { FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
+"use client"
+
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { QuoteSaveStatus } from "./quote-save-status"
+import { useQuote } from "@/app/contexts/quote-context"
 
 export function QuoteHeader() {
+  const { isSaving, lastSaved, saveError, retrySave } = useQuote()
+
   return (
     <div className="mb-4 flex items-center justify-between">
       <h1
@@ -12,15 +16,13 @@ export function QuoteHeader() {
         New Quote
       </h1>
       <div className="flex items-center gap-3">
+        <QuoteSaveStatus
+          isSaving={isSaving}
+          lastSaved={lastSaved}
+          error={saveError}
+          onRetry={retrySave}
+        />
         <ThemeToggle />
-        <Button
-          variant="default"
-          size="lg"
-          className="h-12 gap-2 shrink-0"
-        >
-          <FileText className="h-5 w-5 shrink-0" />
-          Save draft
-        </Button>
       </div>
     </div>
   )

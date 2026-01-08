@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge"
 interface CommandPaletteProps {
   currentStep?: StepId
   onStepChange?: (step: StepId) => void
-  onSaveDraft?: () => void
   onFindClient?: () => void
   // Quote context
   currentQuoteId?: string
@@ -42,7 +41,6 @@ const groupLabels: Record<string, string> = {
 export function CommandPalette({
   currentStep,
   onStepChange,
-  onSaveDraft,
   onFindClient,
   currentQuoteId,
   onRunReports,
@@ -69,7 +67,6 @@ export function CommandPalette({
   const { isOpen, setIsOpen, commands } = useCommandPalette({
     currentStep,
     onStepChange,
-    onSaveDraft,
     onFindClient,
     currentQuoteId,
     onRunReports,
@@ -91,7 +88,7 @@ export function CommandPalette({
     if (!search) {
       // When no search, suggest common commands
       return allCommands
-        .filter((cmd) => ["new-quote", "save-draft", "find-client"].includes(cmd.id))
+        .filter((cmd) => ["new-quote", "find-client"].includes(cmd.id))
         .slice(0, 3)
     }
 

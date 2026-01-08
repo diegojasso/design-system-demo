@@ -8,7 +8,6 @@ import type { RecentQuote } from "../command-palette/quote-types"
 interface UseCommandPaletteProps {
   currentStep?: StepId
   onStepChange?: (step: StepId) => void
-  onSaveDraft?: () => void
   onFindClient?: () => void
   // Quote context
   currentQuoteId?: string
@@ -34,7 +33,6 @@ interface UseCommandPaletteReturn {
 export function useCommandPalette({
   currentStep,
   onStepChange,
-  onSaveDraft,
   onFindClient,
   currentQuoteId,
   onRunReports,
@@ -51,7 +49,6 @@ export function useCommandPalette({
       buildCommands({
         currentStep,
         onStepChange,
-        onSaveDraft,
         onFindClient,
         currentQuoteId,
         onRunReports,
@@ -63,7 +60,6 @@ export function useCommandPalette({
     [
       currentStep,
       onStepChange,
-      onSaveDraft,
       onFindClient,
       currentQuoteId,
       onRunReports,
@@ -97,10 +93,7 @@ export function useCommandPalette({
 
       // Prevent default browser shortcuts when palette is open
       if (isOpen) {
-        // Prevent ⌘S from triggering browser save
-        if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-          e.preventDefault()
-        }
+        // Note: ⌘S is no longer intercepted since auto-save handles saving
         // Prevent ⌘F from triggering browser find
         if ((e.metaKey || e.ctrlKey) && e.key === "f") {
           e.preventDefault()

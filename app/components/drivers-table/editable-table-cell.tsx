@@ -21,7 +21,7 @@ interface EditableTableCellProps {
   isEditing: boolean
   onFocus: () => void
   onEdit: () => void
-  onBlur: (moveNext?: boolean) => void
+  onBlur: (moveNext?: boolean, undo?: boolean) => void
   onChange: (value: any) => void
   onDoubleClick?: () => void
   error?: string
@@ -97,11 +97,11 @@ export const EditableTableCell = React.memo(function EditableTableCell({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      onBlur(true) // Move to next cell after blur
+      onBlur(true, false) // Apply changes and move to next cell
     }
     if (e.key === 'Escape') {
       e.preventDefault()
-      onBlur(false) // Don't move to next cell
+      onBlur(false, true) // Undo changes and don't move to next cell
     }
     // Tab navigation - prevent default and stop propagation
     // Global handler will handle navigation after blur
@@ -248,12 +248,12 @@ export const EditableTableCell = React.memo(function EditableTableCell({
           onValueChange={(newValue) => {
             onChange(newValue)
             // Auto-blur after selection
-            setTimeout(() => onBlur(), 100)
+            setTimeout(() => onBlur(false, false), 100) // Apply changes, don't move to next
           }}
           onOpenChange={(open) => {
             if (!open) {
               // Close select triggers blur
-              setTimeout(() => onBlur(), 100)
+              setTimeout(() => onBlur(false, false), 100) // Apply changes, don't move to next
             }
           }}
         >
@@ -284,7 +284,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
           onValueChange={(val) => {
             onChange(val === 'yes')
             // Auto-blur after selection
-            setTimeout(() => onBlur(), 100)
+            setTimeout(() => onBlur(true, false), 100) // Apply changes and move to next
           }}
           className="flex flex-row gap-4"
         >
