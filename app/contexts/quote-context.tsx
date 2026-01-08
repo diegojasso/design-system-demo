@@ -243,10 +243,11 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
 
       saveQuoteToStorage(storedQuote)
       setLastSaved(new Date())
+      const wasDirty = quoteData.isDirty
       setQuoteData((prev) => ({ ...prev, isDirty: false }))
       setSaveError(null)
-      // Show success toast (only for non-initial saves)
-      if (retryCount === 0) {
+      // Show success toast only if there were actual data changes (not just step navigation)
+      if (wasDirty && retryCount === 0) {
         toast.success("Quote saved", {
           description: "Your changes have been saved automatically",
           duration: 2000,
@@ -377,23 +378,31 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     }))
   }, [])
 
-  // Set current step and trigger save
+  // Set current step and trigger save (without marking as dirty)
   const setCurrentStep = React.useCallback(async (step: StepId) => {
+    const previousStep = quoteData.currentStep
     setQuoteData((prev) => ({
       ...prev,
       currentStep: step,
-      isDirty: true,
+      // Only mark as dirty if there are actual data changes, not just step navigation
+      // isDirty state is managed by updateClientInfo, updateDrivers, updateVehicles
     }))
-    // Save immediately when step changes
-    if (quoteId) {
+    // Save immediately when step changes (but suppress toast for step-only changes)
+    if (quoteId && previousStep !== step) {
       try {
+        // Temporarily suppress toast for step changes
+        const wasDirty = quoteData.isDirty
         await saveQuote()
+        // Restore dirty state if it was dirty before (saveQuote clears it)
+        if (wasDirty) {
+          setQuoteData((prev) => ({ ...prev, isDirty: true }))
+        }
       } catch (error) {
         // Error is already handled in saveQuote
         console.error("Failed to save step change:", error)
       }
     }
-  }, [quoteId, saveQuote])
+  }, [quoteId, quoteData.currentStep, quoteData.isDirty, saveQuote])
 
   const value: QuoteContextValue = {
     quoteData,
