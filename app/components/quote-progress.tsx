@@ -23,7 +23,7 @@ export const steps = [
   },
 ] as const
 
-type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "review"
+export type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "review"
 
 interface QuoteProgressProps {
   currentStep?: StepId
