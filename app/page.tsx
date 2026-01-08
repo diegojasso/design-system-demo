@@ -24,8 +24,8 @@ export default function Home() {
 
   return (
     <div className="flex h-screen w-full bg-white">
-      {/* Sidebar */}
-      <AppSidebar />
+      {/* Sidebar - Hidden */}
+      {/* <AppSidebar /> */}
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-auto bg-white pb-0 pt-[88px]">

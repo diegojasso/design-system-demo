@@ -4,7 +4,7 @@ import * as React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, Car, X, Trash2, Check } from "lucide-react"
+import { Plus, Car, X, Trash2, Check, AlertCircle, CheckCircle } from "lucide-react"
 import { Vehicle, ColumnDef, DiscoveredVehicle } from "./types"
 import { VEHICLE_FIELDS } from "./columns"
 import { EditableTableCell } from "./editable-table-cell"
@@ -12,6 +12,7 @@ import { useKeyboardNavigation, ActiveCell } from "./use-keyboard-navigation"
 import { KeyboardShortcuts } from "./keyboard-shortcuts"
 import { VehicleSuggestions } from "./vehicle-suggestions"
 import { validateCellValue, ValidationError } from "./validation"
+import { getRowMissingCount, isRowComplete } from "./utils/missing-data"
 
 interface VehiclesTableProps {
   vehicles?: Vehicle[]
@@ -91,11 +92,30 @@ export function VehiclesTable({
   const [discoveredVehicles] = React.useState<DiscoveredVehicle[]>(SAMPLE_DISCOVERED_VEHICLES)
   const [isLoadingDiscovery, setIsLoadingDiscovery] = React.useState(false)
   const [validationErrors, setValidationErrors] = React.useState<Map<string, string>>(new Map())
+  const [missingFields, setMissingFields] = React.useState<Set<string>>(new Set())
 
   // Update vehicles when initialVehicles changes
   React.useEffect(() => {
     setVehicles(initialVehicles)
   }, [initialVehicles])
+
+  // Recompute missing fields when vehicles or fields change
+  React.useEffect(() => {
+    const missing = new Set<string>()
+    vehicles.forEach((vehicle, vehicleIndex) => {
+      fields.forEach((field) => {
+        if (field.required) {
+          const value = vehicle[field.id as keyof Vehicle]
+          if (value === null || value === undefined || value === '' || 
+              (typeof value === 'string' && value.trim() === '') ||
+              (field.type === 'dropdown' && value === 'Select')) {
+            missing.add(`${vehicleIndex}-${field.id}`)
+          }
+        }
+      })
+    })
+    setMissingFields(missing)
+  }, [vehicles, fields])
 
   // Use a ref to store the add vehicle function to avoid circular dependency
   const handleAddVehicleRef = React.useRef<(() => void) | null>(null)
@@ -258,7 +278,7 @@ export function VehiclesTable({
   const isNewVehicle = (vehicleId: string) => newVehicleIds.has(vehicleId)
 
   const getVehicleBadges = (vehicle: Vehicle, vehicleIndex: number) => {
-    const badges = []
+    const badges: Array<string | { type: 'incomplete' | 'complete'; text: string; count?: number }> = []
     
     // Status badges
     if (vehicleIndex === 0) {
@@ -279,6 +299,21 @@ export function VehiclesTable({
     }
     if (vehicle.badges?.carfaxVerified) {
       badges.push('Carfax ✓')
+    }
+    
+    // Add incomplete/complete badge
+    const missingCount = getRowMissingCount(vehicle, fields)
+    if (missingCount > 0) {
+      badges.push({
+        type: 'incomplete',
+        text: missingCount === 1 ? '1 missing' : `${missingCount} missing`,
+        count: missingCount,
+      })
+    } else if (missingCount === 0 && fields.some(f => f.required)) {
+      badges.push({
+        type: 'complete',
+        text: 'Complete',
+      })
     }
     
     return badges
@@ -417,6 +452,33 @@ export function VehiclesTable({
                     {/* Badges */}
                     <div className="flex items-center gap-1 shrink-0 flex-wrap">
                       {getVehicleBadges(vehicle, vehicleIndex).map((badge, idx) => {
+                        // Handle badge objects with type
+                        if (typeof badge === 'object' && badge.type === 'incomplete') {
+                          return (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="text-xs font-medium border-0 px-1.5 py-0.5 h-5 bg-amber-100 text-amber-800 flex items-center gap-1"
+                            >
+                              <AlertCircle className="h-3 w-3" />
+                              {badge.text}
+                            </Badge>
+                          )
+                        }
+                        
+                        if (typeof badge === 'object' && badge.type === 'complete') {
+                          return (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="text-xs font-medium border-0 px-1.5 py-0.5 h-5 bg-green-100 text-green-800 flex items-center gap-1"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                              {badge.text}
+                            </Badge>
+                          )
+                        }
+                        
                         // Style badges differently based on type
                         const isStatusBadge = badge === 'Primary Vehicle' || badge === 'New' || badge === 'Discovery'
                         const isConditionBadge = badge === 'Clean title' || badge === 'Carfax ✓'
@@ -460,6 +522,8 @@ export function VehiclesTable({
                   const cellValue = vehicle[field.id as keyof Vehicle]
                   const errorKey = `${vehicleIndex}-${field.id}`
                   const error = validationErrors.get(errorKey)
+                  const isMissing = missingFields.has(errorKey)
+                  const hasError = !!error
 
                   return (
                     <div
@@ -467,7 +531,9 @@ export function VehiclesTable({
                       data-cell-id={`vehicle-${vehicleIndex}-field-${fieldIndex}`}
                       className={`h-[44px] border-b border-[#f3f4f6] last:border-b-0 transition-colors ${
                         isActive ? 'bg-[#f9fafb]' : ''
-                      } ${error ? 'bg-red-50/30' : ''}`}
+                      } ${hasError ? 'bg-red-50/30' : ''} ${
+                        isMissing && !hasError ? 'bg-amber-50' : ''
+                      }`}
                       role="gridcell"
                       aria-rowindex={fieldIndex + 2}
                       aria-colindex={vehicleIndex + 2}
@@ -482,6 +548,7 @@ export function VehiclesTable({
                         onChange={(value) => handleCellChange(vehicleIndex, fieldIndex, value)}
                         onDoubleClick={() => handleCellEdit(vehicleIndex, fieldIndex)}
                         error={error}
+                        isMissing={isMissing && !hasError}
                       />
                     </div>
                   )
@@ -489,33 +556,31 @@ export function VehiclesTable({
               </div>
             ))}
 
-            {/* Right Sidebar */}
+            {/* Right Sidebar - Inside scrollable container, scrolls with content */}
             {vehicles.length > 0 && (
-              <div className="bg-white shrink-0 border-r border-[#e5e7eb]" style={{ width: '323px' }}>
-                <Card className="h-full border-0 rounded-none bg-[#fbfcfe]">
-                  <CardContent className="p-6">
-                    {/* Add Another Vehicle Button */}
-                    <Button
-                      variant="outline"
-                      className="w-full mb-6 h-10 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb]"
-                      onClick={handleAddVehicle}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Another Vehicle
-                    </Button>
+              <div className="bg-white shrink-0 border-l border-[#e5e7eb]" style={{ width: '323px' }}>
+                <div className="p-4">
+                  {/* Add Another Vehicle Button */}
+                  <Button
+                    variant="outline"
+                    onClick={handleAddVehicle}
+                    className="w-full h-9 mb-4 border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] text-[#111827] text-sm"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Another Vehicle
+                  </Button>
 
-                    {/* Vehicles Found Section */}
-                    <VehicleSuggestions
-                      discoveredVehicles={discoveredVehicles}
-                      existingVehicles={vehicles}
-                      onAddVehicle={handleAddFromDiscovery}
-                      isLoading={isLoadingDiscovery}
-                    />
+                  {/* Vehicles Found Section */}
+                  <VehicleSuggestions
+                    discoveredVehicles={discoveredVehicles}
+                    existingVehicles={vehicles}
+                    onAddVehicle={handleAddFromDiscovery}
+                    isLoading={isLoadingDiscovery}
+                  />
 
-                    {/* Keyboard Shortcuts */}
-                    <KeyboardShortcuts />
-                  </CardContent>
-                </Card>
+                  {/* Keyboard Shortcuts */}
+                  <KeyboardShortcuts />
+                </div>
               </div>
             )}
 

@@ -4,7 +4,7 @@ import * as React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, UserPlus, X, Trash2, AlertCircle } from "lucide-react"
+import { Plus, UserPlus, X, Trash2, AlertCircle, CheckCircle } from "lucide-react"
 import { Driver, ColumnDef, MVRDriver } from "./types"
 import { DRIVER_FIELDS } from "./columns"
 import { EditableTableCell } from "./editable-table-cell"
@@ -12,6 +12,7 @@ import { useKeyboardNavigation, ActiveCell } from "./use-keyboard-navigation"
 import { MVRSuggestions } from "./mvr-suggestions"
 import { validateCellValue, ValidationError } from "./validation"
 import { KeyboardShortcuts } from "./keyboard-shortcuts"
+import { getRowMissingCount, isRowComplete } from "./utils/missing-data"
 
 interface DriversTableProps {
   drivers?: Driver[]
@@ -87,11 +88,30 @@ export function DriversTable({
   const [mvrDrivers] = React.useState<MVRDriver[]>(SAMPLE_MVR_DRIVERS)
   const [validationErrors, setValidationErrors] = React.useState<Map<string, string>>(new Map())
   const [isLoadingMVR, setIsLoadingMVR] = React.useState(false)
+  const [missingFields, setMissingFields] = React.useState<Set<string>>(new Set())
 
   // Update drivers when initialDrivers changes
   React.useEffect(() => {
     setDrivers(initialDrivers)
   }, [initialDrivers])
+
+  // Recompute missing fields when drivers or fields change
+  React.useEffect(() => {
+    const missing = new Set<string>()
+    drivers.forEach((driver, driverIndex) => {
+      fields.forEach((field) => {
+        if (field.required) {
+          const value = driver[field.id as keyof Driver]
+          if (value === null || value === undefined || value === '' || 
+              (typeof value === 'string' && value.trim() === '') ||
+              (field.type === 'dropdown' && value === 'Select')) {
+            missing.add(`${driverIndex}-${field.id}`)
+          }
+        }
+      })
+    })
+    setMissingFields(missing)
+  }, [drivers, fields])
 
   // Use a ref to store the add driver function to avoid circular dependency
   const handleAddDriverRef = React.useRef<(() => void) | null>(null)
@@ -270,7 +290,7 @@ export function DriversTable({
   }
 
   const getDriverBadges = (driver: Driver, index: number) => {
-    const badges = []
+    const badges: Array<string | { type: 'incomplete' | 'complete'; text: string; count?: number }> = []
     if (index === 0) {
       badges.push('Primary Insured')
     } else {
@@ -285,6 +305,22 @@ export function DriversTable({
     if (driver.isFromMVR) {
       badges.push('MVR')
     }
+    
+    // Add incomplete/complete badge
+    const missingCount = getRowMissingCount(driver, fields)
+    if (missingCount > 0) {
+      badges.push({
+        type: 'incomplete',
+        text: missingCount === 1 ? '1 missing' : `${missingCount} missing`,
+        count: missingCount,
+      })
+    } else if (missingCount === 0 && fields.some(f => f.required)) {
+      badges.push({
+        type: 'complete',
+        text: 'Complete',
+      })
+    }
+    
     return badges
   }
 
@@ -389,21 +425,51 @@ export function DriversTable({
                       Driver {driverIndex + 1}
                     </span>
                     <div className="flex gap-1.5">
-                      {getDriverBadges(driver, driverIndex).map((badge, idx) => (
-                        <Badge
-                          key={idx}
-                          variant="secondary"
-                          className={`text-xs font-medium border-0 px-1.5 py-0.5 h-5 ${
-                            badge === 'New' 
-                              ? 'bg-blue-50 text-blue-700' 
-                              : badge === 'MVR'
-                              ? 'bg-green-50 text-green-700'
-                              : 'bg-[#f3f4f6] text-[#6b7280]'
-                          }`}
-                        >
-                          {badge}
-                        </Badge>
-                      ))}
+                      {getDriverBadges(driver, driverIndex).map((badge, idx) => {
+                        // Handle badge objects with type
+                        if (typeof badge === 'object' && badge.type === 'incomplete') {
+                          return (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="text-xs font-medium border-0 px-1.5 py-0.5 h-5 bg-amber-100 text-amber-800 flex items-center gap-1"
+                            >
+                              <AlertCircle className="h-3 w-3" />
+                              {badge.text}
+                            </Badge>
+                          )
+                        }
+                        
+                        if (typeof badge === 'object' && badge.type === 'complete') {
+                          return (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="text-xs font-medium border-0 px-1.5 py-0.5 h-5 bg-green-100 text-green-800 flex items-center gap-1"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                              {badge.text}
+                            </Badge>
+                          )
+                        }
+                        
+                        // Handle string badges
+                        return (
+                          <Badge
+                            key={idx}
+                            variant="secondary"
+                            className={`text-xs font-medium border-0 px-1.5 py-0.5 h-5 ${
+                              badge === 'New' 
+                                ? 'bg-blue-50 text-blue-700' 
+                                : badge === 'MVR'
+                                ? 'bg-green-50 text-green-700'
+                                : 'bg-[#f3f4f6] text-[#6b7280]'
+                            }`}
+                          >
+                            {badge}
+                          </Badge>
+                        )
+                      })}
                     </div>
                   </div>
                   {/* Delete Button - Show on hover */}
@@ -425,6 +491,8 @@ export function DriversTable({
                     const cellValue = driver[field.id as keyof Driver]
                     const errorKey = `${driverIndex}-${field.id}`
                     const error = validationErrors.get(errorKey)
+                    const isMissing = missingFields.has(errorKey)
+                    const hasError = !!error
 
                     return (
                       <div
@@ -432,7 +500,9 @@ export function DriversTable({
                         data-cell-id={`driver-${driverIndex}-field-${fieldIndex}`}
                         className={`h-[44px] border-b border-[#f3f4f6] last:border-b-0 transition-colors ${
                           isActive ? 'bg-[#f9fafb]' : ''
-                        } ${error ? 'bg-red-50/30' : ''}`}
+                        } ${hasError ? 'bg-red-50/30' : ''} ${
+                          isMissing && !hasError ? 'bg-amber-50' : ''
+                        }`}
                         role="gridcell"
                         aria-rowindex={fieldIndex + 2}
                         aria-colindex={driverIndex + 2}
@@ -447,6 +517,7 @@ export function DriversTable({
                           onChange={(value) => handleCellChange(driverIndex, fieldIndex, value)}
                           onDoubleClick={() => handleCellEdit(driverIndex, fieldIndex)}
                           error={error}
+                          isMissing={isMissing && !hasError}
                         />
                       </div>
                     )

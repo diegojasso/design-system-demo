@@ -24,6 +24,7 @@ interface EditableTableCellProps {
   onChange: (value: any) => void
   onDoubleClick?: () => void
   error?: string
+  isMissing?: boolean
 }
 
 export const EditableTableCell = React.memo(function EditableTableCell({
@@ -36,6 +37,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
   onChange,
   onDoubleClick,
   error,
+  isMissing = false,
 }: EditableTableCellProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const selectTriggerRef = React.useRef<HTMLButtonElement>(null)
@@ -131,7 +133,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
       <div
         className={`h-full px-4 flex items-center cursor-text hover:bg-[#f9fafb] transition-colors ${
           error ? 'bg-red-50' : ''
-        }`}
+        } ${isMissing && !error ? 'bg-amber-50' : ''}`}
         onDoubleClick={onDoubleClick}
         onClick={onEdit}
         onFocus={(e) => {
@@ -142,19 +144,25 @@ export const EditableTableCell = React.memo(function EditableTableCell({
         onKeyDown={handleKeyDownDisplay}
         tabIndex={0}
         role="gridcell"
-        aria-label={`${field.label}, ${error ? `Error: ${error}` : formatDisplayValue() || 'empty'}`}
+        aria-label={`${field.label}, ${error ? `Error: ${error}` : isMissing ? 'Required field is empty' : ''} ${formatDisplayValue() || 'empty'}`}
         aria-invalid={error ? 'true' : 'false'}
+        aria-required={field.required ? 'true' : 'false'}
         style={{ fontFamily: "Inter, sans-serif" }}
       >
         <div className="flex items-center gap-2 w-full">
           <span className={`text-sm font-normal w-full ${
-            error ? 'text-red-700' : 'text-[#111827]'
+            error ? 'text-red-700' : isMissing && !error ? 'text-amber-900' : 'text-[#111827]'
           }`}>
             {formatDisplayValue() || <span className="text-[#9ca3af]">—</span>}
           </span>
           {error && (
             <span className="text-xs text-red-600 shrink-0" title={error}>
               ⚠
+            </span>
+          )}
+          {isMissing && !error && (
+            <span className="text-xs text-amber-600 shrink-0" title="Required field is empty">
+              ○
             </span>
           )}
         </div>
