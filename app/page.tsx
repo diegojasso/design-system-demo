@@ -15,6 +15,8 @@ import { QuoteProgress } from "./components/quote-progress"
 import { ClientInfoForm } from "./components/client-info-form"
 import { DriversTable } from "./components/drivers-table/drivers-table"
 import { VehiclesTable } from "./components/vehicles-table/vehicles-table"
+import { CoverageForm } from "./components/coverage/coverage-form"
+import { PaymentForm } from "./components/payment/payment-form"
 import { QuoteNavigation } from "./components/quote-navigation"
 import { CommandPalette } from "./components/command-palette"
 import { useQuote, StepId } from "./contexts/quote-context"
@@ -119,11 +121,8 @@ export default function Home() {
             {currentStep === "client-info" && <ClientInfoForm />}
             {currentStep === "driver" && <DriversTable />}
             {currentStep === "vehicle" && <VehiclesTable />}
-            {currentStep === "coverage" && (
-              <div className="mb-8 w-full text-center text-muted-foreground py-12">
-                Coverage step - Coming soon
-              </div>
-            )}
+            {currentStep === "coverage" && <CoverageForm />}
+            {currentStep === "payment" && <PaymentForm />}
             {currentStep === "review" && (
               <div className="mb-8 w-full text-center text-muted-foreground py-12">
                 Review step - Coming soon

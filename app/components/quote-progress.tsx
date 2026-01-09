@@ -21,12 +21,16 @@ export const steps = [
     label: "Coverages",
   },
   {
+    id: "payment",
+    label: "Checkout",
+  },
+  {
     id: "review",
     label: "Review",
   },
 ] as const
 
-export type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "review"
+export type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
 
 interface QuoteProgressProps {
   currentStep?: StepId

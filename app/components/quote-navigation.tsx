@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { steps } from "./quote-progress"
 
-type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "review"
+type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
 
 interface QuoteNavigationProps {
   currentStep: StepId
@@ -13,6 +13,7 @@ export function QuoteNavigation({ currentStep, onStepChange }: QuoteNavigationPr
   const currentStepIndex = steps.findIndex((step) => step.id === currentStep)
   const isFirstStep = currentStepIndex === 0
   const isLastStep = currentStepIndex === steps.length - 1
+  const isPaymentStep = currentStep === "payment"
 
   const handlePrevious = () => {
     if (currentStepIndex > 0) {
@@ -28,6 +29,13 @@ export function QuoteNavigation({ currentStep, onStepChange }: QuoteNavigationPr
     }
   }
 
+  const handleBind = () => {
+    // TODO: Implement bind functionality
+    console.log("Binding policy...")
+    // For now, proceed to next step
+    handleNext()
+  }
+
   return (
     <div className="flex h-9 items-center justify-between">
       <Button
@@ -38,16 +46,16 @@ export function QuoteNavigation({ currentStep, onStepChange }: QuoteNavigationPr
         className="h-9 gap-2"
       >
         <ChevronLeft className="h-5 w-5" />
-        Previous
+        {isPaymentStep ? "Back" : "Previous"}
       </Button>
       <Button
         variant="default"
         size="lg"
         disabled={isLastStep}
-        onClick={handleNext}
+        onClick={isPaymentStep ? handleBind : handleNext}
         className="h-9 gap-2"
       >
-        Next
+        {isPaymentStep ? "Bind" : "Next"}
         <ChevronRight className="h-5 w-5" />
       </Button>
     </div>

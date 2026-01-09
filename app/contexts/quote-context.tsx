@@ -4,6 +4,8 @@ import * as React from "react"
 import { toast } from "sonner"
 import { Driver } from "@/app/components/drivers-table/types"
 import { Vehicle } from "@/app/components/vehicles-table/types"
+import { CoverageData, PricingSummary } from "@/app/components/coverage/types"
+import { PaymentData } from "@/app/components/payment/types"
 
 // ClientInfoFormValues type (we'll import the actual type later)
 export type ClientInfoFormValues = {
@@ -17,13 +19,16 @@ export type ClientInfoFormValues = {
   address: string
 }
 
-export type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "review"
+export type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
 
 export interface QuoteData {
   id?: string
   clientInfo?: ClientInfoFormValues
   drivers?: Driver[]
   vehicles?: Vehicle[]
+  coverage?: CoverageData
+  pricing?: PricingSummary
+  payment?: PaymentData
   currentStep?: StepId
   lastSaved?: Date
   isDirty?: boolean
@@ -39,6 +44,9 @@ interface StoredQuote {
     clientInfo?: Omit<ClientInfoFormValues, 'dateOfBirth'> & { dateOfBirth: string | Date }
     drivers?: Driver[]
     vehicles?: Vehicle[]
+    coverage?: CoverageData
+    pricing?: PricingSummary
+    payment?: PaymentData
   }
 }
 
@@ -47,6 +55,9 @@ interface QuoteContextValue {
   updateClientInfo: (data: ClientInfoFormValues) => void
   updateDrivers: (drivers: Driver[]) => void
   updateVehicles: (vehicles: Vehicle[]) => void
+  updateCoverage: (coverage: CoverageData) => void
+  updatePricing: (pricing: PricingSummary) => void
+  updatePayment: (payment: PaymentData) => void
   setCurrentStep: (step: StepId) => Promise<void>
   saveQuote: () => Promise<void>
   retrySave: () => Promise<void>
@@ -185,6 +196,9 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           clientInfo: clientInfo as ClientInfoFormValues | undefined,
           drivers: stored.data.drivers,
           vehicles: stored.data.vehicles,
+          coverage: stored.data.coverage,
+          pricing: stored.data.pricing,
+          payment: stored.data.payment,
           currentStep: stored.currentStep,
           lastSaved: new Date(stored.lastSaved),
         })
@@ -238,6 +252,9 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           clientInfo: serializedClientInfo as any,
           drivers: quoteData.drivers,
           vehicles: quoteData.vehicles,
+          coverage: quoteData.coverage,
+          pricing: quoteData.pricing,
+          payment: quoteData.payment,
         },
       }
 
@@ -335,6 +352,9 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
       clientInfo: clientInfo as ClientInfoFormValues | undefined,
       drivers: stored.data.drivers,
       vehicles: stored.data.vehicles,
+      coverage: stored.data.coverage,
+      pricing: stored.data.pricing,
+      payment: stored.data.payment,
       currentStep: stored.currentStep,
       lastSaved: new Date(stored.lastSaved),
     })
@@ -378,6 +398,33 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     }))
   }, [])
 
+  // Update coverage
+  const updateCoverage = React.useCallback((coverage: CoverageData) => {
+    setQuoteData((prev) => ({
+      ...prev,
+      coverage,
+      isDirty: true,
+    }))
+  }, [])
+
+  // Update pricing
+  const updatePricing = React.useCallback((pricing: PricingSummary) => {
+    setQuoteData((prev) => ({
+      ...prev,
+      pricing,
+      isDirty: true,
+    }))
+  }, [])
+
+  // Update payment
+  const updatePayment = React.useCallback((payment: PaymentData) => {
+    setQuoteData((prev) => ({
+      ...prev,
+      payment,
+      isDirty: true,
+    }))
+  }, [])
+
   // Set current step and trigger save (without marking as dirty)
   const setCurrentStep = React.useCallback(async (step: StepId) => {
     const previousStep = quoteData.currentStep
@@ -409,6 +456,9 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     updateClientInfo,
     updateDrivers,
     updateVehicles,
+    updateCoverage,
+    updatePricing,
+    updatePayment,
     setCurrentStep,
     saveQuote,
     retrySave,
