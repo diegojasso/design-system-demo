@@ -75,6 +75,26 @@ export const EditableTableCell = React.memo(function EditableTableCell({
       return value ? 'Yes' : 'No'
     }
     
+    if (field.type === 'date') {
+      // Handle both Date objects and date strings
+      let date: Date
+      if (value instanceof Date) {
+        date = value
+      } else if (typeof value === 'string') {
+        date = new Date(value)
+      } else {
+        return String(value)
+      }
+      
+      if (!isNaN(date.getTime())) {
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const year = date.getFullYear()
+        return `${month}/${day}/${year}`
+      }
+      return String(value)
+    }
+    
     return String(value)
   }
 

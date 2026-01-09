@@ -11,6 +11,7 @@ import {
   Send,
   Download,
   FileText,
+  FileDown,
   type LucideIcon,
 } from "lucide-react"
 import type { RecentQuote } from "./quote-types"
@@ -49,6 +50,7 @@ interface CommandContext {
   onRunReports?: () => void
   onSendQuote?: () => void
   onDownloadPDF?: () => void
+  onImportEzlynx?: () => void
   // Recent quotes
   recentQuotes?: RecentQuote[]
   onOpenQuote?: (quoteId: string) => void
@@ -86,6 +88,19 @@ export function buildCommands(context: CommandContext): Command[] {
     context: "always",
     action: () => {
       context.onFindClient?.()
+    },
+  })
+
+  commands.push({
+    id: "import-ezlynx",
+    label: "Import Quote from Ezlynx",
+    keywords: ["import", "ezlynx", "quote", "aggregator"],
+    shortcut: undefined,
+    icon: FileDown,
+    group: "quick-actions",
+    context: "always",
+    action: () => {
+      context.onImportEzlynx?.()
     },
   })
 
@@ -149,7 +164,7 @@ export function buildCommands(context: CommandContext): Command[] {
   if (context.currentQuoteId) {
     commands.push({
       id: "run-reports",
-      label: "Run All Reports (MVR + CLUE)",
+      label: "Run 3rd Party Reports",
       keywords: ["run", "reports", "mvr", "clue", "generate"],
       icon: RefreshCw,
       group: "quote-actions",

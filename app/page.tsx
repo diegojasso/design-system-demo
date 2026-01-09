@@ -19,10 +19,13 @@ import { CoverageForm } from "./components/coverage/coverage-form"
 import { PaymentForm } from "./components/payment/payment-form"
 import { CommandPalette } from "./components/command-palette"
 import { useQuote, StepId } from "./contexts/quote-context"
+import { ImportSummary } from "./components/import/import-summary"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
+  const router = useRouter()
   const { quoteData, setCurrentStep, quoteId } = useQuote()
-  const currentStep = quoteData.currentStep || "client-info"
+  const currentStep = quoteData.currentStep || (quoteData.isImported ? "import-summary" : "client-info")
   
   // Sync step changes to context (fire-and-forget save)
   const handleStepChange = React.useCallback((step: StepId) => {
@@ -64,6 +67,10 @@ export default function Home() {
     // TODO: Navigate to quote or load quote data
     // For now, just navigate to first step
     setCurrentStep("client-info")
+  }
+
+  const handleImportEzlynx = () => {
+    router.push("/import/ezlynx")
   }
 
   return (
@@ -119,6 +126,7 @@ export default function Home() {
             />
 
             {/* Step Content */}
+            {currentStep === "import-summary" && <ImportSummary />}
             {currentStep === "client-info" && <ClientInfoForm />}
             {currentStep === "driver" && <DriversTable />}
             {currentStep === "vehicle" && <VehiclesTable />}
@@ -142,6 +150,7 @@ export default function Home() {
         onRunReports={handleRunReports}
         onSendQuote={handleSendQuote}
         onDownloadPDF={handleDownloadPDF}
+        onImportEzlynx={handleImportEzlynx}
         onOpenQuote={handleOpenQuote}
       />
     </>

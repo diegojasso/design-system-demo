@@ -6,6 +6,7 @@ import { Driver } from "@/app/components/drivers-table/types"
 import { Vehicle } from "@/app/components/vehicles-table/types"
 import { CoverageData, PricingSummary } from "@/app/components/coverage/types"
 import { PaymentData } from "@/app/components/payment/types"
+import type { ImportSummaryData } from "@/app/components/import/mock-ezlynx-data"
 
 // ClientInfoFormValues type (we'll import the actual type later)
 export type ClientInfoFormValues = {
@@ -19,7 +20,7 @@ export type ClientInfoFormValues = {
   address: string
 }
 
-export type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
+export type StepId = "import-summary" | "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
 
 export interface QuoteData {
   id?: string
@@ -32,6 +33,11 @@ export interface QuoteData {
   currentStep?: StepId
   lastSaved?: Date
   isDirty?: boolean
+  isImported?: boolean
+  importSource?: "ezlynx" | "other"
+  importSummary?: ImportSummaryData
+  importedAt?: Date
+  ezlynxQuoteNumber?: string
 }
 
 interface StoredQuote {
@@ -47,6 +53,11 @@ interface StoredQuote {
     coverage?: CoverageData
     pricing?: PricingSummary
     payment?: PaymentData
+    isImported?: boolean
+    importSource?: "ezlynx" | "other"
+    importSummary?: ImportSummaryData
+    importedAt?: string
+    ezlynxQuoteNumber?: string
   }
 }
 
@@ -63,6 +74,8 @@ interface QuoteContextValue {
   retrySave: () => Promise<void>
   loadQuote: (quoteId: string) => Promise<void>
   createNewQuote: () => void
+  importQuote: (data: any) => Promise<void>
+  updateImportSummaryItem: (itemId: string, checked: boolean) => void
   isSaving: boolean
   lastSaved: Date | null
   saveError: Error | null
@@ -201,6 +214,11 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           payment: stored.data.payment,
           currentStep: stored.currentStep,
           lastSaved: new Date(stored.lastSaved),
+          isImported: stored.data.isImported,
+          importSource: stored.data.importSource,
+          importSummary: stored.data.importSummary,
+          importedAt: stored.data.importedAt ? new Date(stored.data.importedAt) : undefined,
+          ezlynxQuoteNumber: stored.data.ezlynxQuoteNumber,
         })
         setLastSaved(new Date(stored.lastSaved))
       } else {
@@ -255,6 +273,11 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           coverage: quoteData.coverage,
           pricing: quoteData.pricing,
           payment: quoteData.payment,
+          isImported: quoteData.isImported,
+          importSource: quoteData.importSource,
+          importSummary: quoteData.importSummary,
+          importedAt: quoteData.importedAt?.toISOString(),
+          ezlynxQuoteNumber: quoteData.ezlynxQuoteNumber,
         },
       }
 
@@ -357,6 +380,11 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
       payment: stored.data.payment,
       currentStep: stored.currentStep,
       lastSaved: new Date(stored.lastSaved),
+      isImported: stored.data.isImported,
+      importSource: stored.data.importSource,
+      importSummary: stored.data.importSummary,
+      importedAt: stored.data.importedAt ? new Date(stored.data.importedAt) : undefined,
+      ezlynxQuoteNumber: stored.data.ezlynxQuoteNumber,
     })
     setLastSaved(new Date(stored.lastSaved))
   }, [updateUrl])
@@ -425,6 +453,99 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     }))
   }, [])
 
+  // Import quote from external source
+  const importQuote = React.useCallback(async (importData: any) => {
+    const newId = generateQuoteId()
+    setQuoteId(newId)
+    updateUrl(newId)
+
+    const importedQuoteData: QuoteData = {
+      id: newId,
+      clientInfo: importData.clientInfo,
+      drivers: importData.drivers,
+      vehicles: importData.vehicles,
+      coverage: importData.coverage,
+      pricing: importData.pricing,
+      payment: importData.payment,
+      currentStep: "import-summary",
+      isImported: true,
+      importSource: importData.importSource || "ezlynx",
+      importSummary: importData.importSummary,
+      importedAt: new Date(),
+      ezlynxQuoteNumber: importData.quoteNumber,
+      isDirty: true,
+    }
+
+    setQuoteData(importedQuoteData)
+
+    // Save immediately
+    setIsSaving(true)
+    setSaveError(null)
+    try {
+      const serializedClientInfo = importedQuoteData.clientInfo ? {
+        ...importedQuoteData.clientInfo,
+        dateOfBirth: importedQuoteData.clientInfo.dateOfBirth instanceof Date
+          ? importedQuoteData.clientInfo.dateOfBirth.toISOString()
+          : importedQuoteData.clientInfo.dateOfBirth,
+      } : undefined
+
+      const storedQuote: StoredQuote = {
+        id: newId,
+        version: STORAGE_VERSION,
+        createdAt: newId,
+        lastSaved: new Date().toISOString(),
+        currentStep: "import-summary",
+        data: {
+          clientInfo: serializedClientInfo as any,
+          drivers: importedQuoteData.drivers,
+          vehicles: importedQuoteData.vehicles,
+          coverage: importedQuoteData.coverage,
+          pricing: importedQuoteData.pricing,
+          payment: importedQuoteData.payment,
+          isImported: true,
+          importSource: importedQuoteData.importSource,
+          importSummary: importedQuoteData.importSummary,
+          importedAt: importedQuoteData.importedAt?.toISOString(),
+          ezlynxQuoteNumber: importedQuoteData.ezlynxQuoteNumber,
+        },
+      }
+
+      saveQuoteToStorage(storedQuote)
+      setLastSaved(new Date())
+      setQuoteData((prev) => ({ ...prev, isDirty: false }))
+      toast.success("Quote imported", {
+        description: "Quote has been imported successfully",
+        duration: 2000,
+      })
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error("Failed to save imported quote")
+      setSaveError(err)
+      console.error("Failed to save imported quote:", error)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [updateUrl])
+
+  // Update import summary item (check/uncheck)
+  const updateImportSummaryItem = React.useCallback((itemId: string, checked: boolean) => {
+    setQuoteData((prev) => {
+      if (!prev.importSummary) return prev
+
+      const updatedMissingInfo = prev.importSummary.missingInfo.map((item) =>
+        item.id === itemId ? { ...item, checked } : item
+      )
+
+      return {
+        ...prev,
+        importSummary: {
+          ...prev.importSummary,
+          missingInfo: updatedMissingInfo,
+        },
+        isDirty: true,
+      }
+    })
+  }, [])
+
   // Set current step and trigger save (without marking as dirty)
   const setCurrentStep = React.useCallback(async (step: StepId) => {
     const previousStep = quoteData.currentStep
@@ -464,6 +585,8 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     retrySave,
     loadQuote,
     createNewQuote,
+    importQuote,
+    updateImportSummaryItem,
     isSaving,
     lastSaved,
     saveError,

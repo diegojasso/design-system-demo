@@ -17,6 +17,7 @@ interface UseCommandPaletteProps {
   onRunReports?: () => void
   onSendQuote?: () => void
   onDownloadPDF?: () => void
+  onImportEzlynx?: () => void
   // Recent quotes
   recentQuotes?: RecentQuote[]
   onOpenQuote?: (quoteId: string) => void
@@ -45,6 +46,7 @@ export function useCommandPalette({
   onRunReports,
   onSendQuote,
   onDownloadPDF,
+  onImportEzlynx,
   recentQuotes,
   onOpenQuote,
   history = [],
@@ -64,6 +66,7 @@ export function useCommandPalette({
         onRunReports,
         onSendQuote,
         onDownloadPDF,
+        onImportEzlynx,
         recentQuotes,
         onOpenQuote,
         history,
@@ -78,6 +81,7 @@ export function useCommandPalette({
       onRunReports,
       onSendQuote,
       onDownloadPDF,
+      onImportEzlynx,
       recentQuotes,
       onOpenQuote,
       history,
@@ -109,23 +113,30 @@ export function useCommandPalette({
       }
     })
 
+    // Track command IDs that are in favorites or history to avoid duplicates
+    const commandsInSpecialGroups = new Set<string>()
+
     // Group commands
     enhancedCommands.forEach((cmd) => {
       // Add to favorites if favorite
       if (cmd.isFavorite) {
         favoriteCommands.push(cmd)
+        commandsInSpecialGroups.add(cmd.id)
       }
 
       // Add to history group if recently used
       if (cmd.usageCount && cmd.usageCount > 0) {
         historyCommands.push(cmd)
+        commandsInSpecialGroups.add(cmd.id)
       }
 
-      // Add to regular groups
-      if (!groups.has(cmd.group)) {
-        groups.set(cmd.group, [])
+      // Add to regular groups only if not already in favorites or history
+      if (!commandsInSpecialGroups.has(cmd.id)) {
+        if (!groups.has(cmd.group)) {
+          groups.set(cmd.group, [])
+        }
+        groups.get(cmd.group)!.push(cmd)
       }
-      groups.get(cmd.group)!.push(cmd)
     })
 
     // Sort history commands by most recent

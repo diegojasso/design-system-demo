@@ -30,6 +30,7 @@ interface CommandPaletteProps {
   onRunReports?: () => void
   onSendQuote?: () => void
   onDownloadPDF?: () => void
+  onImportEzlynx?: () => void
   onOpenQuote?: (quoteId: string) => void
 }
 
@@ -50,6 +51,7 @@ export function CommandPalette({
   onRunReports,
   onSendQuote,
   onDownloadPDF,
+  onImportEzlynx,
   onOpenQuote,
 }: CommandPaletteProps) {
   // Get recent quotes
@@ -88,6 +90,7 @@ export function CommandPalette({
     onRunReports,
     onSendQuote,
     onDownloadPDF,
+    onImportEzlynx,
     recentQuotes,
     onOpenQuote: handleOpenQuoteWithTracking,
     history,

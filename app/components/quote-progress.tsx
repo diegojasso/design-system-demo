@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { useQuote } from "@/app/contexts/quote-context"
+import { AlertTriangle } from "lucide-react"
 
 export const steps = [
   {
@@ -30,7 +32,7 @@ export const steps = [
   },
 ] as const
 
-export type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
+export type StepId = "import-summary" | "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
 
 interface QuoteProgressProps {
   currentStep?: StepId
@@ -41,11 +43,15 @@ export function QuoteProgress({
   currentStep = "client-info",
   onStepChange 
 }: QuoteProgressProps) {
+  const { quoteData } = useQuote()
   const activeTabRef = React.useRef<HTMLButtonElement>(null)
   const [indicatorStyle, setIndicatorStyle] = React.useState({
     left: 0,
     width: 0,
   })
+
+  const isImported = quoteData.isImported
+  const hasUncheckedItems = quoteData.importSummary?.missingInfo.some(item => !item.checked) ?? false
 
   // Calculate indicator position when active tab changes
   React.useEffect(() => {
@@ -74,6 +80,13 @@ export function QuoteProgress({
     return () => window.removeEventListener("resize", handleResize)
   }, [currentStep])
 
+  const allSteps = isImported
+    ? [
+        { id: "import-summary", label: "Import Summary" },
+        ...steps,
+      ]
+    : steps
+
   return (
     <div className="mb-8 flex w-full flex-col gap-4">
       {/* Enhanced Tab Navigation */}
@@ -89,8 +102,9 @@ export function QuoteProgress({
         />
 
         {/* Tabs */}
-        {steps.map((step) => {
+        {allSteps.map((step) => {
           const isActive = step.id === currentStep
+          const showWarning = step.id === "import-summary" && hasUncheckedItems
           
           return (
             <button
@@ -101,7 +115,7 @@ export function QuoteProgress({
               aria-selected={isActive}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "relative px-6 py-3.5 text-sm font-medium transition-all duration-200 ease-out",
+                "relative flex items-center gap-2 px-6 py-3.5 text-sm font-medium transition-all duration-200 ease-out",
                 "hover:bg-muted/50 hover:text-foreground hover:scale-[1.01]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 "active:scale-[0.99]",
@@ -112,6 +126,9 @@ export function QuoteProgress({
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               {step.label}
+              {showWarning && (
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+              )}
             </button>
           )
         })}
