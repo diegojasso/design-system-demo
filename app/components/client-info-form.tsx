@@ -6,8 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
-import { useQuote } from "@/app/contexts/quote-context"
+import { useQuote, StepId } from "@/app/contexts/quote-context"
 import { useAutoSave } from "@/hooks/use-auto-save"
+import { ChevronRight } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import {
@@ -147,7 +148,7 @@ const clientInfoSchema = z.object({
 type ClientInfoFormValues = z.infer<typeof clientInfoSchema>
 
 export function ClientInfoForm() {
-  const { quoteData, updateClientInfo, saveQuote } = useQuote()
+  const { quoteData, updateClientInfo, saveQuote, setCurrentStep } = useQuote()
   
   // Track if we've initialized the form
   const hasInitialized = React.useRef(false)
@@ -256,7 +257,10 @@ export function ClientInfoForm() {
     // Update snapshot to current values after successful submission
     snapshotFromSubmissionRef.current = true
     setFormSnapshot(data)
-    // TODO: Handle form submission
+    // Navigate to next step
+    setCurrentStep("vehicle").catch((error) => {
+      console.error("Failed to navigate to next step:", error)
+    })
   }
 
   // Handle phone number formatting
@@ -601,6 +605,21 @@ export function ClientInfoForm() {
                 </FieldGroup>
               </FieldSet>
             </FieldGroup>
+            
+            {/* CTA Button */}
+            <div className="flex justify-end pt-6">
+              <Button
+                type="submit"
+                variant="default"
+                size="lg"
+                disabled={!form.formState.isValid}
+                className="h-9 gap-2"
+                onClick={form.handleSubmit(onSubmit)}
+              >
+                {quoteData.clientInfo ? "Continue" : "Start Quote"}
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

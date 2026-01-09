@@ -10,17 +10,13 @@ interface QuoteNavigationProps {
 }
 
 export function QuoteNavigation({ currentStep, onStepChange }: QuoteNavigationProps) {
+  // Only show navigation for client-info step
+  if (currentStep !== "client-info") {
+    return null
+  }
+
   const currentStepIndex = steps.findIndex((step) => step.id === currentStep)
   const isFirstStep = currentStepIndex === 0
-  const isLastStep = currentStepIndex === steps.length - 1
-  const isPaymentStep = currentStep === "payment"
-
-  const handlePrevious = () => {
-    if (currentStepIndex > 0) {
-      const previousStep = steps[currentStepIndex - 1]
-      onStepChange(previousStep.id as StepId)
-    }
-  }
 
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
@@ -29,33 +25,15 @@ export function QuoteNavigation({ currentStep, onStepChange }: QuoteNavigationPr
     }
   }
 
-  const handleBind = () => {
-    // TODO: Implement bind functionality
-    console.log("Binding policy...")
-    // For now, proceed to next step
-    handleNext()
-  }
-
   return (
-    <div className="flex h-9 items-center justify-between">
-      <Button
-        variant="secondary"
-        size="lg"
-        disabled={isFirstStep}
-        onClick={handlePrevious}
-        className="h-9 gap-2"
-      >
-        <ChevronLeft className="h-5 w-5" />
-        {isPaymentStep ? "Back" : "Previous"}
-      </Button>
+    <div className="flex h-9 items-center justify-end">
       <Button
         variant="default"
         size="lg"
-        disabled={isLastStep}
-        onClick={isPaymentStep ? handleBind : handleNext}
+        onClick={handleNext}
         className="h-9 gap-2"
       >
-        {isPaymentStep ? "Bind" : "Next"}
+        Start Quote
         <ChevronRight className="h-5 w-5" />
       </Button>
     </div>

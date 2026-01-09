@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { CreditCard, Building2, Mail } from "lucide-react"
@@ -39,6 +39,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 // Validation schema
@@ -168,7 +169,10 @@ export function PaymentForm() {
 
   // Watch form values for auto-save
   const formValues = form.watch()
-  const paymentMethod = form.watch("method")
+  const paymentMethod = useWatch({ control: form.control, name: "method" })
+  const email = useWatch({ control: form.control, name: "email" })
+  const creditCard = useWatch({ control: form.control, name: "creditCard" })
+  const ach = useWatch({ control: form.control, name: "ach" })
 
   // Auto-save when form values change
   useAutoSave({
@@ -196,6 +200,75 @@ export function PaymentForm() {
     }
     updatePayment(paymentData)
     console.log("Payment form submitted:", paymentData)
+  }
+
+  // Validation helpers for each payment method
+  const isSecureLinkValid = React.useMemo(() => {
+    if (paymentMethod !== "secure-link") return false
+    return email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }, [paymentMethod, email])
+
+  const isCreditCardValid = React.useMemo(() => {
+    if (paymentMethod !== "credit-card") return false
+    return !!(
+      creditCard?.nameOnCard &&
+      creditCard?.cardNumber &&
+      creditCard?.cardNumber.match(/^\d{4}\s\d{4}\s\d{4}\s\d{4}$/) &&
+      creditCard?.expirationDate &&
+      creditCard?.expirationDate.match(/^(0[1-9]|1[0-2])\/\d{2}$/) &&
+      creditCard?.cvv &&
+      creditCard?.cvv.match(/^\d{3,4}$/)
+    )
+  }, [paymentMethod, creditCard])
+
+  const isAchValid = React.useMemo(() => {
+    if (paymentMethod !== "ach") return false
+    return !!(
+      ach?.accountHolderName &&
+      ach?.routingNumber &&
+      ach?.routingNumber.match(/^\d{9}$/) &&
+      ach?.accountNumber &&
+      ach.accountNumber.length >= 4
+    )
+  }, [paymentMethod, ach])
+
+  const handleSecureLinkSubmit = () => {
+    const email = form.getValues("email")
+    if (isSecureLinkValid && email) {
+      const paymentData: PaymentData = {
+        method: "secure-link",
+        email,
+      }
+      updatePayment(paymentData)
+      console.log("Sending secure link to:", email)
+      // TODO: Implement actual secure link sending
+    }
+  }
+
+  const handleCreditCardSubmit = () => {
+    const creditCard = form.getValues("creditCard")
+    if (isCreditCardValid && creditCard) {
+      const paymentData: PaymentData = {
+        method: "credit-card",
+        creditCard,
+      }
+      updatePayment(paymentData)
+      console.log("Processing credit card payment")
+      // TODO: Implement actual payment processing
+    }
+  }
+
+  const handleAchSubmit = () => {
+    const ach = form.getValues("ach")
+    if (isAchValid && ach) {
+      const paymentData: PaymentData = {
+        method: "ach",
+        ach,
+      }
+      updatePayment(paymentData)
+      console.log("Processing ACH payment")
+      // TODO: Implement actual payment processing
+    }
   }
 
   return (
@@ -248,7 +321,7 @@ export function PaymentForm() {
                             The client will receive a link to enter payment info.
                           </p>
                           {paymentMethod === "secure-link" && (
-                            <div className="pt-2">
+                            <div className="pt-2 space-y-4">
                               <FormField
                                 control={form.control}
                                 name="email"
@@ -272,6 +345,18 @@ export function PaymentForm() {
                                   </FormItem>
                                 )}
                               />
+                              <div className="flex justify-end">
+                                <Button
+                                  type="button"
+                                  variant="default"
+                                  size="lg"
+                                  disabled={!isSecureLinkValid}
+                                  onClick={handleSecureLinkSubmit}
+                                  className="h-9"
+                                >
+                                  Send Secure Link
+                                </Button>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -468,6 +553,20 @@ export function PaymentForm() {
                                     <li>use the stored payment information to automatically process monthly premium payments on the due date.</li>
                                   </ul>
                                 </div>
+
+                                {/* Pay Now Button */}
+                                <div className="flex justify-end pt-2">
+                                  <Button
+                                    type="button"
+                                    variant="default"
+                                    size="lg"
+                                    disabled={!isCreditCardValid}
+                                    onClick={handleCreditCardSubmit}
+                                    className="h-9"
+                                  >
+                                    Pay Now
+                                  </Button>
+                                </div>
                               </FieldGroup>
                             </div>
                           )}
@@ -604,6 +703,20 @@ export function PaymentForm() {
                                     )}
                                   />
                                 </Field>
+
+                                {/* Pay Now Button */}
+                                <div className="flex justify-end pt-2">
+                                  <Button
+                                    type="button"
+                                    variant="default"
+                                    size="lg"
+                                    disabled={!isAchValid}
+                                    onClick={handleAchSubmit}
+                                    className="h-9"
+                                  >
+                                    Pay Now
+                                  </Button>
+                                </div>
                               </FieldGroup>
                             </div>
                           )}

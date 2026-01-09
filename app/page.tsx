@@ -17,7 +17,6 @@ import { DriversTable } from "./components/drivers-table/drivers-table"
 import { VehiclesTable } from "./components/vehicles-table/vehicles-table"
 import { CoverageForm } from "./components/coverage/coverage-form"
 import { PaymentForm } from "./components/payment/payment-form"
-import { QuoteNavigation } from "./components/quote-navigation"
 import { CommandPalette } from "./components/command-palette"
 import { useQuote, StepId } from "./contexts/quote-context"
 
@@ -81,6 +80,7 @@ export default function Home() {
               <BreadcrumbList className="gap-1.5">
                 <BreadcrumbItem>
                   <BreadcrumbLink
+                    href="/"
                     className="text-base leading-[1.5] text-muted-foreground hover:text-foreground"
                     style={{ fontFamily: "Inter, sans-serif" }}
                   >
@@ -90,6 +90,7 @@ export default function Home() {
                 <BreadcrumbSeparator className="text-foreground" />
                 <BreadcrumbItem>
                   <BreadcrumbLink
+                    href="/quotes"
                     className="text-base leading-[1.5] text-foreground underline decoration-muted-foreground decoration-solid underline-offset-4 hover:text-foreground"
                     style={{ fontFamily: "Inter, sans-serif" }}
                   >
@@ -128,12 +129,6 @@ export default function Home() {
                 Review step - Coming soon
               </div>
             )}
-
-            {/* Navigation Buttons */}
-            <QuoteNavigation 
-              currentStep={currentStep}
-              onStepChange={handleStepChange}
-            />
           </div>
         </div>
       </div>
