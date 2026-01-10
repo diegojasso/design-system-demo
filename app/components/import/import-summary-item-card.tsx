@@ -37,11 +37,11 @@ export function ImportSummaryItemCard({
   const getSeverityIcon = (severity: ImportSummaryItem["severity"]) => {
     switch (severity) {
       case "error":
-        return <XCircle className="h-4 w-4 text-destructive" />
+        return <XCircle className="h-5 w-5 text-destructive" />
       case "warning":
-        return <AlertTriangle className="h-4 w-4 text-amber-500" />
+        return <AlertTriangle className="h-5 w-5 text-amber-500" />
       case "info":
-        return <Info className="h-4 w-4 text-blue-500" />
+        return <Info className="h-5 w-5 text-blue-500" />
       default:
         return null
     }
@@ -127,10 +127,18 @@ export function ImportSummaryItemCard({
       role="button"
       tabIndex={tabIndex}
       className={cn(
-        "group relative flex items-start gap-3 p-4 transition-all duration-200",
+        "group relative flex items-start gap-4 p-5 transition-all duration-200",
         item.checked
           ? "bg-muted/30 opacity-60 animate-out fade-out-0 slide-out-to-right-4"
-          : "hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-in fade-in-0 slide-in-from-left-4",
+          : cn(
+              "hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-in fade-in-0 slide-in-from-left-4",
+              item.severity === "error" &&
+                "border-l-4 border-l-destructive hover:bg-destructive/5",
+              item.severity === "warning" &&
+                "border-l-4 border-l-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-950/50",
+              item.severity === "info" &&
+                "border-l-4 border-l-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/50"
+            ),
         !item.checked && "focus-visible:bg-muted/70",
         isSelected && !item.checked && "bg-primary/5 ring-2 ring-primary/20"
       )}
@@ -156,9 +164,18 @@ export function ImportSummaryItemCard({
 
       {/* Content */}
       <div className="flex flex-1 items-start gap-3">
-        {/* Icon */}
+        {/* Icon - Larger for better visibility */}
         <div className="mt-0.5 flex-shrink-0">
-          {getSeverityIcon(item.severity)}
+          <div
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-full",
+              item.severity === "error" && "bg-destructive/10",
+              item.severity === "warning" && "bg-amber-500/10",
+              item.severity === "info" && "bg-blue-500/10"
+            )}
+          >
+            {getSeverityIcon(item.severity)}
+          </div>
         </div>
 
         {/* Text Content */}
@@ -166,10 +183,14 @@ export function ImportSummaryItemCard({
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className={cn(
-                "text-sm font-medium",
+                "text-base font-semibold",
                 item.checked
                   ? "text-muted-foreground line-through"
-                  : "text-foreground"
+                  : cn(
+                      "text-foreground",
+                      item.severity === "error" && "text-destructive",
+                      item.severity === "warning" && "text-amber-600 dark:text-amber-400"
+                    )
               )}
               style={{ fontFamily: "Inter, sans-serif" }}
             >

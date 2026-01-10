@@ -21,12 +21,18 @@ export interface ImportSummaryData {
     vehicles: Array<{ year: string; make: string; model: string; vin?: string }>
   }
   missingInfo: ImportSummaryItem[]
+  premiumEstimate?: {
+    monthly: number
+    currency?: string
+  }
   thirdPartyReports: {
     status: "completed" | "pending" | "failed"
     reports: Array<{
-      type: "coverage-gap" | "accident-history" | "mvr" | "clue"
-      status: "completed" | "pending"
+      type: "financial-score" | "verify-coverage" | "verify-claims" | "mvr" | "car-report"
+      status: "completed" | "pending" | "failed"
+      provider?: string // e.g., "Carfax", "Verisk"
       findings?: any
+      pendingReason?: string // e.g., "VIN required"
     }>
   }
 }
@@ -114,6 +120,10 @@ export const MOCK_EZLYNX_QUOTE: EzlynxQuoteData = {
         { year: "2023", make: "Honda", model: "Accord" },
       ],
     },
+    premiumEstimate: {
+      monthly: 142,
+      currency: "USD",
+    },
     missingInfo: [
       {
         id: "coverage-gap",
@@ -198,8 +208,14 @@ export const MOCK_EZLYNX_QUOTE: EzlynxQuoteData = {
       status: "completed",
       reports: [
         {
-          type: "coverage-gap",
+          type: "financial-score",
           status: "completed",
+          provider: "Verisk",
+        },
+        {
+          type: "verify-coverage",
+          status: "completed",
+          provider: "Verisk",
           findings: {
             gapDetected: true,
             gapPeriod: {
@@ -210,12 +226,20 @@ export const MOCK_EZLYNX_QUOTE: EzlynxQuoteData = {
           },
         },
         {
-          type: "mvr",
+          type: "verify-claims",
           status: "completed",
+          provider: "CLUE",
         },
         {
-          type: "clue",
+          type: "mvr",
           status: "completed",
+          provider: "State DMV",
+        },
+        {
+          type: "car-report",
+          status: "pending",
+          provider: "Carfax",
+          pendingReason: "VIN required",
         },
       ],
     },

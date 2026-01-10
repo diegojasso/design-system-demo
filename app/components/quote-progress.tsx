@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { useQuote } from "@/app/contexts/quote-context"
+import { useQuote, StepId } from "@/app/contexts/quote-context"
 import { AlertTriangle } from "lucide-react"
 
 export const steps = [
@@ -27,12 +27,14 @@ export const steps = [
     label: "Checkout",
   },
   {
+    id: "e-sign",
+    label: "E-Sign",
+  },
+  {
     id: "review",
     label: "Review",
   },
 ] as const
-
-export type StepId = "import-summary" | "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
 
 interface QuoteProgressProps {
   currentStep?: StepId

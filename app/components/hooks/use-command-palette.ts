@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { buildCommands, Command } from "../command-palette/commands"
-import type { StepId } from "../quote-progress"
+import type { StepId } from "../../contexts/quote-context"
 import type { RecentQuote } from "../command-palette/quote-types"
 import type {
   CommandHistoryEntry,

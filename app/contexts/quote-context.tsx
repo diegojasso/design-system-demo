@@ -7,6 +7,7 @@ import { Vehicle } from "@/app/components/vehicles-table/types"
 import { CoverageData, PricingSummary } from "@/app/components/coverage/types"
 import { PaymentData } from "@/app/components/payment/types"
 import type { ImportSummaryData } from "@/app/components/import/mock-ezlynx-data"
+import { ESignatureData, Document } from "@/app/components/e-signature/types"
 
 // ClientInfoFormValues type (we'll import the actual type later)
 export type ClientInfoFormValues = {
@@ -20,7 +21,7 @@ export type ClientInfoFormValues = {
   address: string
 }
 
-export type StepId = "import-summary" | "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
+export type StepId = "import-summary" | "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "e-sign" | "review"
 
 export interface QuoteData {
   id?: string
@@ -30,6 +31,7 @@ export interface QuoteData {
   coverage?: CoverageData
   pricing?: PricingSummary
   payment?: PaymentData
+  eSignature?: ESignatureData
   currentStep?: StepId
   lastSaved?: Date
   isDirty?: boolean
@@ -53,6 +55,15 @@ interface StoredQuote {
     coverage?: CoverageData
     pricing?: PricingSummary
     payment?: PaymentData
+    eSignature?: Omit<ESignatureData, 'sentDate' | 'lastReminderSent'> & {
+      sentDate: string | null
+      lastReminderSent: string | null
+      documents: Array<Omit<Document, 'sentDate' | 'signedDate' | 'expiresAt'> & {
+        sentDate?: string
+        signedDate?: string
+        expiresAt?: string
+      }>
+    }
     isImported?: boolean
     importSource?: "ezlynx" | "other"
     importSummary?: ImportSummaryData
@@ -69,6 +80,7 @@ interface QuoteContextValue {
   updateCoverage: (coverage: CoverageData) => void
   updatePricing: (pricing: PricingSummary) => void
   updatePayment: (payment: PaymentData) => void
+  updateESignature: (eSignature: ESignatureData) => void
   setCurrentStep: (step: StepId) => Promise<void>
   saveQuote: () => Promise<void>
   retrySave: () => Promise<void>
@@ -103,6 +115,22 @@ function loadQuoteFromStorage(quoteId: string): StoredQuote | null {
     // Convert dateOfBirth string back to Date object if it exists
     if (parsed.data.clientInfo?.dateOfBirth) {
       parsed.data.clientInfo.dateOfBirth = new Date(parsed.data.clientInfo.dateOfBirth as any)
+    }
+    
+    // Convert e-signature dates back to Date objects if they exist
+    if (parsed.data.eSignature) {
+      if (parsed.data.eSignature.sentDate) {
+        parsed.data.eSignature.sentDate = new Date(parsed.data.eSignature.sentDate as any)
+      }
+      if (parsed.data.eSignature.lastReminderSent) {
+        parsed.data.eSignature.lastReminderSent = new Date(parsed.data.eSignature.lastReminderSent as any)
+      }
+      parsed.data.eSignature.documents = parsed.data.eSignature.documents.map(doc => ({
+        ...doc,
+        sentDate: doc.sentDate ? new Date(doc.sentDate) : undefined,
+        signedDate: doc.signedDate ? new Date(doc.signedDate) : undefined,
+        expiresAt: doc.expiresAt ? new Date(doc.expiresAt) : undefined,
+      }))
     }
     
     return parsed
@@ -204,6 +232,23 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
             : new Date(stored.data.clientInfo.dateOfBirth as string),
         } : undefined
         
+        // Convert e-signature dates back to Date objects if needed
+        const eSignature = stored.data.eSignature ? {
+          ...stored.data.eSignature,
+          sentDate: stored.data.eSignature.sentDate instanceof Date
+            ? stored.data.eSignature.sentDate
+            : stored.data.eSignature.sentDate ? new Date(stored.data.eSignature.sentDate) : null,
+          lastReminderSent: stored.data.eSignature.lastReminderSent instanceof Date
+            ? stored.data.eSignature.lastReminderSent
+            : stored.data.eSignature.lastReminderSent ? new Date(stored.data.eSignature.lastReminderSent) : null,
+          documents: stored.data.eSignature.documents.map((doc: any) => ({
+            ...doc,
+            sentDate: doc.sentDate ? (doc.sentDate instanceof Date ? doc.sentDate : new Date(doc.sentDate)) : undefined,
+            signedDate: doc.signedDate ? (doc.signedDate instanceof Date ? doc.signedDate : new Date(doc.signedDate)) : undefined,
+            expiresAt: doc.expiresAt ? (doc.expiresAt instanceof Date ? doc.expiresAt : new Date(doc.expiresAt)) : undefined,
+          })),
+        } : undefined
+        
         setQuoteData({
           id: stored.id,
           clientInfo: clientInfo as ClientInfoFormValues | undefined,
@@ -212,6 +257,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           coverage: stored.data.coverage,
           pricing: stored.data.pricing,
           payment: stored.data.payment,
+          eSignature: eSignature as ESignatureData | undefined,
           currentStep: stored.currentStep,
           lastSaved: new Date(stored.lastSaved),
           isImported: stored.data.isImported,
@@ -260,6 +306,23 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           : quoteData.clientInfo.dateOfBirth,
       } : undefined
 
+      // Serialize e-signature, converting Date objects to ISO strings
+      const serializedESignature = quoteData.eSignature ? {
+        ...quoteData.eSignature,
+        sentDate: quoteData.eSignature.sentDate instanceof Date
+          ? quoteData.eSignature.sentDate.toISOString()
+          : quoteData.eSignature.sentDate,
+        lastReminderSent: quoteData.eSignature.lastReminderSent instanceof Date
+          ? quoteData.eSignature.lastReminderSent.toISOString()
+          : quoteData.eSignature.lastReminderSent,
+        documents: quoteData.eSignature.documents.map(doc => ({
+          ...doc,
+          sentDate: doc.sentDate instanceof Date ? doc.sentDate.toISOString() : doc.sentDate,
+          signedDate: doc.signedDate instanceof Date ? doc.signedDate.toISOString() : doc.signedDate,
+          expiresAt: doc.expiresAt instanceof Date ? doc.expiresAt.toISOString() : doc.expiresAt,
+        })),
+      } : undefined
+
       const storedQuote: StoredQuote = {
         id: quoteId,
         version: STORAGE_VERSION,
@@ -273,6 +336,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           coverage: quoteData.coverage,
           pricing: quoteData.pricing,
           payment: quoteData.payment,
+          eSignature: serializedESignature as any,
           isImported: quoteData.isImported,
           importSource: quoteData.importSource,
           importSummary: quoteData.importSummary,
@@ -370,6 +434,23 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
         : new Date(stored.data.clientInfo.dateOfBirth as string),
     } : undefined
     
+    // Convert e-signature dates back to Date objects if needed
+    const eSignature = stored.data.eSignature ? {
+      ...stored.data.eSignature,
+      sentDate: stored.data.eSignature.sentDate instanceof Date
+        ? stored.data.eSignature.sentDate
+        : stored.data.eSignature.sentDate ? new Date(stored.data.eSignature.sentDate) : null,
+      lastReminderSent: stored.data.eSignature.lastReminderSent instanceof Date
+        ? stored.data.eSignature.lastReminderSent
+        : stored.data.eSignature.lastReminderSent ? new Date(stored.data.eSignature.lastReminderSent) : null,
+      documents: stored.data.eSignature.documents.map((doc: any) => ({
+        ...doc,
+        sentDate: doc.sentDate ? (doc.sentDate instanceof Date ? doc.sentDate : new Date(doc.sentDate)) : undefined,
+        signedDate: doc.signedDate ? (doc.signedDate instanceof Date ? doc.signedDate : new Date(doc.signedDate)) : undefined,
+        expiresAt: doc.expiresAt ? (doc.expiresAt instanceof Date ? doc.expiresAt : new Date(doc.expiresAt)) : undefined,
+      })),
+    } : undefined
+    
     setQuoteData({
       id: stored.id,
       clientInfo: clientInfo as ClientInfoFormValues | undefined,
@@ -378,6 +459,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
       coverage: stored.data.coverage,
       pricing: stored.data.pricing,
       payment: stored.data.payment,
+      eSignature: eSignature as ESignatureData | undefined,
       currentStep: stored.currentStep,
       lastSaved: new Date(stored.lastSaved),
       isImported: stored.data.isImported,
@@ -449,6 +531,15 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     setQuoteData((prev) => ({
       ...prev,
       payment,
+      isDirty: true,
+    }))
+  }, [])
+
+  // Update e-signature
+  const updateESignature = React.useCallback((eSignature: ESignatureData) => {
+    setQuoteData((prev) => ({
+      ...prev,
+      eSignature,
       isDirty: true,
     }))
   }, [])
@@ -580,6 +671,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     updateCoverage,
     updatePricing,
     updatePayment,
+    updateESignature,
     setCurrentStep,
     saveQuote,
     retrySave,

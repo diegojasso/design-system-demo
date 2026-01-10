@@ -21,6 +21,12 @@ import { ImportSummarySearch } from "./import-summary-search"
 import { ImportSummaryBulkActions } from "./import-summary-bulk-actions"
 import { CoverageGapWizard } from "./coverage-gap-wizard"
 import { ImportTimeline } from "./import-timeline"
+import { ImportSummaryHeader } from "./import-summary-header"
+import { CompactProgressIndicator } from "./compact-progress-indicator"
+import { StickyWarningsBar } from "./sticky-warnings-bar"
+import { CollapsibleImportedInfo } from "./collapsible-imported-info"
+import { CollapsibleTimeline } from "./collapsible-timeline"
+import { CollapsibleFilters } from "./collapsible-filters"
 
 type FilterSeverity = "all" | "error" | "warning" | "info"
 type FilterStatus = "all" | "resolved" | "unresolved"
@@ -29,7 +35,7 @@ interface ImportSummaryProps {
   data?: ImportSummaryData
 }
 
-export function ImportSummary({ data }: ImportSummaryProps) {
+export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
   const { quoteData, updateImportSummaryItem, setCurrentStep } = useQuote()
   const [selectedItem, setSelectedItem] = React.useState<ImportSummaryItem | null>(null)
   const [resolutionOption, setResolutionOption] = React.useState<string>("")
@@ -322,39 +328,95 @@ export function ImportSummary({ data }: ImportSummaryProps) {
     return events
   }, [importSummary])
 
+  const resolvedItems = importSummary.missingInfo.filter((item) => item.checked).length
+  const totalItems = importSummary.missingInfo.length
+
+  // Get unresolved errors and warnings for sticky bar
+  const unresolvedErrors = React.useMemo(() => {
+    return importSummary.missingInfo.filter(
+      (item) => item.severity === "error" && !item.checked
+    )
+  }, [importSummary.missingInfo])
+
+  const unresolvedWarnings = React.useMemo(() => {
+    return importSummary.missingInfo.filter(
+      (item) => item.severity === "warning" && !item.checked
+    )
+  }, [importSummary.missingInfo])
+
+  // Ref for scrolling to warnings section
+  const warningsSectionRef = React.useRef<HTMLDivElement>(null)
+
+  const handleScrollToWarnings = () => {
+    warningsSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    })
+  }
+
+  const handleResolveAllWarnings = () => {
+    const allUnresolvedIds = [
+      ...unresolvedErrors.map((item) => item.id),
+      ...unresolvedWarnings.map((item) => item.id),
+    ]
+    allUnresolvedIds.forEach((itemId) => {
+      updateImportSummaryItem?.(itemId, true)
+    })
+    setSelectedItems(new Set())
+  }
+
+  const handleDismissAllWarnings = () => {
+    // Same as resolve for now
+    handleResolveAllWarnings()
+  }
+
   return (
     <div className="mb-8 flex w-full flex-col gap-6">
-      {/* Summary Statistics Dashboard */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <ImportSummaryStats
-            data={importSummary}
-            onFilterChange={handleFilterChange}
-          />
-        </div>
-        <div className="lg:col-span-1">
-          <div className="rounded-lg border border-border bg-card p-4">
-            <ImportTimeline events={timelineEvents} />
-          </div>
-        </div>
+      {/* Compact Header Bar */}
+      <ImportSummaryHeader
+        quoteNumber={quoteNumber || quoteData.ezlynxQuoteNumber || "KBD78E7747"}
+        primaryAddress={quoteData.clientInfo?.address || "5211 S McQueen Rd, Chandler, AZ 85249"}
+        premiumEstimate={importSummary.premiumEstimate}
+        thirdPartyReports={importSummary.thirdPartyReports}
+      />
+
+      {/* Compact Progress Indicator */}
+      <div className="rounded-lg border border-border bg-card p-4">
+        <CompactProgressIndicator
+          resolved={resolvedItems}
+          total={totalItems}
+          driversCount={importSummary.importedInfo.drivers.length}
+          vehiclesCount={importSummary.importedInfo.vehicles.length}
+        />
       </div>
 
+      {/* Sticky Warnings Bar */}
+      {(unresolvedErrors.length > 0 || unresolvedWarnings.length > 0) && (
+        <StickyWarningsBar
+          errors={unresolvedErrors}
+          warnings={unresolvedWarnings}
+          onResolveAll={handleResolveAllWarnings}
+          onDismissAll={handleDismissAllWarnings}
+          onItemClick={handleItemClick}
+          onScrollToWarnings={handleScrollToWarnings}
+        />
+      )}
+
       {/* Search and Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4">
         <ImportSummarySearch
           value={searchQuery}
           onChange={setSearchQuery}
           placeholder="Search items..."
         />
-        <div className="rounded-lg border border-border bg-card p-4">
-          <ImportSummaryFilters
-            items={importSummary.missingInfo}
-            severityFilter={severityFilter}
-            statusFilter={statusFilter}
-            onSeverityChange={setSeverityFilter}
-            onStatusChange={setStatusFilter}
-          />
-        </div>
+        <CollapsibleFilters
+          items={importSummary.missingInfo}
+          severityFilter={severityFilter}
+          statusFilter={statusFilter}
+          onSeverityChange={setSeverityFilter}
+          onStatusChange={setStatusFilter}
+          defaultOpen={false}
+        />
       </div>
 
       {/* Bulk Actions */}
@@ -370,54 +432,67 @@ export function ImportSummary({ data }: ImportSummaryProps) {
         />
       )}
 
-      {/* Grouped Items */}
-      <div className="flex flex-col gap-4">
+      {/* Grouped Items - WARNINGS FIRST (Most Important) */}
+      <div ref={warningsSectionRef} className="flex flex-col gap-6">
         {groupedItems.error.length > 0 && (
-          <ImportSummaryGroup
-            severity="error"
-            items={groupedItems.error}
-            onItemClick={handleItemClick}
-            onCheckboxChange={handleCheckboxChange}
-            defaultExpanded={true}
-            startIndex={0}
-            selectedItems={selectedItems}
-            onBulkSelect={handleBulkSelect}
-            onQuickResolve={handleQuickResolve}
-            onQuickDismiss={handleQuickDismiss}
-            showQuickActions={selectedItems.size === 0}
-          />
+          <div className="space-y-2">
+            <h2 className="text-lg font-bold text-foreground">Action Required</h2>
+            <ImportSummaryGroup
+              severity="error"
+              items={groupedItems.error}
+              onItemClick={handleItemClick}
+              onCheckboxChange={handleCheckboxChange}
+              defaultExpanded={true}
+              startIndex={0}
+              selectedItems={selectedItems}
+              onBulkSelect={handleBulkSelect}
+              onQuickResolve={handleQuickResolve}
+              onQuickDismiss={handleQuickDismiss}
+              showQuickActions={selectedItems.size === 0}
+            />
+          </div>
         )}
 
         {groupedItems.warning.length > 0 && (
-          <ImportSummaryGroup
-            severity="warning"
-            items={groupedItems.warning}
-            onItemClick={handleItemClick}
-            onCheckboxChange={handleCheckboxChange}
-            defaultExpanded={true}
-            startIndex={groupedItems.error.length}
-            selectedItems={selectedItems}
-            onBulkSelect={handleBulkSelect}
-            onQuickResolve={handleQuickResolve}
-            onQuickDismiss={handleQuickDismiss}
-            showQuickActions={selectedItems.size === 0}
-          />
+          <div className="space-y-2">
+            {groupedItems.error.length === 0 && (
+              <h2 className="text-lg font-bold text-foreground">Action Required</h2>
+            )}
+            <ImportSummaryGroup
+              severity="warning"
+              items={groupedItems.warning}
+              onItemClick={handleItemClick}
+              onCheckboxChange={handleCheckboxChange}
+              defaultExpanded={true}
+              startIndex={groupedItems.error.length}
+              selectedItems={selectedItems}
+              onBulkSelect={handleBulkSelect}
+              onQuickResolve={handleQuickResolve}
+              onQuickDismiss={handleQuickDismiss}
+              showQuickActions={selectedItems.size === 0}
+            />
+          </div>
         )}
 
         {groupedItems.info.length > 0 && (
-          <ImportSummaryGroup
-            severity="info"
-            items={groupedItems.info}
-            onItemClick={handleItemClick}
-            onCheckboxChange={handleCheckboxChange}
-            defaultExpanded={true}
-            startIndex={groupedItems.error.length + groupedItems.warning.length}
-            selectedItems={selectedItems}
-            onBulkSelect={handleBulkSelect}
-            onQuickResolve={handleQuickResolve}
-            onQuickDismiss={handleQuickDismiss}
-            showQuickActions={selectedItems.size === 0}
-          />
+          <div className="space-y-2">
+            {(groupedItems.error.length > 0 || groupedItems.warning.length > 0) && (
+              <h2 className="text-lg font-bold text-foreground">Reference</h2>
+            )}
+            <ImportSummaryGroup
+              severity="info"
+              items={groupedItems.info}
+              onItemClick={handleItemClick}
+              onCheckboxChange={handleCheckboxChange}
+              defaultExpanded={true}
+              startIndex={groupedItems.error.length + groupedItems.warning.length}
+              selectedItems={selectedItems}
+              onBulkSelect={handleBulkSelect}
+              onQuickResolve={handleQuickResolve}
+              onQuickDismiss={handleQuickDismiss}
+              showQuickActions={selectedItems.size === 0}
+            />
+          </div>
         )}
 
         {filteredItems.length === 0 && (
@@ -427,6 +502,23 @@ export function ImportSummary({ data }: ImportSummaryProps) {
             </p>
           </div>
         )}
+      </div>
+
+      {/* Reference Information - Less Critical (Collapsed by Default) */}
+      <div className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Reference Information
+        </h3>
+        
+        {/* Collapsible Imported Info */}
+        <CollapsibleImportedInfo
+          drivers={importSummary.importedInfo.drivers}
+          vehicles={importSummary.importedInfo.vehicles}
+          defaultOpen={false}
+        />
+
+        {/* Collapsible Timeline */}
+        <CollapsibleTimeline events={timelineEvents} defaultOpen={false} />
       </div>
 
       {/* Coverage Gap Wizard Modal */}

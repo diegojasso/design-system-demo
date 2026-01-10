@@ -1,8 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { steps } from "./quote-progress"
-
-type StepId = "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
+import type { StepId } from "../contexts/quote-context"
 
 interface QuoteNavigationProps {
   currentStep: StepId

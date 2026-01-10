@@ -17,6 +17,7 @@ import { DriversTable } from "./components/drivers-table/drivers-table"
 import { VehiclesTable } from "./components/vehicles-table/vehicles-table"
 import { CoverageForm } from "./components/coverage/coverage-form"
 import { PaymentForm } from "./components/payment/payment-form"
+import { ESignatureForm } from "./components/e-signature/e-signature-form"
 import { CommandPalette } from "./components/command-palette"
 import { useQuote, StepId } from "./contexts/quote-context"
 import { ImportSummary } from "./components/import/import-summary"
@@ -132,6 +133,7 @@ export default function Home() {
             {currentStep === "vehicle" && <VehiclesTable />}
             {currentStep === "coverage" && <CoverageForm />}
             {currentStep === "payment" && <PaymentForm />}
+            {currentStep === "e-sign" && <ESignatureForm />}
             {currentStep === "review" && (
               <div className="mb-8 w-full text-center text-muted-foreground py-12">
                 Review step - Coming soon

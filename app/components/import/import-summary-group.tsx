@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronRight, XCircle, AlertTriangle, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ImportSummaryItem } from "./mock-ezlynx-data"
 import { ImportSummaryItemCard } from "./import-summary-item-card"
@@ -23,24 +23,30 @@ interface ImportSummaryGroupProps {
 const severityConfig = {
   error: {
     label: "Errors",
-    icon: "🔴",
+    icon: XCircle,
     color: "text-destructive",
-    bgColor: "bg-destructive/5",
-    borderColor: "border-destructive/20",
+    bgColor: "bg-destructive/10",
+    borderColor: "border-destructive/30",
+    headerBg: "bg-destructive/5",
+    shadow: "shadow-destructive/10",
   },
   warning: {
     label: "Warnings",
-    icon: "⚠️",
+    icon: AlertTriangle,
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-50 dark:bg-amber-950",
     borderColor: "border-amber-200 dark:border-amber-800",
+    headerBg: "bg-amber-50 dark:bg-amber-950",
+    shadow: "shadow-amber-500/10",
   },
   info: {
     label: "Info",
-    icon: "ℹ️",
+    icon: Info,
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-50 dark:bg-blue-950",
     borderColor: "border-blue-200 dark:border-blue-800",
+    headerBg: "bg-blue-50 dark:bg-blue-950",
+    shadow: "shadow-blue-500/10",
   },
 }
 
@@ -66,41 +72,57 @@ export function ImportSummaryGroup({
   const config = severityConfig[severity]
   const unresolvedCount = items.filter((item) => !item.checked).length
 
+  const IconComponent = config.icon
+
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <div
+      className={cn(
+        "rounded-lg border-2 bg-card shadow-sm transition-shadow",
+        config.borderColor,
+        severity === "error" && "shadow-lg shadow-destructive/10",
+        severity === "warning" && "shadow-md shadow-amber-500/10"
+      )}
+    >
       {/* Group Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
-          "flex w-full items-center justify-between gap-3 rounded-t-lg border-b border-border px-4 py-3 transition-colors",
-          "hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          config.bgColor,
-          config.borderColor
+          "flex w-full items-center justify-between gap-3 rounded-t-lg border-b-2 px-5 py-4 transition-all",
+          "hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          config.headerBg,
+          config.borderColor,
+          severity === "error" && "hover:shadow-lg hover:shadow-destructive/20"
         )}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {isExpanded ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className={cn("h-5 w-5 transition-transform", config.color)} />
           ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <ChevronRight className={cn("h-5 w-5 transition-transform", config.color)} />
           )}
-          <span className={cn("text-sm font-semibold", config.color)}>
-            {config.label}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {items.length} {items.length === 1 ? "item" : "items"}
-          </span>
-          {unresolvedCount > 0 && (
-            <span
-              className={cn(
-                "rounded-full px-2 py-0.5 text-xs font-medium",
-                config.bgColor,
-                config.color
-              )}
-            >
-              {unresolvedCount} unresolved
+          <IconComponent className={cn("h-5 w-5", config.color)} />
+          <div className="flex items-center gap-3">
+            <span className={cn("text-base font-bold", config.color)}>
+              {config.label}
             </span>
-          )}
+            <span className="text-sm text-muted-foreground">
+              {items.length} {items.length === 1 ? "item" : "items"}
+            </span>
+            {unresolvedCount > 0 && (
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-xs font-bold",
+                  severity === "error"
+                    ? "bg-destructive text-destructive-foreground"
+                    : severity === "warning"
+                      ? "bg-amber-500 text-white"
+                      : "bg-blue-500 text-white"
+                )}
+              >
+                {unresolvedCount} unresolved
+              </span>
+            )}
+          </div>
         </div>
       </button>
 
