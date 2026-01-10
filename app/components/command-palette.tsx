@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { Search } from "lucide-react"
 import {
   CommandDialog,
@@ -15,6 +15,8 @@ import { useCommandPalette } from "./hooks/use-command-palette"
 import { commandFilter } from "./command-palette/fuzzy-search"
 import { useRecentQuotes } from "./command-palette/use-recent-quotes"
 import { useCommandHistory } from "./command-palette/use-command-history"
+import { useCommandPaletteContext } from "./command-palette-context"
+import { useTheme } from "@/hooks/use-theme"
 import type { StepId } from "./quote-progress"
 import type { Command } from "./command-palette/commands"
 import type { RecentQuote } from "./command-palette/quote-types"
@@ -41,6 +43,7 @@ const groupLabels: Record<string, string> = {
   navigation: "Jump to Section",
   "quote-actions": "Reports & Actions",
   recent: "Recent Quotes",
+  settings: "Settings",
 }
 
 export function CommandPalette({
@@ -69,6 +72,9 @@ export function CommandPalette({
     isFavorite,
   } = useCommandHistory()
 
+  // Get theme functions
+  const { setTheme, theme } = useTheme()
+
   // Wrap onOpenQuote to track recent quotes
   const handleOpenQuoteWithTracking = (quoteId: string) => {
     // Add to recent quotes (with mock data for demo)
@@ -82,7 +88,8 @@ export function CommandPalette({
     onOpenQuote?.(quoteId)
   }
 
-  const { isOpen, setIsOpen, commands } = useCommandPalette({
+  const context = useCommandPaletteContext()
+  const { isOpen: hookIsOpen, setIsOpen: setHookIsOpen, commands } = useCommandPalette({
     currentStep,
     onStepChange,
     onFindClient,
@@ -96,7 +103,25 @@ export function CommandPalette({
     history,
     favorites,
     customShortcuts,
+    onSetTheme: setTheme,
+    currentTheme: theme as "light" | "dark" | "system" | undefined,
   })
+
+  // Use hook state as source of truth
+  const isOpen = hookIsOpen
+  
+  // Sync context to hook when opened from hint button (one-way: context -> hook)
+  useEffect(() => {
+    if (context.isOpen && !hookIsOpen) {
+      setHookIsOpen(true)
+    }
+  }, [context.isOpen, hookIsOpen, setHookIsOpen])
+
+  // Unified setIsOpen that updates both states
+  const setIsOpen = useCallback((open: boolean) => {
+    setHookIsOpen(open)
+    context.setIsOpen(open)
+  }, [context.setIsOpen])
 
   const [search, setSearch] = useState("")
 
@@ -218,6 +243,7 @@ export function CommandPalette({
               }
               const favorite = isFavorite(command.id)
               const displayShortcut = command.customShortcut || command.shortcut
+              const isActiveTheme = command.meta === "Active"
               return (
                 <CommandItem
                   key={command.id}
@@ -228,10 +254,18 @@ export function CommandPalette({
                   <Icon className="h-4 w-4" />
                   <div className="flex flex-1 items-center gap-2">
                     <span>{command.label}</span>
-                    {command.meta && (
+                    {command.meta && !isActiveTheme && (
                       <span className="text-xs text-muted-foreground">
                         {command.meta}
                       </span>
+                    )}
+                    {isActiveTheme && (
+                      <Badge
+                        variant="outline"
+                        className="h-5 text-xs bg-primary/10 text-primary border-primary/20"
+                      >
+                        Active
+                      </Badge>
                     )}
                     {command.status && (
                       <Badge

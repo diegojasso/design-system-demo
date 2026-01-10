@@ -25,6 +25,9 @@ interface UseCommandPaletteProps {
   history?: CommandHistoryEntry[]
   favorites?: Set<string>
   customShortcuts?: Map<string, string>
+  // Theme
+  onSetTheme?: (theme: "light" | "dark" | "system") => void
+  currentTheme?: "light" | "dark" | "system"
 }
 
 interface GroupedCommand {
@@ -52,6 +55,8 @@ export function useCommandPalette({
   history = [],
   favorites = new Set(),
   customShortcuts = new Map(),
+  onSetTheme,
+  currentTheme,
 }: UseCommandPaletteProps): UseCommandPaletteReturn {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -72,6 +77,8 @@ export function useCommandPalette({
         history,
         favorites,
         customShortcuts,
+        onSetTheme,
+        currentTheme,
       }),
     [
       currentStep,
@@ -87,6 +94,8 @@ export function useCommandPalette({
       history,
       favorites,
       customShortcuts,
+      onSetTheme,
+      currentTheme,
     ]
   )
 

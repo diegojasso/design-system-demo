@@ -12,6 +12,9 @@ import {
   Download,
   FileText,
   FileDown,
+  Moon,
+  Sun,
+  Monitor,
   type LucideIcon,
 } from "lucide-react"
 import type { RecentQuote } from "./quote-types"
@@ -30,6 +33,7 @@ export interface Command {
     | "recent"
     | "favorites"
     | "history"
+    | "settings"
   context: "always" | "in-quote" | "has-quote"
   action: () => void
   // Optional metadata for display
@@ -58,6 +62,9 @@ interface CommandContext {
   history?: CommandHistoryEntry[]
   favorites?: Set<string>
   customShortcuts?: Map<string, string>
+  // Theme
+  onSetTheme?: (theme: "light" | "dark" | "system") => void
+  currentTheme?: "light" | "dark" | "system"
 }
 
 export function buildCommands(context: CommandContext): Command[] {
@@ -218,6 +225,49 @@ export function buildCommands(context: CommandContext): Command[] {
         status: quote.status,
         action: () => {
           context.onOpenQuote?.(quote.id)
+        },
+      })
+    })
+  }
+
+  // Theme settings (always available)
+  if (context.onSetTheme) {
+    const themeCommands = [
+      {
+        id: "theme-light",
+        label: "Switch to Light Theme",
+        keywords: ["light", "theme", "bright", "day"],
+        icon: Sun,
+        theme: "light" as const,
+      },
+      {
+        id: "theme-dark",
+        label: "Switch to Dark Theme",
+        keywords: ["dark", "theme", "night", "black"],
+        icon: Moon,
+        theme: "dark" as const,
+      },
+      {
+        id: "theme-system",
+        label: "Use System Theme",
+        keywords: ["system", "theme", "auto", "default"],
+        icon: Monitor,
+        theme: "system" as const,
+      },
+    ]
+
+    themeCommands.forEach(({ id, label, keywords, icon, theme }) => {
+      const isActive = context.currentTheme === theme
+      commands.push({
+        id,
+        label,
+        keywords,
+        icon,
+        group: "settings",
+        context: "always",
+        meta: isActive ? "Active" : undefined,
+        action: () => {
+          context.onSetTheme?.(theme)
         },
       })
     })
