@@ -1,0 +1,44 @@
+# Replit configuration file
+# See https://docs.replit.com/replit-workspace/replit-configuration-files
+
+# Language configuration
+language = "nodejs"
+
+# Run command - Next.js automatically uses PORT environment variable from Replit
+run = "npm run dev"
+
+# Entrypoint
+entrypoint = "app/page.tsx"
+
+# Environment variables
+[env]
+NODE_ENV = "development"
+PORT = "3000"
+
+# Deploy configuration
+[deploy]
+run = ["sh", "-c", "npm run build && npm start"]
+healthcheckPath = "/"
+healthcheckInterval = 300
+
+# Git configuration
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix", ".gitignore"]
+
+# Unit test configuration
+[unitTest]
+language = "nodejs"
+
+# LSP configuration
+[languages.javascript]
+pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
+[languages.javascript.languageServer]
+start = "typescript-language-server --stdio"
+
+# Debugger configuration
+[debugger]
+support = true
+transport = "localhost:0"
+startCommand = ["dap-node"]
+[languages.javascript.debugger]
+interpreter = ["node"]

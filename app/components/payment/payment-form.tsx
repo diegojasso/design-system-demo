@@ -378,10 +378,10 @@ export function PaymentForm() {
                             <div className="flex items-center gap-2">
                               {/* Credit card icons */}
                               <div className="flex items-center gap-1.5">
-                                <PaymentIcon type="amex" format="flatRounded" width={32} />
-                                <PaymentIcon type="mastercard" format="flatRounded" width={32} />
-                                <PaymentIcon type="visa" format="flatRounded" width={32} />
-                                <PaymentIcon type="discover" format="flatRounded" width={32} />
+                                <PaymentIcon type="Amex" format="flatRounded" width={32} />
+                                <PaymentIcon type="Mastercard" format="flatRounded" width={32} />
+                                <PaymentIcon type="Visa" format="flatRounded" width={32} />
+                                <PaymentIcon type="Discover" format="flatRounded" width={32} />
                               </div>
                             </div>
                           </div>

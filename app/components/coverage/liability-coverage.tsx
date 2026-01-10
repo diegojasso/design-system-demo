@@ -14,6 +14,7 @@ import {
   PROPERTY_DAMAGE_OPTIONS,
   MEDICAL_PAYMENTS_OPTIONS,
   UNINSURED_MOTORISTS_OPTIONS,
+  UNDERINSURED_MOTORISTS_OPTIONS,
   LiabilityCoverage,
   AdditionalCoverage,
 } from "./types"
@@ -27,7 +28,7 @@ interface LiabilityCoverageProps {
   currentCoverage: CoverageData
   pricing: PricingSummary
   onLiabilityChange: (field: keyof LiabilityCoverage, value: string) => void
-  onAdditionalChange: (field: keyof AdditionalCoverage, value: string) => void
+  onAdditionalChange: (field: keyof AdditionalCoverage, value: string | boolean) => void
 }
 
 export function LiabilityCoverageSection({
@@ -51,6 +52,14 @@ export function LiabilityCoverageSection({
         ...currentCoverage,
         liability: {
           ...currentCoverage.liability,
+          [previewValue.field]: previewValue.value as string,
+        },
+      }
+    } else if (previewValue.field === "medicalPayments" || previewValue.field === "uninsuredMotoristsBodilyInjury" || previewValue.field === "underinsuredMotoristsBodilyInjury") {
+      return {
+        ...currentCoverage,
+        additional: {
+          ...currentCoverage.additional,
           [previewValue.field]: previewValue.value as string,
         },
       }
@@ -260,6 +269,54 @@ export function LiabilityCoverageSection({
               </SelectTrigger>
               <SelectContent>
                 {UNINSURED_MOTORISTS_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Underinsured Motorists Bodily Injury */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label
+                htmlFor="underinsured-motorists-bi"
+                className="text-sm font-medium text-foreground"
+                style={{ fontFamily: "Inter, sans-serif" }}
+              >
+                Underinsured Motorists Bodily Injury
+              </Label>
+              {previewValue?.field === "underinsuredMotoristsBodilyInjury" && (
+                <PriceImpactIndicator
+                  currentCoverage={currentCoverage}
+                  newCoverage={previewCoverage}
+                  pricing={pricing}
+                />
+              )}
+            </div>
+            <Select
+              value={additional.underinsuredMotoristsBodilyInjury || "Not Included"}
+              onValueChange={(value) => {
+                setPreviewValue(null)
+                onAdditionalChange("underinsuredMotoristsBodilyInjury", value)
+              }}
+              onOpenChange={(open) => {
+                if (open) {
+                  setPreviewValue({
+                    field: "underinsuredMotoristsBodilyInjury",
+                    value: additional.underinsuredMotoristsBodilyInjury || "Not Included",
+                  })
+                } else {
+                  setPreviewValue(null)
+                }
+              }}
+            >
+              <SelectTrigger id="underinsured-motorists-bi" className="w-full">
+                <SelectValue placeholder="Select coverage" />
+              </SelectTrigger>
+              <SelectContent>
+                {UNDERINSURED_MOTORISTS_OPTIONS.map((option) => (
                   <SelectItem key={option} value={option}>
                     {option}
                   </SelectItem>

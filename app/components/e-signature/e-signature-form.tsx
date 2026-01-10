@@ -63,7 +63,7 @@ export function ESignatureForm() {
       const clientEmail = quoteData.clientInfo?.email || ""
       const initialESignature: ESignatureData = {
         documents: MOCK_DOCUMENTS,
-        sentDate: new Date("2025-12-13"),
+        sentDate: new Date("2026-01-12"),
         reminderEmail: clientEmail,
         reminderCount: 0,
         lastReminderSent: null,

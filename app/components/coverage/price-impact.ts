@@ -100,6 +100,21 @@ export function calculatePriceImpact(
     })
   }
 
+  if (
+    (currentCoverage.additional.underinsuredMotoristsBodilyInjury || "Not Included") !==
+    (newCoverage.additional.underinsuredMotoristsBodilyInjury || "Not Included")
+  ) {
+    impacts.push({
+      field: "underinsuredMotoristsBodilyInjury",
+      label: "Underinsured Motorists",
+      currentValue: currentCoverage.additional.underinsuredMotoristsBodilyInjury || "Not Included",
+      newValue: newCoverage.additional.underinsuredMotoristsBodilyInjury || "Not Included",
+      monthlyImpact: monthlyDiff,
+      annualImpact: annualDiff,
+      percentageChange: (monthlyDiff / currentPricing.monthlyPrice) * 100,
+    })
+  }
+
   return impacts
 }
 

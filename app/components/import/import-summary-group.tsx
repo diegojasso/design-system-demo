@@ -139,7 +139,7 @@ export function ImportSummaryGroup({
               }
               tabIndex={startIndex + index}
               isSelected={selectedItems.has(item.id)}
-              onSelect={onBulkSelect}
+              onSelect={onBulkSelect ? (selected) => onBulkSelect(item.id, selected) : undefined}
               onQuickResolve={() => onQuickResolve?.(item.id)}
               onQuickDismiss={() => onQuickDismiss?.(item.id)}
               showQuickActions={showQuickActions}

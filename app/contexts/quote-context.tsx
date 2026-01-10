@@ -117,21 +117,8 @@ function loadQuoteFromStorage(quoteId: string): StoredQuote | null {
       parsed.data.clientInfo.dateOfBirth = new Date(parsed.data.clientInfo.dateOfBirth as any)
     }
     
-    // Convert e-signature dates back to Date objects if they exist
-    if (parsed.data.eSignature) {
-      if (parsed.data.eSignature.sentDate) {
-        parsed.data.eSignature.sentDate = new Date(parsed.data.eSignature.sentDate as any)
-      }
-      if (parsed.data.eSignature.lastReminderSent) {
-        parsed.data.eSignature.lastReminderSent = new Date(parsed.data.eSignature.lastReminderSent as any)
-      }
-      parsed.data.eSignature.documents = parsed.data.eSignature.documents.map(doc => ({
-        ...doc,
-        sentDate: doc.sentDate ? new Date(doc.sentDate) : undefined,
-        signedDate: doc.signedDate ? new Date(doc.signedDate) : undefined,
-        expiresAt: doc.expiresAt ? new Date(doc.expiresAt) : undefined,
-      }))
-    }
+    // eSignature dates are stored as strings in StoredQuote and will be converted
+    // to Date objects when creating the QuoteData object (see loadQuote function)
     
     return parsed
   } catch (error) {
@@ -235,12 +222,8 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
         // Convert e-signature dates back to Date objects if needed
         const eSignature = stored.data.eSignature ? {
           ...stored.data.eSignature,
-          sentDate: stored.data.eSignature.sentDate instanceof Date
-            ? stored.data.eSignature.sentDate
-            : stored.data.eSignature.sentDate ? new Date(stored.data.eSignature.sentDate) : null,
-          lastReminderSent: stored.data.eSignature.lastReminderSent instanceof Date
-            ? stored.data.eSignature.lastReminderSent
-            : stored.data.eSignature.lastReminderSent ? new Date(stored.data.eSignature.lastReminderSent) : null,
+          sentDate: stored.data.eSignature.sentDate ? new Date(stored.data.eSignature.sentDate) : null,
+          lastReminderSent: stored.data.eSignature.lastReminderSent ? new Date(stored.data.eSignature.lastReminderSent) : null,
           documents: stored.data.eSignature.documents.map((doc: any) => ({
             ...doc,
             sentDate: doc.sentDate ? (doc.sentDate instanceof Date ? doc.sentDate : new Date(doc.sentDate)) : undefined,
@@ -437,12 +420,8 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     // Convert e-signature dates back to Date objects if needed
     const eSignature = stored.data.eSignature ? {
       ...stored.data.eSignature,
-      sentDate: stored.data.eSignature.sentDate instanceof Date
-        ? stored.data.eSignature.sentDate
-        : stored.data.eSignature.sentDate ? new Date(stored.data.eSignature.sentDate) : null,
-      lastReminderSent: stored.data.eSignature.lastReminderSent instanceof Date
-        ? stored.data.eSignature.lastReminderSent
-        : stored.data.eSignature.lastReminderSent ? new Date(stored.data.eSignature.lastReminderSent) : null,
+      sentDate: stored.data.eSignature.sentDate ? new Date(stored.data.eSignature.sentDate) : null,
+      lastReminderSent: stored.data.eSignature.lastReminderSent ? new Date(stored.data.eSignature.lastReminderSent) : null,
       documents: stored.data.eSignature.documents.map((doc: any) => ({
         ...doc,
         sentDate: doc.sentDate ? (doc.sentDate instanceof Date ? doc.sentDate : new Date(doc.sentDate)) : undefined,
@@ -693,5 +672,5 @@ export function useQuote() {
   if (context === undefined) {
     throw new Error("useQuote must be used within a QuoteProvider")
   }
-  return context
+  return context;
 }

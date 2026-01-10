@@ -122,6 +122,11 @@ export const EditableTableCell = React.memo(function EditableTableCell({
     }
   }
 
+  // Wrapper to convert React's FocusEvent to our onBlur signature
+  const handleBlur = () => {
+    onBlur(false, false) // Apply changes, don't move to next cell
+  }
+
   const handleKeyDownDisplay = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -201,7 +206,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
           value={value || ''}
           placeholder={placeholder || undefined}
           onChange={(e) => onChange(e.target.value)}
-          onBlur={onBlur}
+          onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className={`h-8 text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 ${
             error ? 'text-red-700' : ''
@@ -229,7 +234,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
           value={value || ''}
           placeholder={placeholder || undefined}
           onChange={(e) => onChange(e.target.value)}
-          onBlur={onBlur}
+          onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className={`h-8 text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 flex-1 ${
             error ? 'text-red-700' : ''
@@ -261,7 +266,7 @@ export const EditableTableCell = React.memo(function EditableTableCell({
           value={dateValue}
           placeholder={placeholder || undefined}
           onChange={(e) => onChange(e.target.value)}
-          onBlur={onBlur}
+          onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className={`h-8 text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 ${
             error ? 'text-red-700' : ''

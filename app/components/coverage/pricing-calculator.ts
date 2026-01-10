@@ -82,6 +82,11 @@ export function calculateCoverageAdjustment(coverage: CoverageData): number {
     adjustment += 0.1 // 10% increase for uninsured motorists coverage
   }
 
+  // Underinsured Motorists adjustments
+  if (coverage.additional.underinsuredMotoristsBodilyInjury && coverage.additional.underinsuredMotoristsBodilyInjury !== "Not Included") {
+    adjustment += 0.08 // 8% increase for underinsured motorists coverage
+  }
+
   // Vehicle coverage adjustments
   coverage.vehicleCoverages.forEach((vc) => {
     // Comprehensive deductible adjustments (lower deductible = higher premium)

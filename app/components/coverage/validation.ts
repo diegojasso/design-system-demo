@@ -18,7 +18,8 @@ export interface CoverageWarning {
 function estimateVehicleValue(vehicle: Vehicle): number {
   // Very rough estimation - in production, this would use actual valuation APIs
   const currentYear = new Date().getFullYear()
-  const age = currentYear - (vehicle.year || currentYear)
+  const vehicleYear = vehicle.year ? parseInt(vehicle.year, 10) : currentYear
+  const age = currentYear - vehicleYear
   
   // Base value assumptions (very rough)
   const baseValues: Record<string, number> = {
@@ -112,7 +113,8 @@ export function validateCoverage(
 
     // Check for new vehicles without rental reimbursement
     const currentYear = new Date().getFullYear()
-    if (vehicle.year && vehicle.year >= currentYear - 2 && !vehicleCoverage.rentalReimbursement) {
+    const vehicleYear = vehicle.year ? parseInt(vehicle.year, 10) : 0
+    if (vehicle.year && vehicleYear >= currentYear - 2 && !vehicleCoverage.rentalReimbursement) {
       warnings.push({
         id: `rental-reimbursement-${vehicle.id}`,
         severity: "info",

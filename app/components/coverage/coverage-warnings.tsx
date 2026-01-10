@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,7 +28,7 @@ export function CoverageWarnings({
   onDismissWarning,
 }: CoverageWarningsProps) {
   const [dismissedWarnings, setDismissedWarnings] = React.useState<Set<string>>(new Set())
-  const [isExpanded, setIsExpanded] = React.useState(true)
+  const [isExpanded, setIsExpanded] = React.useState(false)
 
   const warnings = React.useMemo(() => {
     return validateCoverage(coverage, vehicles)
@@ -45,6 +45,14 @@ export function CoverageWarnings({
     onFixWarning?.(warning)
   }
 
+  const handleFixAll = () => {
+    visibleWarnings.forEach((warning) => {
+      if (warning.autoFix) {
+        handleFix(warning)
+      }
+    })
+  }
+
   if (visibleWarnings.length === 0) {
     return null
   }
@@ -52,108 +60,155 @@ export function CoverageWarnings({
   const errors = visibleWarnings.filter((w) => w.severity === "error")
   const warningsOnly = visibleWarnings.filter((w) => w.severity === "warning")
   const infoOnly = visibleWarnings.filter((w) => w.severity === "info")
+  const fixableWarnings = visibleWarnings.filter((w) => w.autoFix)
+
+  const getSeverityColor = () => {
+    if (errors.length > 0) return "red"
+    if (warningsOnly.length > 0) return "amber"
+    return "blue"
+  }
+
+  const severityColor = getSeverityColor()
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <Alert
+      <div
         className={cn(
-          errors.length > 0
-            ? "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20"
-            : warningsOnly.length > 0
-            ? "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20"
-            : "border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20"
+          "flex items-center gap-2 px-3 py-2 rounded-md border text-sm",
+          severityColor === "red" &&
+            "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20",
+          severityColor === "amber" &&
+            "border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20",
+          severityColor === "blue" &&
+            "border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20"
         )}
       >
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-2 flex-1">
-            <AlertTriangle
+        <AlertTriangle
+          className={cn(
+            "h-3.5 w-3.5 flex-shrink-0",
+            severityColor === "red" && "text-red-600 dark:text-red-400",
+            severityColor === "amber" && "text-amber-600 dark:text-amber-400",
+            severityColor === "blue" && "text-blue-600 dark:text-blue-400"
+          )}
+        />
+        <div className="flex-1 flex items-center gap-2 flex-wrap">
+          <span
+            className={cn(
+              "font-medium",
+              severityColor === "red" && "text-red-900 dark:text-red-100",
+              severityColor === "amber" && "text-amber-900 dark:text-amber-100",
+              severityColor === "blue" && "text-blue-900 dark:text-blue-100"
+            )}
+          >
+            Coverage Warnings
+          </span>
+          {errors.length > 0 && (
+            <Badge variant="destructive" className="h-4 px-1.5 text-xs">
+              {errors.length}
+            </Badge>
+          )}
+          {warningsOnly.length > 0 && (
+            <Badge
+              variant="outline"
               className={cn(
-                "h-4 w-4 mt-0.5",
-                errors.length > 0 && "text-red-600 dark:text-red-400",
-                warningsOnly.length > 0 && "text-amber-600 dark:text-amber-400",
-                infoOnly.length > 0 && "text-blue-600 dark:text-blue-400"
+                "h-4 px-1.5 text-xs",
+                severityColor === "amber" &&
+                  "border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300"
               )}
-            />
-            <div className="flex-1">
-              <AlertTitle>
-                Coverage Warnings ({visibleWarnings.length})
-              </AlertTitle>
-              <AlertDescription className="mt-1">
-                {errors.length > 0 && (
-                  <span className="text-red-700 dark:text-red-300 font-medium">
-                    {errors.length} error{errors.length > 1 ? "s" : ""}
-                  </span>
-                )}
-                {errors.length > 0 && warningsOnly.length > 0 && " • "}
-                {warningsOnly.length > 0 && (
-                  <span className="text-amber-700 dark:text-amber-300 font-medium">
-                    {warningsOnly.length} warning{warningsOnly.length > 1 ? "s" : ""}
-                  </span>
-                )}
-                {infoOnly.length > 0 && (errors.length > 0 || warningsOnly.length > 0) && " • "}
-                {infoOnly.length > 0 && (
-                  <span className="text-blue-700 dark:text-blue-300">
-                    {infoOnly.length} suggestion{infoOnly.length > 1 ? "s" : ""}
-                  </span>
-                )}
-              </AlertDescription>
-            </div>
-          </div>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-              {isExpanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-
-        <CollapsibleContent className="mt-4 space-y-2">
-          {visibleWarnings.map((warning) => (
-            <div
-              key={warning.id}
-              className="p-3 rounded-md bg-background/80 border border-border"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {warning.severity === "error" && (
-                      <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    )}
-                    {warning.severity === "warning" && (
-                      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                    )}
-                    {warning.severity === "info" && (
-                      <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    )}
-                    <span className="text-sm font-medium">{warning.message}</span>
-                  </div>
-                  {warning.autoFix && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-2 h-7 text-xs"
-                      onClick={() => handleFix(warning)}
-                    >
-                      {warning.autoFix.action}
-                    </Button>
-                  )}
-                </div>
+              {warningsOnly.length}
+            </Badge>
+          )}
+          {infoOnly.length > 0 && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-4 px-1.5 text-xs",
+                severityColor === "blue" &&
+                  "border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+              )}
+            >
+              {infoOnly.length}
+            </Badge>
+          )}
+        </div>
+        {fixableWarnings.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-6 px-2 text-xs"
+            onClick={handleFixAll}
+          >
+            Fix All
+          </Button>
+        )}
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+            {isExpanded ? (
+              <>
+                Hide
+                <ChevronUp className="h-3 w-3 ml-1" />
+              </>
+            ) : (
+              <>
+                Details
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </>
+            )}
+          </Button>
+        </CollapsibleTrigger>
+      </div>
+      <CollapsibleContent className="mt-2 space-y-1.5">
+        {visibleWarnings.map((warning) => (
+          <div
+            key={warning.id}
+            className={cn(
+              "px-3 py-2 rounded-md border text-sm",
+              warning.severity === "error" &&
+                "border-red-200 dark:border-red-800 bg-red-50/30 dark:bg-red-950/10",
+              warning.severity === "warning" &&
+                "border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/10",
+              warning.severity === "info" &&
+                "border-blue-200 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-950/10"
+            )}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 flex items-start gap-2">
+                {warning.severity === "error" && (
+                  <AlertTriangle className="h-3.5 w-3.5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                )}
+                {warning.severity === "warning" && (
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                )}
+                {warning.severity === "info" && (
+                  <Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                )}
+                <span className="text-xs font-medium flex-1">{warning.message}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                {warning.autoFix && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => handleFix(warning)}
+                  >
+                    {warning.autoFix.action}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-6 w-6 p-0"
                   onClick={() => handleDismiss(warning.id)}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3" />
                 </Button>
               </div>
             </div>
-          ))}
-        </CollapsibleContent>
-      </Alert>
+          </div>
+        ))}
+      </CollapsibleContent>
     </Collapsible>
   )
 }

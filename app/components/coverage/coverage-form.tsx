@@ -27,6 +27,7 @@ const DEFAULT_LIABILITY: LiabilityCoverage = {
 const DEFAULT_ADDITIONAL: AdditionalCoverage = {
   medicalPayments: "Not Included",
   uninsuredMotoristsBodilyInjury: "Not Included",
+  underinsuredMotoristsBodilyInjury: "Not Included",
   roadsideAssistance: false,
 }
 

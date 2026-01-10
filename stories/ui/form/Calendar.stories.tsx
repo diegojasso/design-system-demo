@@ -30,7 +30,7 @@ export const Multiple: Story = {
 
 export const Range: Story = {
   render: () => {
-    const [selected, setSelected] = useState<{ from: Date; to?: Date } | undefined>();
+    const [selected, setSelected] = useState<{ from: Date | undefined; to?: Date | undefined } | undefined>();
     return <Calendar mode="range" selected={selected} onSelect={setSelected} />;
   },
 };

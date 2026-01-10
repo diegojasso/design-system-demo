@@ -691,21 +691,26 @@ export function DriversTable({
                         }
                         
                         // Handle string badges
-                        return (
-                          <Badge
-                            key={idx}
-                            variant="secondary"
-                            className={`text-xs font-medium border-0 px-1.5 py-0.5 h-5 ${
-                              badge === 'New' 
-                                ? 'bg-blue-50 text-blue-700' 
-                                : badge === 'MVR'
-                                ? 'bg-green-50 text-green-700'
-                                : 'bg-muted text-muted-foreground'
-                            }`}
-                          >
-                            {badge}
-                          </Badge>
-                        )
+                        if (typeof badge === 'string') {
+                          return (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className={`text-xs font-medium border-0 px-1.5 py-0.5 h-5 ${
+                                badge === 'New' 
+                                  ? 'bg-blue-50 text-blue-700' 
+                                  : badge === 'MVR'
+                                  ? 'bg-green-50 text-green-700'
+                                  : 'bg-muted text-muted-foreground'
+                              }`}
+                            >
+                              {badge}
+                            </Badge>
+                          )
+                        }
+                        
+                        // Fallback (should never reach here, but satisfies TypeScript)
+                        return null
                       })}
                     </div>
                   </div>

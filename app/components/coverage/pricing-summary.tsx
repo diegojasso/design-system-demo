@@ -11,7 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import { Download, Check } from "lucide-react"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { Download, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { CoverageData, PricingSummary } from "./types"
 import { PRICING_PLANS, calculatePlanPricing } from "./pricing-calculator"
 import { format } from "date-fns"
@@ -31,6 +36,8 @@ export function PricingSummarySection({
   onCollectPayment,
   onDownloadPDF,
 }: PricingSummarySectionProps) {
+  const [isPlanDetailsExpanded, setIsPlanDetailsExpanded] = React.useState(true)
+  
   const calculatedPricing = calculatePlanPricing(
     pricing.selectedPlanId,
     coverage,
@@ -196,6 +203,55 @@ export function PricingSummarySection({
             </Select>
           </div>
 
+          {/* About Plan - Collapsible */}
+          <Collapsible open={isPlanDetailsExpanded} onOpenChange={setIsPlanDetailsExpanded}>
+            <div className="border-t border-border pt-4">
+              <CollapsibleTrigger asChild>
+                <button className="flex items-center justify-between w-full text-left">
+                  <h3
+                    className="text-sm font-semibold text-foreground"
+                    style={{ fontFamily: "Inter, sans-serif" }}
+                  >
+                    About {selectedPlan.name}
+                  </h3>
+                  {isPlanDetailsExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3 space-y-2">
+                <ul className="space-y-1.5">
+                  {selectedPlan.features.map((feature, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-2 text-sm text-muted-foreground"
+                      style={{ fontFamily: "Inter, sans-serif" }}
+                    >
+                      <Check className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="pt-2">
+                  <a
+                    href="#"
+                    className="text-sm text-blue-600 hover:underline"
+                    style={{ fontFamily: "Inter, sans-serif" }}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      // TODO: Implement plan comparison
+                      console.log("Compare plans")
+                    }}
+                  >
+                    Compare all plans
+                  </a>
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+
           {/* Action Buttons */}
           <div className="space-y-2 pt-2">
             <Button
@@ -215,34 +271,6 @@ export function PricingSummarySection({
           </div>
         </CardContent>
       </Card>
-
-      {/* About Plan */}
-      <div className="space-y-2">
-        <h3
-          className="text-sm font-semibold text-foreground"
-          style={{ fontFamily: "Inter, sans-serif" }}
-        >
-          About {selectedPlan.name}
-        </h3>
-        <ul className="space-y-1 list-disc list-inside">
-          {selectedPlan.features.map((feature, index) => (
-            <li
-              key={index}
-              className="text-sm text-muted-foreground"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              {feature}
-            </li>
-          ))}
-        </ul>
-        <a
-          href="#"
-          className="text-sm text-blue-600 hover:underline"
-          style={{ fontFamily: "Inter, sans-serif" }}
-        >
-          Compare all plans
-        </a>
-      </div>
     </div>
   )
 }

@@ -544,23 +544,25 @@ export function VehiclesTable({
         newErrors.delete(`${vehicleIndex}-${field.id}`)
       })
       // Shift errors for vehicles after the deleted one
-      const shiftedErrors = new Map()
-      prev.forEach((_, idx) => {
-        if (idx > vehicleIndex) {
+      const shiftedErrors = new Map<string, string>()
+      prev.forEach((errorValue, key) => {
+        const [vehicleIdxStr] = key.split('-')
+        const vehicleIdx = Number(vehicleIdxStr)
+        if (vehicleIdx > vehicleIndex) {
           fields.forEach((field) => {
-            const oldKey = `${idx}-${field.id}`
-            const newKey = `${idx - 1}-${field.id}`
+            const oldKey = `${vehicleIdx}-${field.id}`
+            const newKey = `${vehicleIdx - 1}-${field.id}`
             const error = newErrors.get(oldKey)
             if (error) {
               shiftedErrors.set(newKey, error)
             }
           })
-        } else if (idx < vehicleIndex) {
+        } else if (vehicleIdx < vehicleIndex) {
           fields.forEach((field) => {
-            const key = `${idx}-${field.id}`
-            const error = newErrors.get(key)
+            const keyToKeep = `${vehicleIdx}-${field.id}`
+            const error = newErrors.get(keyToKeep)
             if (error) {
-              shiftedErrors.set(key, error)
+              shiftedErrors.set(keyToKeep, error)
             }
           })
         }
@@ -732,7 +734,7 @@ export function VehiclesTable({
                                 : 'bg-muted text-muted-foreground'
                             }`}
                           >
-                            {badge}
+                            {typeof badge === 'string' ? badge : badge.text}
                           </Badge>
                         )
                       })}

@@ -33,6 +33,7 @@ type FilterStatus = "all" | "resolved" | "unresolved"
 
 interface ImportSummaryProps {
   data?: ImportSummaryData
+  quoteNumber?: string
 }
 
 export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
@@ -205,12 +206,12 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
   }
 
   const handleFilterChange = React.useCallback(
-    (filter: { severity?: "error" | "warning" | "info"; status?: "resolved" | "unresolved" }) => {
+    (filter: { severity?: FilterSeverity; status?: FilterStatus }) => {
       if (filter.severity !== undefined) {
-        setSeverityFilter(filter.severity === "all" ? "all" : filter.severity)
+        setSeverityFilter(filter.severity)
       }
       if (filter.status !== undefined) {
-        setStatusFilter(filter.status === "all" ? "all" : filter.status)
+        setStatusFilter(filter.status)
       }
     },
     []
@@ -286,29 +287,34 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
 
   // Generate timeline events from import summary
   const timelineEvents = React.useMemo(() => {
-    const events = [
+    const events: Array<{
+      id: string
+      label: string
+      status: "completed" | "pending" | "failed"
+      timestamp: Date
+    }> = [
       {
         id: "connect",
         label: "Connected to Ezlynx",
-        status: "completed" as const,
+        status: "completed",
         timestamp: new Date(Date.now() - 5000),
       },
       {
         id: "fetch",
         label: "Fetched quote data",
-        status: "completed" as const,
+        status: "completed",
         timestamp: new Date(Date.now() - 4000),
       },
       {
         id: "import-drivers",
         label: `Imported ${importSummary.importedInfo.drivers.length} driver${importSummary.importedInfo.drivers.length !== 1 ? "s" : ""}`,
-        status: "completed" as const,
+        status: "completed",
         timestamp: new Date(Date.now() - 3000),
       },
       {
         id: "import-vehicles",
         label: `Imported ${importSummary.importedInfo.vehicles.length} vehicle${importSummary.importedInfo.vehicles.length !== 1 ? "s" : ""}`,
-        status: "completed" as const,
+        status: "completed",
         timestamp: new Date(Date.now() - 2000),
       },
     ]
@@ -316,10 +322,14 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
     // Add reports status
     if (importSummary.thirdPartyReports) {
       importSummary.thirdPartyReports.reports.forEach((report) => {
+        const status: "completed" | "pending" | "failed" = 
+          report.status === "completed" ? "completed" :
+          report.status === "failed" ? "failed" :
+          "pending"
         events.push({
           id: `report-${report.type}`,
-          label: `${report.type.toUpperCase()} report ${report.status === "completed" ? "completed" : "pending"}`,
-          status: report.status === "completed" ? ("completed" as const) : ("pending" as const),
+          label: `${report.type.toUpperCase()} report ${status}`,
+          status,
           timestamp: new Date(Date.now() - 1000),
         })
       })

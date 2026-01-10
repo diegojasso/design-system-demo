@@ -8,6 +8,7 @@ export interface LiabilityCoverage {
 export interface AdditionalCoverage {
   medicalPayments: string // e.g., "Not Included", "$5K", "$10K"
   uninsuredMotoristsBodilyInjury: string // e.g., "Not Included", "$100K/$300K/$100K"
+  underinsuredMotoristsBodilyInjury?: string // e.g., "Not Included", "$100K/$300K/$100K"
   uninsuredMotoristsPropertyDamage?: string // Optional, some states don't require this
   roadsideAssistance?: boolean // Policy-level roadside assistance
 }
@@ -75,6 +76,11 @@ export const MEDICAL_PAYMENTS_OPTIONS = [
 ]
 
 export const UNINSURED_MOTORISTS_OPTIONS = [
+  "Not Included",
+  ...BODILY_INJURY_OPTIONS,
+]
+
+export const UNDERINSURED_MOTORISTS_OPTIONS = [
   "Not Included",
   ...BODILY_INJURY_OPTIONS,
 ]
