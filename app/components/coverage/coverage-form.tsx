@@ -4,16 +4,19 @@ import * as React from "react"
 import { LiabilityCoverageSection } from "./liability-coverage"
 import { VehicleCoverageSection } from "./vehicle-coverage"
 import { PricingSummarySection } from "./pricing-summary"
+import { CoverageTemplates } from "./coverage-templates"
+import { StateRequirementsPanel } from "./state-requirements-panel"
+import { CoverageWarnings } from "./coverage-warnings"
 import {
   CoverageData,
   LiabilityCoverage,
   AdditionalCoverage,
   VehicleCoverage,
   PricingSummary,
-  PRICING_PLANS,
 } from "./types"
 import { useQuote } from "@/app/contexts/quote-context"
 import { useAutoSave } from "@/hooks/use-auto-save"
+import { CoverageWarning } from "./validation"
 
 // Default coverage values
 const DEFAULT_LIABILITY: LiabilityCoverage = {
@@ -24,6 +27,7 @@ const DEFAULT_LIABILITY: LiabilityCoverage = {
 const DEFAULT_ADDITIONAL: AdditionalCoverage = {
   medicalPayments: "Not Included",
   uninsuredMotoristsBodilyInjury: "Not Included",
+  roadsideAssistance: false,
 }
 
 const DEFAULT_PRICING: PricingSummary = {
@@ -139,7 +143,7 @@ export function CoverageForm() {
     }))
   }
 
-  const handleAdditionalChange = (field: keyof AdditionalCoverage, value: string) => {
+  const handleAdditionalChange = (field: keyof AdditionalCoverage, value: string | boolean) => {
     setCoverage((prev) => ({
       ...prev,
       additional: {
@@ -179,8 +183,62 @@ export function CoverageForm() {
     // TODO: Implement PDF generation
   }
 
+  const handleApplyTemplate = (newCoverage: CoverageData) => {
+    setCoverage(newCoverage)
+  }
+
+  const handleFixStateIssue = (field: string, newValue: string) => {
+    if (field === "bodilyInjury" || field === "propertyDamage") {
+      handleLiabilityChange(field as keyof LiabilityCoverage, newValue)
+    } else if (field === "medicalPayments" || field === "uninsuredMotoristsBodilyInjury") {
+      handleAdditionalChange(field as keyof AdditionalCoverage, newValue)
+    }
+  }
+
+  const handleFixWarning = (warning: CoverageWarning) => {
+    if (warning.autoFix) {
+      if (warning.field === "propertyDamage" || warning.field === "bodilyInjury") {
+        handleLiabilityChange(warning.field as keyof LiabilityCoverage, warning.autoFix.newValue)
+      } else if (warning.field && warning.vehicleId) {
+        // Vehicle-specific warning
+        handleVehicleCoverageChange(
+          warning.vehicleId,
+          warning.field as keyof VehicleCoverage,
+          warning.autoFix.newValue
+        )
+      } else if (warning.field === "uninsuredMotoristsBodilyInjury") {
+        handleAdditionalChange("uninsuredMotoristsBodilyInjury", warning.autoFix.newValue)
+      }
+    }
+  }
+
+  const vehicleIds = vehicles.map((v) => v.id)
+
   return (
-    <div className="w-full">
+    <div className="w-full space-y-6">
+      {/* Header with Templates */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Coverage Configuration</h1>
+        <CoverageTemplates
+          currentCoverage={coverage}
+          vehicleIds={vehicleIds}
+          onApplyTemplate={handleApplyTemplate}
+        />
+      </div>
+
+      {/* State Requirements & Warnings */}
+      <div className="space-y-4">
+        <StateRequirementsPanel
+          coverage={coverage}
+          onFixIssue={handleFixStateIssue}
+        />
+        <CoverageWarnings
+          coverage={coverage}
+          vehicles={vehicles}
+          onFixWarning={handleFixWarning}
+        />
+      </div>
+
       {/* Three-column responsive layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Column 1: Liability Coverage */}
@@ -188,6 +246,8 @@ export function CoverageForm() {
           <LiabilityCoverageSection
             liability={coverage.liability}
             additional={coverage.additional}
+            currentCoverage={coverage}
+            pricing={pricing}
             onLiabilityChange={handleLiabilityChange}
             onAdditionalChange={handleAdditionalChange}
           />
@@ -199,6 +259,11 @@ export function CoverageForm() {
             vehicles={vehicles}
             vehicleCoverages={coverage.vehicleCoverages}
             onVehicleCoverageChange={handleVehicleCoverageChange}
+            onBulkUpdate={(vehicleIds, field, value) => {
+              vehicleIds.forEach((id) => {
+                handleVehicleCoverageChange(id, field, value)
+              })
+            }}
           />
         </div>
 

@@ -110,6 +110,11 @@ export function calculateCoverageAdjustment(coverage: CoverageData): number {
     }
   })
 
+  // Policy-level roadside assistance (not per vehicle)
+  if (coverage.additional.roadsideAssistance) {
+    adjustment += 0.06
+  }
+
   return adjustment
 }
 

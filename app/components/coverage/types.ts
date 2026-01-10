@@ -9,6 +9,7 @@ export interface AdditionalCoverage {
   medicalPayments: string // e.g., "Not Included", "$5K", "$10K"
   uninsuredMotoristsBodilyInjury: string // e.g., "Not Included", "$100K/$300K/$100K"
   uninsuredMotoristsPropertyDamage?: string // Optional, some states don't require this
+  roadsideAssistance?: boolean // Policy-level roadside assistance
 }
 
 export interface VehicleCoverage {
@@ -19,7 +20,6 @@ export interface VehicleCoverage {
   loanLeasePayoff: boolean // Covers gap between value and loan
   customPartsEquipment: boolean
   rentalReimbursement?: boolean
-  roadsideAssistance?: boolean
 }
 
 export interface CoverageData {
