@@ -1,11 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, CheckCircle2, Info, X, CheckCircle } from "lucide-react"
+import { AlertTriangle, CheckCircle } from "lucide-react"
 import { useQuote } from "@/app/contexts/quote-context"
-import { cn } from "@/lib/utils"
 import type { ImportSummaryData, ImportSummaryItem } from "./mock-ezlynx-data"
 import {
   Dialog,
@@ -17,6 +14,16 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { ImportSummaryStats } from "./import-summary-stats"
+import { ImportSummaryFilters } from "./import-summary-filters"
+import { ImportSummaryGroup } from "./import-summary-group"
+import { ImportSummarySearch } from "./import-summary-search"
+import { ImportSummaryBulkActions } from "./import-summary-bulk-actions"
+import { CoverageGapWizard } from "./coverage-gap-wizard"
+import { ImportTimeline } from "./import-timeline"
+
+type FilterSeverity = "all" | "error" | "warning" | "info"
+type FilterStatus = "all" | "resolved" | "unresolved"
 
 interface ImportSummaryProps {
   data?: ImportSummaryData
@@ -26,6 +33,10 @@ export function ImportSummary({ data }: ImportSummaryProps) {
   const { quoteData, updateImportSummaryItem, setCurrentStep } = useQuote()
   const [selectedItem, setSelectedItem] = React.useState<ImportSummaryItem | null>(null)
   const [resolutionOption, setResolutionOption] = React.useState<string>("")
+  const [severityFilter, setSeverityFilter] = React.useState<FilterSeverity>("all")
+  const [statusFilter, setStatusFilter] = React.useState<FilterStatus>("all")
+  const [searchQuery, setSearchQuery] = React.useState<string>("")
+  const [selectedItems, setSelectedItems] = React.useState<Set<string>>(new Set())
 
   const importSummary = data || quoteData.importSummary
 
@@ -37,26 +48,148 @@ export function ImportSummary({ data }: ImportSummaryProps) {
     )
   }
 
-  const handleItemClick = React.useCallback((item: ImportSummaryItem) => {
-    if (item.details?.type === "coverage-gap" || item.details?.type === "accident-history") {
-      setSelectedItem(item)
-      setResolutionOption("")
-    } else if (item.relatedSection) {
-      // Navigate to related section
-      setCurrentStep(item.relatedSection).catch((error) => {
-        console.error("Failed to navigate:", error)
-      })
+  // Filter items based on current filters and search
+  const filteredItems = React.useMemo(() => {
+    return importSummary.missingInfo.filter((item) => {
+      const matchesSeverity =
+        severityFilter === "all" || item.severity === severityFilter
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "resolved" && item.checked) ||
+        (statusFilter === "unresolved" && !item.checked)
+      const matchesSearch =
+        !searchQuery.trim() ||
+        item.label.toLowerCase().includes(searchQuery.toLowerCase().trim())
+
+      return matchesSeverity && matchesStatus && matchesSearch
+    })
+  }, [
+    importSummary.missingInfo,
+    severityFilter,
+    statusFilter,
+    searchQuery,
+  ])
+
+  // Get unresolved items for bulk actions
+  const unresolvedItems = React.useMemo(() => {
+    return filteredItems.filter((item) => !item.checked)
+  }, [filteredItems])
+
+  // Group items by severity
+  const groupedItems = React.useMemo(() => {
+    const groups: {
+      error: ImportSummaryItem[]
+      warning: ImportSummaryItem[]
+      info: ImportSummaryItem[]
+    } = {
+      error: [],
+      warning: [],
+      info: [],
     }
-  }, [setCurrentStep])
+
+    filteredItems.forEach((item) => {
+      if (groups[item.severity]) {
+        groups[item.severity].push(item)
+      }
+    })
+
+    return groups
+  }, [filteredItems])
+
+  const handleItemClick = React.useCallback(
+    (item: ImportSummaryItem) => {
+      if (
+        item.details?.type === "coverage-gap" ||
+        item.details?.type === "accident-history"
+      ) {
+        setSelectedItem(item)
+        setResolutionOption("")
+      } else if (item.relatedSection) {
+        // Navigate to related section
+        setCurrentStep(item.relatedSection).catch((error) => {
+          console.error("Failed to navigate:", error)
+        })
+      }
+    },
+    [setCurrentStep]
+  )
 
   const handleCheckboxChange = (itemId: string, checked: boolean) => {
     updateImportSummaryItem?.(itemId, checked)
+    // Remove from selection if resolved
+    if (checked) {
+      setSelectedItems((prev) => {
+        const next = new Set(prev)
+        next.delete(itemId)
+        return next
+      })
+    }
   }
 
-  const handleResolveCoverageGap = () => {
+  const handleBulkSelect = (itemId: string, selected: boolean) => {
+    setSelectedItems((prev) => {
+      const next = new Set(prev)
+      if (selected) {
+        next.add(itemId)
+      } else {
+        next.delete(itemId)
+      }
+      return next
+    })
+  }
+
+  const handleQuickResolve = React.useCallback(
+    (itemId: string) => {
+      updateImportSummaryItem?.(itemId, true)
+      setSelectedItems((prev) => {
+        const next = new Set(prev)
+        next.delete(itemId)
+        return next
+      })
+    },
+    [updateImportSummaryItem]
+  )
+
+  const handleQuickDismiss = React.useCallback(
+    (itemId: string) => {
+      // Same as resolve for now
+      handleQuickResolve(itemId)
+    },
+    [handleQuickResolve]
+  )
+
+  const handleSelectAll = React.useCallback(() => {
+    const allUnresolvedIds = new Set(
+      unresolvedItems.map((item) => item.id)
+    )
+    setSelectedItems(allUnresolvedIds)
+  }, [unresolvedItems])
+
+  const handleDeselectAll = React.useCallback(() => {
+    setSelectedItems(new Set())
+  }, [])
+
+  const handleResolveSelected = React.useCallback(() => {
+    selectedItems.forEach((itemId) => {
+      updateImportSummaryItem?.(itemId, true)
+    })
+    setSelectedItems(new Set())
+  }, [selectedItems, updateImportSummaryItem])
+
+  const handleDismissSelected = React.useCallback(() => {
+    // For now, dismissing is the same as resolving
+    // In the future, this could mark items as "dismissed" vs "resolved"
+    selectedItems.forEach((itemId) => {
+      updateImportSummaryItem?.(itemId, true)
+    })
+    setSelectedItems(new Set())
+  }, [selectedItems, updateImportSummaryItem])
+
+  const handleResolveCoverageGap = (option: string) => {
     if (selectedItem) {
       updateImportSummaryItem?.(selectedItem.id, true)
       setSelectedItem(null)
+      setResolutionOption("")
     }
   }
 
@@ -65,264 +198,257 @@ export function ImportSummary({ data }: ImportSummaryProps) {
     setResolutionOption("")
   }
 
-  const getSeverityIcon = (severity: ImportSummaryItem["severity"]) => {
-    switch (severity) {
-      case "error":
-        return <AlertTriangle className="h-4 w-4 text-destructive" />
-      case "warning":
-        return <AlertTriangle className="h-4 w-4 text-amber-500" />
-      case "info":
-        return <Info className="h-4 w-4 text-blue-500" />
-      default:
-        return null
-    }
-  }
+  const handleFilterChange = React.useCallback(
+    (filter: { severity?: "error" | "warning" | "info"; status?: "resolved" | "unresolved" }) => {
+      if (filter.severity !== undefined) {
+        setSeverityFilter(filter.severity === "all" ? "all" : filter.severity)
+      }
+      if (filter.status !== undefined) {
+        setStatusFilter(filter.status === "all" ? "all" : filter.status)
+      }
+    },
+    []
+  )
 
-  const coverageGapData = selectedItem?.details?.type === "coverage-gap" ? selectedItem.details.data : null
-  const accidentHistoryData = selectedItem?.details?.type === "accident-history" ? selectedItem.details.data : null
+  // Keyboard navigation
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Close modal on Escape
+      if (e.key === "Escape" && selectedItem) {
+        handleCloseModal()
+        return
+      }
+
+      // Don't handle shortcuts when typing in inputs or modals are open
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        selectedItem
+      ) {
+        return
+      }
+
+      // Keyboard shortcuts
+      // Cmd/Ctrl + A: Select all unresolved items
+      if ((e.metaKey || e.ctrlKey) && e.key === "a") {
+        e.preventDefault()
+        if (unresolvedItems.length > 0) {
+          handleSelectAll()
+        }
+        return
+      }
+
+      // Cmd/Ctrl + D: Dismiss selected items
+      if ((e.metaKey || e.ctrlKey) && e.key === "d") {
+        e.preventDefault()
+        if (selectedItems.size > 0) {
+          handleDismissSelected()
+        }
+        return
+      }
+
+      // Cmd/Ctrl + R: Resolve selected items
+      if ((e.metaKey || e.ctrlKey) && e.key === "r") {
+        e.preventDefault()
+        if (selectedItems.size > 0) {
+          handleResolveSelected()
+        }
+        return
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [
+    selectedItem,
+    unresolvedItems.length,
+    selectedItems.size,
+    handleSelectAll,
+    handleDismissSelected,
+    handleResolveSelected,
+    handleCloseModal,
+  ])
+
+  const coverageGapData =
+    selectedItem?.details?.type === "coverage-gap"
+      ? selectedItem.details.data
+      : null
+  const accidentHistoryData =
+    selectedItem?.details?.type === "accident-history"
+      ? selectedItem.details.data
+      : null
+
+  // Generate timeline events from import summary
+  const timelineEvents = React.useMemo(() => {
+    const events = [
+      {
+        id: "connect",
+        label: "Connected to Ezlynx",
+        status: "completed" as const,
+        timestamp: new Date(Date.now() - 5000),
+      },
+      {
+        id: "fetch",
+        label: "Fetched quote data",
+        status: "completed" as const,
+        timestamp: new Date(Date.now() - 4000),
+      },
+      {
+        id: "import-drivers",
+        label: `Imported ${importSummary.importedInfo.drivers.length} driver${importSummary.importedInfo.drivers.length !== 1 ? "s" : ""}`,
+        status: "completed" as const,
+        timestamp: new Date(Date.now() - 3000),
+      },
+      {
+        id: "import-vehicles",
+        label: `Imported ${importSummary.importedInfo.vehicles.length} vehicle${importSummary.importedInfo.vehicles.length !== 1 ? "s" : ""}`,
+        status: "completed" as const,
+        timestamp: new Date(Date.now() - 2000),
+      },
+    ]
+
+    // Add reports status
+    if (importSummary.thirdPartyReports) {
+      importSummary.thirdPartyReports.reports.forEach((report) => {
+        events.push({
+          id: `report-${report.type}`,
+          label: `${report.type.toUpperCase()} report ${report.status === "completed" ? "completed" : "pending"}`,
+          status: report.status === "completed" ? ("completed" as const) : ("pending" as const),
+          timestamp: new Date(Date.now() - 1000),
+        })
+      })
+    }
+
+    return events
+  }, [importSummary])
 
   return (
-    <div className="mb-8 flex w-full gap-6">
-      {/* Left Panel */}
-      <div className="flex flex-1 flex-col gap-6">
-        {/* Imported Info Section */}
-        <div className="rounded-lg border border-border bg-card p-6">
-          <h2
-            className="mb-4 text-lg font-semibold text-foreground"
-            style={{ fontFamily: "Inter, sans-serif" }}
-          >
-            Imported info
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <span className="font-medium text-foreground">
-                {importSummary.importedInfo.drivers.length} Drivers:{" "}
-              </span>
-              <span className="text-muted-foreground">
-                {importSummary.importedInfo.drivers.map((d) => d.name).join(", ")}
-              </span>
-            </div>
-            <div>
-              <span className="font-medium text-foreground">
-                {importSummary.importedInfo.vehicles.length} Vehicle:{" "}
-              </span>
-              <span className="text-muted-foreground">
-                {importSummary.importedInfo.vehicles
-                  .map((v) => `${v.year} ${v.make} ${v.model}`)
-                  .join(", ")}
-              </span>
-            </div>
-          </div>
+    <div className="mb-8 flex w-full flex-col gap-6">
+      {/* Summary Statistics Dashboard */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ImportSummaryStats
+            data={importSummary}
+            onFilterChange={handleFilterChange}
+          />
         </div>
-
-        {/* Missing Quote Info Section */}
-        <div className="rounded-lg border border-border bg-card p-6">
-          <h2
-            className="mb-4 text-lg font-semibold text-foreground"
-            style={{ fontFamily: "Inter, sans-serif" }}
-          >
-            Missing quote info
-          </h2>
-          <div className="space-y-3">
-            {importSummary.missingInfo.map((item) => (
-              <div
-                key={item.id}
-                className={cn(
-                  "flex items-start gap-3 rounded-md p-3 transition-colors",
-                  item.checked
-                    ? "bg-muted/50 opacity-60"
-                    : "hover:bg-muted/30 cursor-pointer"
-                )}
-                onClick={() => !item.checked && handleItemClick(item)}
-              >
-                <Checkbox
-                  checked={item.checked}
-                  onCheckedChange={(checked) =>
-                    handleCheckboxChange(item.id, checked as boolean)
-                  }
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <div className="flex flex-1 items-center gap-2">
-                  {getSeverityIcon(item.severity)}
-                  <span
-                    className={cn(
-                      "text-sm",
-                      item.checked
-                        ? "text-muted-foreground line-through"
-                        : "text-foreground"
-                    )}
-                    style={{ fontFamily: "Inter, sans-serif" }}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-              </div>
-            ))}
+        <div className="lg:col-span-1">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <ImportTimeline events={timelineEvents} />
           </div>
         </div>
       </div>
 
-      {/* Right Panel - Coverage Gap Modal */}
+      {/* Search and Filters */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <ImportSummarySearch
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search items..."
+        />
+        <div className="rounded-lg border border-border bg-card p-4">
+          <ImportSummaryFilters
+            items={importSummary.missingInfo}
+            severityFilter={severityFilter}
+            statusFilter={statusFilter}
+            onSeverityChange={setSeverityFilter}
+            onStatusChange={setStatusFilter}
+          />
+        </div>
+      </div>
+
+      {/* Bulk Actions */}
+      {unresolvedItems.length > 0 && (
+        <ImportSummaryBulkActions
+          selectedItems={selectedItems}
+          totalItems={filteredItems.length}
+          unresolvedItems={unresolvedItems.length}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+          onResolveSelected={handleResolveSelected}
+          onDismissSelected={handleDismissSelected}
+        />
+      )}
+
+      {/* Grouped Items */}
+      <div className="flex flex-col gap-4">
+        {groupedItems.error.length > 0 && (
+          <ImportSummaryGroup
+            severity="error"
+            items={groupedItems.error}
+            onItemClick={handleItemClick}
+            onCheckboxChange={handleCheckboxChange}
+            defaultExpanded={true}
+            startIndex={0}
+            selectedItems={selectedItems}
+            onBulkSelect={handleBulkSelect}
+            onQuickResolve={handleQuickResolve}
+            onQuickDismiss={handleQuickDismiss}
+            showQuickActions={selectedItems.size === 0}
+          />
+        )}
+
+        {groupedItems.warning.length > 0 && (
+          <ImportSummaryGroup
+            severity="warning"
+            items={groupedItems.warning}
+            onItemClick={handleItemClick}
+            onCheckboxChange={handleCheckboxChange}
+            defaultExpanded={true}
+            startIndex={groupedItems.error.length}
+            selectedItems={selectedItems}
+            onBulkSelect={handleBulkSelect}
+            onQuickResolve={handleQuickResolve}
+            onQuickDismiss={handleQuickDismiss}
+            showQuickActions={selectedItems.size === 0}
+          />
+        )}
+
+        {groupedItems.info.length > 0 && (
+          <ImportSummaryGroup
+            severity="info"
+            items={groupedItems.info}
+            onItemClick={handleItemClick}
+            onCheckboxChange={handleCheckboxChange}
+            defaultExpanded={true}
+            startIndex={groupedItems.error.length + groupedItems.warning.length}
+            selectedItems={selectedItems}
+            onBulkSelect={handleBulkSelect}
+            onQuickResolve={handleQuickResolve}
+            onQuickDismiss={handleQuickDismiss}
+            showQuickActions={selectedItems.size === 0}
+          />
+        )}
+
+        {filteredItems.length === 0 && (
+          <div className="rounded-lg border border-border bg-card p-12 text-center">
+            <p className="text-muted-foreground">
+              No items match the current filters.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Coverage Gap Wizard Modal */}
       {selectedItem?.details?.type === "coverage-gap" && coverageGapData && (
         <Dialog open={!!selectedItem} onOpenChange={handleCloseModal}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
-                Coverage Gap Detected - {quoteData.clientInfo?.firstName}{" "}
-                {quoteData.clientInfo?.lastName}
+                Coverage Gap Resolution
               </DialogTitle>
               <DialogDescription>
-                Review the coverage gap discrepancy and select a resolution option.
+                Step-by-step guide to resolve the coverage gap for{" "}
+                {quoteData.clientInfo?.firstName} {quoteData.clientInfo?.lastName}
               </DialogDescription>
             </DialogHeader>
-
-            <div className="space-y-6">
-              {/* Report Details */}
-              <div className="space-y-2">
-                <h3 className="font-semibold text-foreground">Report Details</h3>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <p>
-                    <span className="font-medium">Gap Period:</span>{" "}
-                    {new Date(coverageGapData.gapPeriod.start).toLocaleDateString()} -{" "}
-                    {new Date(coverageGapData.gapPeriod.end).toLocaleDateString()} (
-                    {coverageGapData.gapPeriod.days} days)
-                  </p>
-                  <p>
-                    <span className="font-medium">Previous Carrier:</span>{" "}
-                    {coverageGapData.previousCarrier}
-                  </p>
-                  <p>
-                    <span className="font-medium">Current Carrier:</span>{" "}
-                    {coverageGapData.currentCarrier} (Started{" "}
-                    {new Date(coverageGapData.currentCarrierStart).toLocaleDateString()})
-                  </p>
-                </div>
-              </div>
-
-              {/* Discrepancy */}
-              <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
-                <h3 className="flex items-center gap-2 font-semibold text-foreground">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  Discrepancy Detected
-                </h3>
-                <div className="space-y-1 text-sm">
-                  <p className="text-muted-foreground">
-                    <span className="font-medium">Application states:</span>{" "}
-                    "{coverageGapData.applicationStates}"
-                  </p>
-                  <p className="text-muted-foreground">
-                    <span className="font-medium">Verisk RC2 report shows:</span>{" "}
-                    {coverageGapData.reportShows}
-                  </p>
-                </div>
-              </div>
-
-              {/* Rate Impact */}
-              <div className="space-y-2">
-                <h3 className="font-semibold text-foreground">Rate Impact</h3>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Current rate (with gap)</p>
-                    <p className="text-lg font-semibold text-foreground">
-                      ${coverageGapData.rateImpact.current.toLocaleString()}/6mo
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Potential rate (if resolved)</p>
-                    <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                      ${coverageGapData.rateImpact.potential.toLocaleString()}/6mo
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Savings if resolved</p>
-                    <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                      ${Math.abs(coverageGapData.rateImpact.savings)}/6mo
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Resolution Options */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-foreground">Resolution Options</h3>
-                <RadioGroup value={resolutionOption} onValueChange={setResolutionOption}>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3 rounded-lg border border-border p-4">
-                      <RadioGroupItem value="provide-proof" id="provide-proof" />
-                      <div className="flex-1">
-                        <Label htmlFor="provide-proof" className="cursor-pointer font-medium">
-                          Provide proof of coverage
-                        </Label>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Upload declarations page or certificate showing coverage
-                        </p>
-                        <Button
-                          variant="link"
-                          className="mt-2 h-auto p-0 text-sm"
-                          onClick={() => {
-                            // TODO: Implement file upload
-                            console.log("Upload documents")
-                          }}
-                        >
-                          [Upload Documents]
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 rounded-lg border border-border p-4">
-                      <RadioGroupItem value="confirm-gap" id="confirm-gap" />
-                      <div className="flex-1">
-                        <Label htmlFor="confirm-gap" className="cursor-pointer font-medium">
-                          Confirm gap is accurate
-                        </Label>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Proceed with current rating
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 rounded-lg border border-border p-4">
-                      <RadioGroupItem value="manual-review" id="manual-review" />
-                      <div className="flex-1">
-                        <Label htmlFor="manual-review" className="cursor-pointer font-medium">
-                          Request manual review
-                        </Label>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Escalate to underwriting for override consideration
-                        </p>
-                        <Button
-                          variant="link"
-                          className="mt-2 h-auto p-0 text-sm"
-                          onClick={() => {
-                            // TODO: Implement note for underwriter
-                            console.log("Add note for underwriter")
-                          }}
-                        >
-                          [Add Note for Underwriter]
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {/* Footer Actions */}
-              <div className="flex items-center justify-between border-t pt-4">
-                <Button variant="ghost" onClick={handleCloseModal}>
-                  Cancel
-                </Button>
-                <div className="flex gap-2">
-                  <Button variant="outline">Full Report PDF ↓</Button>
-                  <Button
-                    onClick={handleResolveCoverageGap}
-                    disabled={!resolutionOption}
-                  >
-                    Submit & Close
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <CoverageGapWizard
+              data={coverageGapData}
+              clientName={`${quoteData.clientInfo?.firstName} ${quoteData.clientInfo?.lastName}`}
+              onResolve={handleResolveCoverageGap}
+              onClose={handleCloseModal}
+            />
           </DialogContent>
         </Dialog>
       )}
