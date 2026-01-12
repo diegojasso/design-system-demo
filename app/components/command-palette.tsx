@@ -17,11 +17,14 @@ import { useRecentQuotes } from "./command-palette/use-recent-quotes"
 import { useCommandHistory } from "./command-palette/use-command-history"
 import { useCommandPaletteContext } from "./command-palette-context"
 import { useTheme } from "@/hooks/use-theme"
+import { useCommandRegistry } from "./command-palette/command-registry"
 import type { StepId } from "../contexts/quote-context"
 import type { Command } from "./command-palette/commands"
 import type { RecentQuote } from "./command-palette/quote-types"
 import { Badge } from "@/components/ui/badge"
 import { Star } from "lucide-react"
+
+import type { QuoteListItem } from "./quotes-list/types"
 
 interface CommandPaletteProps {
   currentStep?: StepId
@@ -34,6 +37,12 @@ interface CommandPaletteProps {
   onDownloadPDF?: () => void
   onImportEzlynx?: () => void
   onOpenQuote?: (quoteId: string) => void
+  // Quotes page context
+  isQuotesPage?: boolean
+  availableQuotes?: QuoteListItem[]
+  onStartQuote?: () => void
+  onFilterStatus?: (status: string) => void
+  onClearFilters?: () => void
 }
 
 const groupLabels: Record<string, string> = {
@@ -44,6 +53,7 @@ const groupLabels: Record<string, string> = {
   "quote-actions": "Reports & Actions",
   recent: "Recent Quotes",
   settings: "Settings",
+  "quotes-list": "Quotes",
 }
 
 export function CommandPalette({
@@ -56,6 +66,11 @@ export function CommandPalette({
   onDownloadPDF,
   onImportEzlynx,
   onOpenQuote,
+  isQuotesPage,
+  availableQuotes,
+  onStartQuote,
+  onFilterStatus,
+  onClearFilters,
 }: CommandPaletteProps) {
   // Get recent quotes
   const { recentQuotes, addRecentQuote } = useRecentQuotes()
@@ -105,6 +120,11 @@ export function CommandPalette({
     customShortcuts,
     onSetTheme: setTheme,
     currentTheme: theme as "light" | "dark" | "system" | undefined,
+    isQuotesPage,
+    availableQuotes,
+    onStartQuote,
+    onFilterStatus,
+    onClearFilters,
   })
 
   // Use hook state as source of truth
@@ -129,6 +149,16 @@ export function CommandPalette({
   const allCommands = useMemo(() => {
     return commands.flatMap(({ commands: groupCommands }) => groupCommands)
   }, [commands])
+
+  // Create registry from all commands
+  const registry = useCommandRegistry(allCommands)
+
+  // Register registry with context (for agent access)
+  useEffect(() => {
+    if (context && '_registerRegistry' in context && typeof context._registerRegistry === 'function') {
+      context._registerRegistry(registry)
+    }
+  }, [registry, context])
 
   // Get popular/suggested commands for empty state
   const suggestedCommands = useMemo(() => {

@@ -65,6 +65,28 @@ export function QuotesList({
     total: initialPagination?.total || quotes.length,
   })
 
+  // Sync initialFilters prop to internal state when URL changes
+  React.useEffect(() => {
+    if (initialFilters) {
+      setFilters(initialFilters)
+    }
+  }, [initialFilters?.status, initialFilters?.createdDate, initialFilters?.agency, initialFilters?.agent])
+
+  // Sync initialSearch prop to internal state when URL changes
+  React.useEffect(() => {
+    setSearchQuery(initialSearch)
+  }, [initialSearch])
+
+  // Sync initialPagination prop to internal state when URL changes
+  React.useEffect(() => {
+    if (initialPagination?.page) {
+      setPagination((prev) => ({
+        ...prev,
+        page: initialPagination.page!,
+      }))
+    }
+  }, [initialPagination?.page])
+
   // Update URL params when filters/search/pagination change
   React.useEffect(() => {
     const params = new URLSearchParams(searchParams.toString())
@@ -306,27 +328,6 @@ export function QuotesList({
       {/* Pagination */}
       {pagination.total > 0 && (
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Rows per page:</span>
-            <Select
-              value={pagination.pageSize.toString()}
-              onValueChange={handlePageSizeChange}
-            >
-              <SelectTrigger className="w-[80px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="16">16</SelectItem>
-                <SelectItem value="32">32</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-            <span className="text-sm text-muted-foreground">
-              {startIndex}-{endIndex} of {pagination.total}
-            </span>
-          </div>
-
           <Pagination>
             <PaginationContent>
               <PaginationItem>
@@ -364,6 +365,27 @@ export function QuotesList({
               </PaginationItem>
             </PaginationContent>
           </Pagination>
+
+          <div className="flex items-center gap-2" style={{ width: "400px" }}>
+            <span className="text-sm text-muted-foreground" style={{ width: "fit-content" }}>Rows per page:</span>
+            <Select
+              value={pagination.pageSize.toString()}
+              onValueChange={handlePageSizeChange}
+            >
+              <SelectTrigger className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="16">16</SelectItem>
+                <SelectItem value="32">32</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground">
+              {startIndex}-{endIndex} of {pagination.total}
+            </span>
+          </div>
         </div>
       )}
     </div>

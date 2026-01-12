@@ -335,7 +335,7 @@ export function PaymentForm() {
                                         <Input
                                           {...field}
                                           type="email"
-                                          placeholder="email@example.com"
+                                          placeholder={clientEmail || "email@example.com"}
                                           className="h-10 text-base leading-[1.5]"
                                           style={{ fontFamily: "Inter, sans-serif" }}
                                         />

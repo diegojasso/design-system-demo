@@ -70,9 +70,12 @@ export function ESignatureForm() {
       }
       updateESignature(initialESignature)
     } else {
-      // Update email if client email changed and reminder email is empty
+      // Update email if client email is available and reminder email is empty
+      // This ensures primary insured email is suggested when no email is set
       const clientEmail = quoteData.clientInfo?.email || ""
-      if (clientEmail && !quoteData.eSignature.reminderEmail) {
+      const currentReminderEmail = quoteData.eSignature.reminderEmail || ""
+      
+      if (clientEmail && !currentReminderEmail) {
         updateESignature({
           ...quoteData.eSignature,
           reminderEmail: clientEmail,
@@ -81,12 +84,18 @@ export function ESignatureForm() {
     }
   }, [quoteData.eSignature, quoteData.clientInfo?.email, updateESignature])
 
-  // Initialize email value
+  // Initialize email value - prioritize saved reminder email, fallback to primary insured email
   React.useEffect(() => {
-    if (quoteData.eSignature?.reminderEmail) {
-      setEmailValue(quoteData.eSignature.reminderEmail)
-    } else if (quoteData.clientInfo?.email) {
-      setEmailValue(quoteData.clientInfo.email)
+    const reminderEmail = quoteData.eSignature?.reminderEmail || ""
+    const primaryInsuredEmail = quoteData.clientInfo?.email || ""
+    
+    // Use reminder email if set, otherwise use primary insured email as suggestion
+    if (reminderEmail) {
+      setEmailValue(reminderEmail)
+    } else if (primaryInsuredEmail) {
+      setEmailValue(primaryInsuredEmail)
+    } else {
+      setEmailValue("")
     }
   }, [quoteData.eSignature?.reminderEmail, quoteData.clientInfo?.email])
 
@@ -258,7 +267,7 @@ export function ESignatureForm() {
                     onChange={(e) => setEmailValue(e.target.value)}
                     className="h-10 flex-1 text-base"
                     style={{ fontFamily: "Inter, sans-serif" }}
-                    placeholder="email@example.com"
+                    placeholder={quoteData.clientInfo?.email || "email@example.com"}
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {

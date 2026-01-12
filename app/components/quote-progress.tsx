@@ -24,15 +24,11 @@ export const steps = [
   },
   {
     id: "payment",
-    label: "Checkout",
+    label: "Payment",
   },
   {
     id: "e-sign",
     label: "E-Sign",
-  },
-  {
-    id: "review",
-    label: "Review",
   },
 ] as const
 

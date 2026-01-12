@@ -264,12 +264,104 @@ window.commandPalette.executeCommand("new-quote")
 3. **Phase 3**: Add visual hints to UI (optional enhancement)
 4. **Phase 4**: Add window API (optional, for external integration)
 
+## Extension: Quotes Page Integration
+
+### Overview
+Extend the command palette to the quotes list page (`/quotes`) with context-specific commands for quote management.
+
+### Quotes Page Commands
+
+#### New Command Context: `"quotes-page"`
+Add a new context type for commands that are only available on the quotes list page.
+
+#### Commands to Add:
+1. **Start New Quote**
+   - ID: `start-quote`
+   - Label: "Start New Quote"
+   - Keywords: ["start", "new", "quote", "create"]
+   - Action: Navigate to `/` (home page)
+   - Context: `quotes-page`
+
+2. **Open Quote** (from list)
+   - ID: `open-quote-[id]`
+   - Label: Quote client name
+   - Keywords: [client name, quote number, "open", "quote"]
+   - Action: Navigate to `/?quote=[id]`
+   - Context: `quotes-page`
+   - Dynamic: Generated from available quotes
+
+3. **Filter by Status**
+   - ID: `filter-status-[status]`
+   - Label: `Filter: [Status]` (e.g., "Filter: Draft", "Filter: Sent")
+   - Keywords: ["filter", "status", status name]
+   - Action: Apply status filter
+   - Context: `quotes-page`
+   - Dynamic: Generated from available statuses
+
+4. **Clear Filters**
+   - ID: `clear-filters`
+   - Label: "Clear All Filters"
+   - Keywords: ["clear", "reset", "filters", "all"]
+   - Action: Reset all filters to defaults
+   - Context: `quotes-page`
+
+5. **Navigate to Home**
+   - ID: `go-home`
+   - Label: "Go to Home"
+   - Keywords: ["home", "navigate", "main"]
+   - Action: Navigate to `/`
+   - Context: `quotes-page`
+
+### Implementation Steps
+
+1. **Update Command Context Type**
+   - Add `"quotes-page"` to context union type
+   - Update `buildCommands` to accept quotes page context
+
+2. **Add Quotes Page Props**
+   - Extend `CommandPaletteProps` with quotes page callbacks:
+     - `onStartQuote?: () => void`
+     - `onOpenQuote?: (quoteId: string) => void`
+     - `onFilterStatus?: (status: string) => void`
+     - `onClearFilters?: () => void`
+     - `availableQuotes?: QuoteListItem[]`
+
+3. **Update Quotes Page**
+   - Import and render `CommandPalette` component
+   - Pass quotes data and handlers
+   - Add `CommandPaletteHint` to header (optional)
+
+4. **Update Command Builder**
+   - Add logic to build quotes-page commands when context is `quotes-page`
+   - Generate dynamic commands from available quotes
+   - Generate filter commands from available statuses
+
+### File Changes
+
+```
+app/quotes/page.tsx
+  - Add CommandPalette component
+  - Add command handlers
+  - Pass quotes data to palette
+
+app/components/command-palette/commands.ts
+  - Add "quotes-page" context type
+  - Add quotes page command builders
+  - Accept quotes page props in CommandContext
+
+app/components/command-palette.tsx
+  - Extend props interface with quotes page handlers
+  - Pass quotes page context to buildCommands
+```
+
 ## Success Criteria
 
 - [ ] Agents can programmatically discover all available commands
 - [ ] Commands include descriptive metadata for agent understanding
 - [ ] Command availability is correctly filtered by context
 - [ ] Visual hints optionally display available commands
+- [ ] Command palette works on quotes page with context-specific commands
+- [ ] Quotes page commands include dynamic quote list and filters
 - [ ] No breaking changes to existing command palette functionality
 - [ ] All existing tests pass
 - [ ] New tests cover registry and hint functionality

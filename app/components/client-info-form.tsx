@@ -165,10 +165,10 @@ export function ClientInfoForm() {
       }
     }
     return {
-      firstName: "James",
-      lastName: "McNulty",
+      firstName: "Sally",
+      lastName: "Gomez",
       dateOfBirth: new Date("1990-01-01"),
-      email: "john@example.com",
+      email: "sally.gomez@example.com",
       phone: "(555) 123-4567",
       address: "5211 S McQueen Rd, Chandler, AZ 85249",
     }

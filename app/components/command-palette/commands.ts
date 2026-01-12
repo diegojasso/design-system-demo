@@ -15,10 +15,21 @@ import {
   Moon,
   Sun,
   Monitor,
+  Home,
+  X,
+  Filter,
   type LucideIcon,
 } from "lucide-react"
 import type { RecentQuote } from "./quote-types"
 import type { CommandHistoryEntry } from "./use-command-history"
+import type { QuoteListItem } from "../../quotes-list/types"
+
+export interface CommandParameter {
+  name: string
+  type: string
+  required: boolean
+  description?: string
+}
 
 export interface Command {
   id: string
@@ -34,7 +45,8 @@ export interface Command {
     | "favorites"
     | "history"
     | "settings"
-  context: "always" | "in-quote" | "has-quote"
+    | "quotes-list"
+  context: "always" | "in-quote" | "has-quote" | "quotes-page"
   action: () => void
   // Optional metadata for display
   meta?: string
@@ -43,6 +55,11 @@ export interface Command {
   usageCount?: number
   isFavorite?: boolean
   customShortcut?: string
+  // Documentation for agents
+  description?: string // Human-readable description of what the command does
+  agentDescription?: string // Description optimized for AI agents
+  parameters?: CommandParameter[] // What parameters does this command accept/require
+  contextRequirements?: string[] // What conditions must be met (e.g., "quote-id", "current-step")
 }
 
 interface CommandContext {
@@ -65,6 +82,12 @@ interface CommandContext {
   // Theme
   onSetTheme?: (theme: "light" | "dark" | "system") => void
   currentTheme?: "light" | "dark" | "system"
+  // Quotes page context
+  isQuotesPage?: boolean
+  availableQuotes?: QuoteListItem[]
+  onStartQuote?: () => void
+  onFilterStatus?: (status: string) => void
+  onClearFilters?: () => void
 }
 
 export function buildCommands(context: CommandContext): Command[] {
@@ -79,6 +102,9 @@ export function buildCommands(context: CommandContext): Command[] {
     icon: Plus,
     group: "quick-actions",
     context: "always",
+    description: "Creates a new insurance quote and navigates to the client information step",
+    agentDescription: "Creates a new insurance quote. Navigates to the client information step where you can enter client details. This is the first step in the quote workflow.",
+    contextRequirements: [],
     action: () => {
       // Navigate to new quote / reset to first step
       context.onStepChange?.("client-info")
@@ -93,6 +119,9 @@ export function buildCommands(context: CommandContext): Command[] {
     icon: Search,
     group: "quick-actions",
     context: "always",
+    description: "Opens the client search dialog to find and select an existing client",
+    agentDescription: "Opens a client search dialog. Use this to find and select an existing client from the database. This is useful when you want to create a quote for a returning client.",
+    contextRequirements: [],
     action: () => {
       context.onFindClient?.()
     },
@@ -106,6 +135,9 @@ export function buildCommands(context: CommandContext): Command[] {
     icon: FileDown,
     group: "quick-actions",
     context: "always",
+    description: "Imports a quote from the Ezlynx aggregator system",
+    agentDescription: "Imports an existing quote from the Ezlynx aggregator system. This allows you to work with quotes that were created or managed in Ezlynx. After import, you'll see an import summary before proceeding with the quote workflow.",
+    contextRequirements: [],
     action: () => {
       context.onImportEzlynx?.()
     },
@@ -152,6 +184,32 @@ export function buildCommands(context: CommandContext): Command[] {
     ]
 
     stepCommands.forEach(({ id, label, shortcut, icon, keywords }) => {
+      const stepDescriptions: Record<string, { description: string; agentDescription: string }> = {
+        "client-info": {
+          description: "Navigates to the Client Information section of the quote workflow",
+          agentDescription: "Navigates to the Client Information step (step 1). This is where you enter basic client details like name, address, and contact information. Required for creating a new quote.",
+        },
+        vehicle: {
+          description: "Navigates to the Vehicles section of the quote workflow",
+          agentDescription: "Navigates to the Vehicles step (step 2). Add vehicles that need to be insured. You can add multiple vehicles with details like make, model, year, and VIN.",
+        },
+        driver: {
+          description: "Navigates to the Drivers section of the quote workflow",
+          agentDescription: "Navigates to the Drivers step (step 3). Add drivers who will be covered by the insurance policy. Include driver information like license number and driving history.",
+        },
+        coverage: {
+          description: "Navigates to the Coverages section of the quote workflow",
+          agentDescription: "Navigates to the Coverages step (step 4). Configure insurance coverages and limits for the quote. This includes liability, comprehensive, collision, and other coverage options.",
+        },
+        review: {
+          description: "Navigates to the Review section of the quote workflow",
+          agentDescription: "Navigates to the Review step (step 5). Review all quote information before finalizing. This is the final step where you can verify all details before sending or accepting the quote.",
+        },
+      }
+      const stepInfo = stepDescriptions[id] || {
+        description: `Navigates to the ${label} section of the quote workflow`,
+        agentDescription: `Navigates to the ${label} step. Use this to jump directly to this section of the quote workflow.`,
+      }
       commands.push({
         id: `go-${id}`,
         label,
@@ -160,6 +218,9 @@ export function buildCommands(context: CommandContext): Command[] {
         icon,
         group: "navigation",
         context: "in-quote",
+        description: stepInfo.description,
+        agentDescription: stepInfo.agentDescription,
+        contextRequirements: ["current-step"],
         action: () => {
           context.onStepChange?.(id as StepId)
         },
@@ -176,6 +237,9 @@ export function buildCommands(context: CommandContext): Command[] {
       icon: RefreshCw,
       group: "quote-actions",
       context: "has-quote",
+      description: "Generates third-party reports (MVR, CLUE) for the current quote",
+      agentDescription: "Generates third-party reports including MVR (Motor Vehicle Record) and CLUE (Comprehensive Loss Underwriting Exchange) reports for the current quote. These reports provide driving history and claims information to help assess risk and determine pricing.",
+      contextRequirements: ["quote-id"],
       action: () => {
         context.onRunReports?.()
       },
@@ -188,6 +252,9 @@ export function buildCommands(context: CommandContext): Command[] {
       icon: Send,
       group: "quote-actions",
       context: "has-quote",
+      description: "Sends the current quote to the client via email",
+      agentDescription: "Sends the current quote to the client via email. This allows the client to review the quote and either accept or reject it. The quote will be marked as 'sent' status after sending.",
+      contextRequirements: ["quote-id"],
       action: () => {
         context.onSendQuote?.()
       },
@@ -200,6 +267,9 @@ export function buildCommands(context: CommandContext): Command[] {
       icon: Download,
       group: "quote-actions",
       context: "has-quote",
+      description: "Downloads the current quote as a PDF document",
+      agentDescription: "Downloads the current quote as a PDF document. This creates a formatted PDF version of the quote that can be saved, printed, or shared with the client offline.",
+      contextRequirements: ["quote-id"],
       action: () => {
         context.onDownloadPDF?.()
       },
@@ -223,11 +293,127 @@ export function buildCommands(context: CommandContext): Command[] {
         context: "always",
         meta: quote.quoteNumber,
         status: quote.status,
+        description: `Opens the recent quote ${quote.quoteNumber} for ${quote.clientName}`,
+        agentDescription: `Opens quote ${quote.quoteNumber} for client ${quote.clientName}. This is a recently accessed quote that you can quickly return to. The quote status is ${quote.status}.`,
         action: () => {
           context.onOpenQuote?.(quote.id)
         },
       })
     })
+  }
+
+  // Quotes page commands (only on quotes page)
+  if (context.isQuotesPage) {
+    // Start New Quote
+    if (context.onStartQuote) {
+      commands.push({
+        id: "start-quote",
+        label: "Start New Quote",
+        keywords: ["start", "new", "quote", "create"],
+        shortcut: "⌘N",
+        icon: Plus,
+        group: "quotes-list",
+        context: "quotes-page",
+        description: "Starts a new quote and navigates to the quote creation page",
+        agentDescription: "Starts a new insurance quote. Navigates to the home page where you can begin creating a new quote from scratch. This is available on the quotes list page.",
+        contextRequirements: ["quotes-page"],
+        action: () => {
+          context.onStartQuote?.()
+        },
+      })
+    }
+
+    // Navigate to Home
+    commands.push({
+      id: "go-home",
+      label: "Go to Home",
+      keywords: ["home", "navigate", "main", "dashboard"],
+      shortcut: "⌘H",
+      icon: Home,
+      group: "quotes-list",
+      context: "quotes-page",
+      description: "Navigates to the home page",
+      agentDescription: "Navigates to the home page (main dashboard). Use this to return to the main quote creation interface from the quotes list page.",
+      contextRequirements: ["quotes-page"],
+      action: () => {
+        context.onStartQuote?.() // Navigate to home
+      },
+    })
+
+    // Clear Filters
+    if (context.onClearFilters) {
+      commands.push({
+        id: "clear-filters",
+        label: "Clear All Filters",
+        keywords: ["clear", "reset", "filters", "all"],
+        icon: X,
+        group: "quotes-list",
+        context: "quotes-page",
+        description: "Clears all filters on the quotes list page",
+        agentDescription: "Clears all active filters on the quotes list page. This resets status, date range, agency, and agent filters to their default values, showing all quotes.",
+        contextRequirements: ["quotes-page"],
+        action: () => {
+          context.onClearFilters?.()
+        },
+      })
+    }
+
+    // Filter by Status
+    if (context.onFilterStatus) {
+      const statuses = ["draft", "pending", "sent", "accepted", "rejected"] as const
+      const statusDescriptions: Record<string, string> = {
+        draft: "Shows only draft quotes that are still being worked on",
+        pending: "Shows only pending quotes awaiting action",
+        sent: "Shows only quotes that have been sent to clients",
+        accepted: "Shows only quotes that have been accepted by clients",
+        rejected: "Shows only quotes that have been rejected by clients",
+      }
+      statuses.forEach((status) => {
+        commands.push({
+          id: `filter-status-${status}`,
+          label: `Filter: ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+          keywords: ["filter", "status", status],
+          icon: Filter,
+          group: "quotes-list",
+          context: "quotes-page",
+          description: `Filters quotes to show only ${status} quotes`,
+          agentDescription: `Filters the quotes list to show only quotes with ${status} status. ${statusDescriptions[status]}. This helps you focus on quotes in a specific state.`,
+          contextRequirements: ["quotes-page"],
+          parameters: [{ name: "status", type: "string", required: true, description: `The status to filter by: ${status}` }],
+          action: () => {
+            context.onFilterStatus?.(status)
+          },
+        })
+      })
+    }
+
+    // Open quotes from list
+    if (context.availableQuotes && context.availableQuotes.length > 0 && context.onOpenQuote) {
+      context.availableQuotes.forEach((quote) => {
+        commands.push({
+          id: `open-quote-${quote.id}`,
+          label: quote.name,
+          keywords: [
+            quote.name.toLowerCase(),
+            quote.quoteNumber.toLowerCase(),
+            "open",
+            "quote",
+            quote.status || "",
+          ],
+          icon: FileText,
+          group: "quotes-list",
+          context: "quotes-page",
+          meta: quote.quoteNumber,
+          status: quote.status as "draft" | "pending" | "sent" | "accepted" | "rejected",
+          description: `Opens quote ${quote.quoteNumber} for ${quote.name}`,
+          agentDescription: `Opens quote ${quote.quoteNumber} for client ${quote.name}. This quote has status ${quote.status}. Opening it will navigate to the quote detail page where you can view and edit the quote.`,
+          contextRequirements: ["quotes-page"],
+          action: () => {
+            context.onOpenQuote?.(quote.id)
+          },
+        })
+      })
+    }
   }
 
   // Theme settings (always available)
@@ -258,6 +444,21 @@ export function buildCommands(context: CommandContext): Command[] {
 
     themeCommands.forEach(({ id, label, keywords, icon, theme }) => {
       const isActive = context.currentTheme === theme
+      const themeDescriptions: Record<string, { description: string; agentDescription: string }> = {
+        light: {
+          description: "Switches the application theme to light mode",
+          agentDescription: "Switches the application theme to light mode. This provides a bright, light-colored interface suitable for daytime use or users who prefer light backgrounds.",
+        },
+        dark: {
+          description: "Switches the application theme to dark mode",
+          agentDescription: "Switches the application theme to dark mode. This provides a dark interface that's easier on the eyes in low-light conditions and reduces eye strain.",
+        },
+        system: {
+          description: "Uses the system theme preference",
+          agentDescription: "Uses the system theme preference. The application will automatically match your operating system's theme setting (light or dark) and switch accordingly.",
+        },
+      }
+      const themeInfo = themeDescriptions[theme]
       commands.push({
         id,
         label,
@@ -266,6 +467,9 @@ export function buildCommands(context: CommandContext): Command[] {
         group: "settings",
         context: "always",
         meta: isActive ? "Active" : undefined,
+        description: themeInfo.description,
+        agentDescription: themeInfo.agentDescription,
+        contextRequirements: [],
         action: () => {
           context.onSetTheme?.(theme)
         },

@@ -7,6 +7,7 @@ import type { RecentQuote } from "../command-palette/quote-types"
 import type {
   CommandHistoryEntry,
 } from "../command-palette/use-command-history"
+import type { QuoteListItem } from "../quotes-list/types"
 
 interface UseCommandPaletteProps {
   currentStep?: StepId
@@ -28,6 +29,12 @@ interface UseCommandPaletteProps {
   // Theme
   onSetTheme?: (theme: "light" | "dark" | "system") => void
   currentTheme?: "light" | "dark" | "system"
+  // Quotes page context
+  isQuotesPage?: boolean
+  availableQuotes?: QuoteListItem[]
+  onStartQuote?: () => void
+  onFilterStatus?: (status: string) => void
+  onClearFilters?: () => void
 }
 
 interface GroupedCommand {
@@ -57,6 +64,11 @@ export function useCommandPalette({
   customShortcuts = new Map(),
   onSetTheme,
   currentTheme,
+  isQuotesPage,
+  availableQuotes,
+  onStartQuote,
+  onFilterStatus,
+  onClearFilters,
 }: UseCommandPaletteProps): UseCommandPaletteReturn {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -79,6 +91,11 @@ export function useCommandPalette({
         customShortcuts,
         onSetTheme,
         currentTheme,
+        isQuotesPage,
+        availableQuotes,
+        onStartQuote,
+        onFilterStatus,
+        onClearFilters,
       }),
     [
       currentStep,
@@ -96,6 +113,11 @@ export function useCommandPalette({
       customShortcuts,
       onSetTheme,
       currentTheme,
+      isQuotesPage,
+      availableQuotes,
+      onStartQuote,
+      onFilterStatus,
+      onClearFilters,
     ]
   )
 
