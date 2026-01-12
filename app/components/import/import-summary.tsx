@@ -15,10 +15,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { ImportSummaryStats } from "./import-summary-stats"
-import { ImportSummaryFilters } from "./import-summary-filters"
 import { ImportSummaryGroup } from "./import-summary-group"
 import { ImportSummarySearch } from "./import-summary-search"
-import { ImportSummaryBulkActions } from "./import-summary-bulk-actions"
 import { CoverageGapWizard } from "./coverage-gap-wizard"
 import { ImportTimeline } from "./import-timeline"
 import { ImportSummaryHeader } from "./import-summary-header"
@@ -26,10 +24,6 @@ import { CompactProgressIndicator } from "./compact-progress-indicator"
 import { StickyWarningsBar } from "./sticky-warnings-bar"
 import { CollapsibleImportedInfo } from "./collapsible-imported-info"
 import { CollapsibleTimeline } from "./collapsible-timeline"
-import { CollapsibleFilters } from "./collapsible-filters"
-
-type FilterSeverity = "all" | "error" | "warning" | "info"
-type FilterStatus = "all" | "resolved" | "unresolved"
 
 interface ImportSummaryProps {
   data?: ImportSummaryData
@@ -40,10 +34,7 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
   const { quoteData, updateImportSummaryItem, setCurrentStep } = useQuote()
   const [selectedItem, setSelectedItem] = React.useState<ImportSummaryItem | null>(null)
   const [resolutionOption, setResolutionOption] = React.useState<string>("")
-  const [severityFilter, setSeverityFilter] = React.useState<FilterSeverity>("all")
-  const [statusFilter, setStatusFilter] = React.useState<FilterStatus>("all")
   const [searchQuery, setSearchQuery] = React.useState<string>("")
-  const [selectedItems, setSelectedItems] = React.useState<Set<string>>(new Set())
 
   const importSummary = data || quoteData.importSummary
 
@@ -55,32 +46,15 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
     )
   }
 
-  // Filter items based on current filters and search
+  // Filter items based on search query only
   const filteredItems = React.useMemo(() => {
-    return importSummary.missingInfo.filter((item) => {
-      const matchesSeverity =
-        severityFilter === "all" || item.severity === severityFilter
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "resolved" && item.checked) ||
-        (statusFilter === "unresolved" && !item.checked)
-      const matchesSearch =
-        !searchQuery.trim() ||
-        item.label.toLowerCase().includes(searchQuery.toLowerCase().trim())
-
-      return matchesSeverity && matchesStatus && matchesSearch
-    })
-  }, [
-    importSummary.missingInfo,
-    severityFilter,
-    statusFilter,
-    searchQuery,
-  ])
-
-  // Get unresolved items for bulk actions
-  const unresolvedItems = React.useMemo(() => {
-    return filteredItems.filter((item) => !item.checked)
-  }, [filteredItems])
+    if (!searchQuery.trim()) {
+      return importSummary.missingInfo
+    }
+    return importSummary.missingInfo.filter((item) =>
+      item.label.toLowerCase().includes(searchQuery.toLowerCase().trim())
+    )
+  }, [importSummary.missingInfo, searchQuery])
 
   // Group items by severity
   const groupedItems = React.useMemo(() => {
@@ -123,36 +97,11 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
 
   const handleCheckboxChange = (itemId: string, checked: boolean) => {
     updateImportSummaryItem?.(itemId, checked)
-    // Remove from selection if resolved
-    if (checked) {
-      setSelectedItems((prev) => {
-        const next = new Set(prev)
-        next.delete(itemId)
-        return next
-      })
-    }
-  }
-
-  const handleBulkSelect = (itemId: string, selected: boolean) => {
-    setSelectedItems((prev) => {
-      const next = new Set(prev)
-      if (selected) {
-        next.add(itemId)
-      } else {
-        next.delete(itemId)
-      }
-      return next
-    })
   }
 
   const handleQuickResolve = React.useCallback(
     (itemId: string) => {
       updateImportSummaryItem?.(itemId, true)
-      setSelectedItems((prev) => {
-        const next = new Set(prev)
-        next.delete(itemId)
-        return next
-      })
     },
     [updateImportSummaryItem]
   )
@@ -164,33 +113,6 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
     },
     [handleQuickResolve]
   )
-
-  const handleSelectAll = React.useCallback(() => {
-    const allUnresolvedIds = new Set(
-      unresolvedItems.map((item) => item.id)
-    )
-    setSelectedItems(allUnresolvedIds)
-  }, [unresolvedItems])
-
-  const handleDeselectAll = React.useCallback(() => {
-    setSelectedItems(new Set())
-  }, [])
-
-  const handleResolveSelected = React.useCallback(() => {
-    selectedItems.forEach((itemId) => {
-      updateImportSummaryItem?.(itemId, true)
-    })
-    setSelectedItems(new Set())
-  }, [selectedItems, updateImportSummaryItem])
-
-  const handleDismissSelected = React.useCallback(() => {
-    // For now, dismissing is the same as resolving
-    // In the future, this could mark items as "dismissed" vs "resolved"
-    selectedItems.forEach((itemId) => {
-      updateImportSummaryItem?.(itemId, true)
-    })
-    setSelectedItems(new Set())
-  }, [selectedItems, updateImportSummaryItem])
 
   const handleResolveCoverageGap = (option: string) => {
     if (selectedItem) {
@@ -204,18 +126,6 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
     setSelectedItem(null)
     setResolutionOption("")
   }
-
-  const handleFilterChange = React.useCallback(
-    (filter: { severity?: FilterSeverity; status?: FilterStatus }) => {
-      if (filter.severity !== undefined) {
-        setSeverityFilter(filter.severity)
-      }
-      if (filter.status !== undefined) {
-        setStatusFilter(filter.status)
-      }
-    },
-    []
-  )
 
   // Keyboard navigation
   React.useEffect(() => {
@@ -234,47 +144,11 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
       ) {
         return
       }
-
-      // Keyboard shortcuts
-      // Cmd/Ctrl + A: Select all unresolved items
-      if ((e.metaKey || e.ctrlKey) && e.key === "a") {
-        e.preventDefault()
-        if (unresolvedItems.length > 0) {
-          handleSelectAll()
-        }
-        return
-      }
-
-      // Cmd/Ctrl + D: Dismiss selected items
-      if ((e.metaKey || e.ctrlKey) && e.key === "d") {
-        e.preventDefault()
-        if (selectedItems.size > 0) {
-          handleDismissSelected()
-        }
-        return
-      }
-
-      // Cmd/Ctrl + R: Resolve selected items
-      if ((e.metaKey || e.ctrlKey) && e.key === "r") {
-        e.preventDefault()
-        if (selectedItems.size > 0) {
-          handleResolveSelected()
-        }
-        return
-      }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [
-    selectedItem,
-    unresolvedItems.length,
-    selectedItems.size,
-    handleSelectAll,
-    handleDismissSelected,
-    handleResolveSelected,
-    handleCloseModal,
-  ])
+  }, [selectedItem, handleCloseModal])
 
   const coverageGapData =
     selectedItem?.details?.type === "coverage-gap"
@@ -372,7 +246,6 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
     allUnresolvedIds.forEach((itemId) => {
       updateImportSummaryItem?.(itemId, true)
     })
-    setSelectedItems(new Set())
   }
 
   const handleDismissAllWarnings = () => {
@@ -412,35 +285,14 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
         />
       )}
 
-      {/* Search and Filters */}
+      {/* Search */}
       <div className="flex flex-col gap-4">
         <ImportSummarySearch
           value={searchQuery}
           onChange={setSearchQuery}
           placeholder="Search items..."
         />
-        <CollapsibleFilters
-          items={importSummary.missingInfo}
-          severityFilter={severityFilter}
-          statusFilter={statusFilter}
-          onSeverityChange={setSeverityFilter}
-          onStatusChange={setStatusFilter}
-          defaultOpen={false}
-        />
       </div>
-
-      {/* Bulk Actions */}
-      {unresolvedItems.length > 0 && (
-        <ImportSummaryBulkActions
-          selectedItems={selectedItems}
-          totalItems={filteredItems.length}
-          unresolvedItems={unresolvedItems.length}
-          onSelectAll={handleSelectAll}
-          onDeselectAll={handleDeselectAll}
-          onResolveSelected={handleResolveSelected}
-          onDismissSelected={handleDismissSelected}
-        />
-      )}
 
       {/* Grouped Items - WARNINGS FIRST (Most Important) */}
       <div ref={warningsSectionRef} className="flex flex-col gap-6">
@@ -454,11 +306,9 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
               onCheckboxChange={handleCheckboxChange}
               defaultExpanded={true}
               startIndex={0}
-              selectedItems={selectedItems}
-              onBulkSelect={handleBulkSelect}
               onQuickResolve={handleQuickResolve}
               onQuickDismiss={handleQuickDismiss}
-              showQuickActions={selectedItems.size === 0}
+              showQuickActions={true}
             />
           </div>
         )}
@@ -475,11 +325,9 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
               onCheckboxChange={handleCheckboxChange}
               defaultExpanded={true}
               startIndex={groupedItems.error.length}
-              selectedItems={selectedItems}
-              onBulkSelect={handleBulkSelect}
               onQuickResolve={handleQuickResolve}
               onQuickDismiss={handleQuickDismiss}
-              showQuickActions={selectedItems.size === 0}
+              showQuickActions={true}
             />
           </div>
         )}
@@ -496,11 +344,9 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
               onCheckboxChange={handleCheckboxChange}
               defaultExpanded={true}
               startIndex={groupedItems.error.length + groupedItems.warning.length}
-              selectedItems={selectedItems}
-              onBulkSelect={handleBulkSelect}
               onQuickResolve={handleQuickResolve}
               onQuickDismiss={handleQuickDismiss}
-              showQuickActions={selectedItems.size === 0}
+              showQuickActions={true}
             />
           </div>
         )}
@@ -508,7 +354,9 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
         {filteredItems.length === 0 && (
           <div className="rounded-lg border border-border bg-card p-12 text-center">
             <p className="text-muted-foreground">
-              No items match the current filters.
+              {searchQuery.trim() 
+                ? "No items match your search."
+                : "No items to display."}
             </p>
           </div>
         )}
