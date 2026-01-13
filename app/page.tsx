@@ -1,14 +1,6 @@
 "use client"
 
 import * as React from "react"
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { AppSidebar } from "./components/app-sidebar"
 import { QuoteHeader } from "./components/quote-header"
 import { QuoteProgress } from "./components/quote-progress"
@@ -81,41 +73,8 @@ export default function Home() {
         {/* <AppSidebar /> */}
 
         {/* Main Content */}
-        <div className="flex flex-1 flex-col overflow-auto bg-background pb-0 pt-[88px]">
+        <div className="flex flex-1 flex-col overflow-auto bg-background pb-0 pt-14">
           <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6">
-            {/* Breadcrumbs */}
-            <Breadcrumb>
-              <BreadcrumbList className="gap-1.5">
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    href="/"
-                    className="text-base leading-[1.5] text-muted-foreground hover:text-foreground"
-                    style={{ fontFamily: "Inter, sans-serif" }}
-                  >
-                    Home
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="text-foreground" />
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    href="/quotes"
-                    className="text-base leading-[1.5] text-foreground underline decoration-muted-foreground decoration-solid underline-offset-4 hover:text-foreground"
-                    style={{ fontFamily: "Inter, sans-serif" }}
-                  >
-                    Quotes
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="text-foreground" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage
-                    className="text-base leading-[1.5] text-foreground"
-                    style={{ fontFamily: "Inter, sans-serif" }}
-                  >
-                    New Quote
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
 
             {/* Page Header */}
             <QuoteHeader />

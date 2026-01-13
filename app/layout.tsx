@@ -5,6 +5,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import { QuoteProvider } from "./contexts/quote-context";
 import { CommandPaletteProvider } from "./components/command-palette-context";
 import { Toaster } from "@/components/ui/sonner";
+import { TopBar } from "./components/top-bar/top-bar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
         >
           <CommandPaletteProvider>
             <QuoteProvider>
+              <TopBar />
               {children}
             </QuoteProvider>
             <Toaster />
