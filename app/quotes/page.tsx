@@ -6,13 +6,14 @@ import { QuotesList } from "@/app/components/quotes-list/quotes-list"
 import { MOCK_QUOTES } from "@/app/components/quotes-list/mock-quotes"
 import { useSearchParams, useRouter } from "next/navigation"
 import { CommandPalette } from "@/app/components/command-palette"
-import { useTheme } from "@/hooks/use-theme"
 import { AppSidebar } from "@/app/components/app-sidebar"
+
+// Mark this page as dynamic since it uses search params
+export const dynamic = 'force-dynamic'
 
 function QuotesPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { setTheme, theme } = useTheme()
 
   // Get initial values from URL params
   const initialSearch = searchParams.get("search") || ""
@@ -84,8 +85,6 @@ function QuotesPageContent() {
         onOpenQuote={handleOpenQuote}
         onFilterStatus={handleFilterStatus}
         onClearFilters={handleClearFilters}
-        onSetTheme={setTheme}
-        currentTheme={theme as "light" | "dark" | "system" | undefined}
       />
     </>
   )

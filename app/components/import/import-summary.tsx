@@ -125,10 +125,11 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
         (i) => i.details?.type === "missing-vin"
       )
       
-      if (item?.details?.data?.vehicleId && quoteData.vehicles) {
+      const vehicleId = item?.details?.data?.vehicleId
+      if (vehicleId && quoteData.vehicles) {
         // Update the vehicle VIN
         const updatedVehicles = quoteData.vehicles.map((vehicle) =>
-          vehicle.id === item.details.data.vehicleId
+          vehicle.id === vehicleId
             ? { ...vehicle, vin }
             : vehicle
         )

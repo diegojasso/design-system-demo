@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import type { RecentQuote } from "./quote-types"
 import type { CommandHistoryEntry } from "./use-command-history"
-import type { QuoteListItem } from "../../quotes-list/types"
+import type { QuoteListItem } from "../quotes-list/types"
 
 export interface CommandParameter {
   name: string

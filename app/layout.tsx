@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { ThemeProvider } from "./components/theme-provider";
 import { QuoteProvider } from "./contexts/quote-context";
@@ -40,7 +41,9 @@ export default function RootLayout({
         >
           <CommandPaletteProvider>
             <QuoteProvider>
-              <TopBar />
+              <Suspense fallback={<div className="h-14" />}>
+                <TopBar />
+              </Suspense>
               {children}
             </QuoteProvider>
             <Toaster />
