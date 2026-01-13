@@ -70,16 +70,6 @@ const SAMPLE_MVR_DRIVERS: MVRDriver[] = [
     confidence: 0.95,
     source: 'MVR',
   },
-  {
-    name: 'Michael Gomez',
-    dateOfBirth: '2008-03-12',
-    licenseNumber: '',
-    licenseState: '',
-    violations: 0,
-    accidents: 0,
-    confidence: 0.88,
-    source: 'MVR',
-  },
 ]
 
 export function DriversTable({ 

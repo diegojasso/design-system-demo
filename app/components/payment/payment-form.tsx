@@ -134,7 +134,7 @@ export function PaymentForm() {
       }
     }
     return {
-      method: "secure-link" as PaymentMethod,
+      method: "credit-card" as PaymentMethod,
       email: clientEmail,
       creditCard: {
         nameOnCard: clientName,
@@ -303,67 +303,7 @@ export function PaymentForm() {
                       onValueChange={field.onChange}
                       className="space-y-4"
                     >
-                      {/* Option 1: Send secure link */}
-                      <div className="flex items-start space-x-3">
-                        <RadioGroupItem value="secure-link" id="secure-link" className="mt-1" />
-                        <div className="flex-1 space-y-2">
-                          <Label
-                            htmlFor="secure-link"
-                            className="text-base font-semibold leading-[1.5] cursor-pointer"
-                            style={{ fontFamily: "Inter, sans-serif" }}
-                          >
-                            Send secure link to client
-                          </Label>
-                          <p
-                            className="text-sm text-muted-foreground leading-[1.5]"
-                            style={{ fontFamily: "Inter, sans-serif" }}
-                          >
-                            The client will receive a link to enter payment info.
-                          </p>
-                          {paymentMethod === "secure-link" && (
-                            <div className="pt-2 space-y-4">
-                              <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FieldLabel>
-                                      <FormLabel>Email address</FormLabel>
-                                    </FieldLabel>
-                                    <FieldContent>
-                                      <FormControl>
-                                        <Input
-                                          {...field}
-                                          type="email"
-                                          placeholder={clientEmail || "email@example.com"}
-                                          className="h-10 text-base leading-[1.5]"
-                                          style={{ fontFamily: "Inter, sans-serif" }}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FieldContent>
-                                  </FormItem>
-                                )}
-                              />
-                              <div className="flex justify-end">
-                                <Button
-                                  type="button"
-                                  variant="default"
-                                  size="lg"
-                                  disabled={!isSecureLinkValid}
-                                  onClick={handleSecureLinkSubmit}
-                                  className="h-9"
-                                >
-                                  Send Secure Link
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <Mail className="h-5 w-5 text-muted-foreground mt-1" />
-                      </div>
-
-                      {/* Option 2: Credit Card */}
+                      {/* Option 1: Credit Card */}
                       <div className="flex items-start space-x-3">
                         <RadioGroupItem value="credit-card" id="credit-card" className="mt-1" />
                         <div className="flex-1 space-y-4">
@@ -574,7 +514,7 @@ export function PaymentForm() {
                         <CreditCard className="h-5 w-5 text-muted-foreground mt-1" />
                       </div>
 
-                      {/* Option 3: Bank Account (ACH) */}
+                      {/* Option 2: Bank Account (ACH) */}
                       <div className="flex items-start space-x-3">
                         <RadioGroupItem value="ach" id="ach" className="mt-1" />
                         <div className="flex-1 space-y-2">
@@ -722,6 +662,66 @@ export function PaymentForm() {
                           )}
                         </div>
                         <Building2 className="h-5 w-5 text-muted-foreground mt-1" />
+                      </div>
+
+                      {/* Option 3: Send secure link */}
+                      <div className="flex items-start space-x-3">
+                        <RadioGroupItem value="secure-link" id="secure-link" className="mt-1" />
+                        <div className="flex-1 space-y-2">
+                          <Label
+                            htmlFor="secure-link"
+                            className="text-base font-semibold leading-[1.5] cursor-pointer"
+                            style={{ fontFamily: "Inter, sans-serif" }}
+                          >
+                            Send secure link to client
+                          </Label>
+                          <p
+                            className="text-sm text-muted-foreground leading-[1.5]"
+                            style={{ fontFamily: "Inter, sans-serif" }}
+                          >
+                            The client will receive a link to enter payment info.
+                          </p>
+                          {paymentMethod === "secure-link" && (
+                            <div className="pt-2 space-y-4">
+                              <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FieldLabel>
+                                      <FormLabel>Email address</FormLabel>
+                                    </FieldLabel>
+                                    <FieldContent>
+                                      <FormControl>
+                                        <Input
+                                          {...field}
+                                          type="email"
+                                          placeholder={clientEmail || "email@example.com"}
+                                          className="h-10 text-base leading-[1.5]"
+                                          style={{ fontFamily: "Inter, sans-serif" }}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FieldContent>
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="flex justify-end">
+                                <Button
+                                  type="button"
+                                  variant="default"
+                                  size="lg"
+                                  disabled={!isSecureLinkValid}
+                                  onClick={handleSecureLinkSubmit}
+                                  className="h-9"
+                                >
+                                  Send Secure Link
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <Mail className="h-5 w-5 text-muted-foreground mt-1" />
                       </div>
                     </RadioGroup>
                   </FormControl>
