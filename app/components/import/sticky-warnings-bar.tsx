@@ -1,15 +1,15 @@
 "use client"
 
 import * as React from "react"
-import { AlertTriangle, XCircle, ChevronDown, ChevronUp, CheckCircle2, ArrowRight } from "lucide-react"
+import { FileText, Shield, CheckCircle2, ChevronDown, ChevronUp, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { ImportSummaryItem } from "./mock-ezlynx-data"
+import { getWorkflowStage } from "./mock-ezlynx-data"
 
 interface StickyWarningsBarProps {
-  errors: ImportSummaryItem[]
-  warnings: ImportSummaryItem[]
+  items: ImportSummaryItem[]
   onResolveAll: () => void
   onDismissAll: () => void
   onItemClick: (item: ImportSummaryItem) => void
@@ -18,8 +18,7 @@ interface StickyWarningsBarProps {
 }
 
 export function StickyWarningsBar({
-  errors,
-  warnings,
+  items,
   onResolveAll,
   onDismissAll,
   onItemClick,
@@ -27,9 +26,27 @@ export function StickyWarningsBar({
   className,
 }: StickyWarningsBarProps) {
   const [isExpanded, setIsExpanded] = React.useState(false)
-  const unresolvedErrors = errors.filter((item) => !item.checked)
-  const unresolvedWarnings = warnings.filter((item) => !item.checked)
-  const totalUnresolved = unresolvedErrors.length + unresolvedWarnings.length
+  
+  // Group items by workflow stage
+  const groupedByStage = React.useMemo(() => {
+    const groups = {
+      quote: [] as ImportSummaryItem[],
+      underwriting: [] as ImportSummaryItem[],
+      bind: [] as ImportSummaryItem[],
+    }
+    
+    items.forEach((item) => {
+      const stage = getWorkflowStage(item)
+      groups[stage].push(item)
+    })
+    
+    return groups
+  }, [items])
+  
+  const unresolvedQuote = groupedByStage.quote.filter((item) => !item.checked)
+  const unresolvedUnderwriting = groupedByStage.underwriting.filter((item) => !item.checked)
+  const unresolvedBind = groupedByStage.bind.filter((item) => !item.checked)
+  const totalUnresolved = unresolvedQuote.length + unresolvedUnderwriting.length + unresolvedBind.length
 
   // Auto-collapse when all resolved
   React.useEffect(() => {
@@ -63,26 +80,38 @@ export function StickyWarningsBar({
       {/* Collapsed View */}
       <div className="flex items-center justify-between gap-4 p-3">
         <div className="flex items-center gap-4">
-          {unresolvedErrors.length > 0 && (
+          {unresolvedQuote.length > 0 && (
             <button
               onClick={handleViewAll}
               className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              <XCircle className="h-4 w-4 text-destructive" />
+              <FileText className="h-4 w-4 text-destructive" />
               <span className="text-foreground">
-                {unresolvedErrors.length} Error{unresolvedErrors.length !== 1 ? "s" : ""}
+                {unresolvedQuote.length} Needed for Quote
               </span>
             </button>
           )}
 
-          {unresolvedWarnings.length > 0 && (
+          {unresolvedUnderwriting.length > 0 && (
             <button
               onClick={handleViewAll}
               className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <Shield className="h-4 w-4 text-amber-500" />
               <span className="text-foreground">
-                {unresolvedWarnings.length} Warning{unresolvedWarnings.length !== 1 ? "s" : ""}
+                {unresolvedUnderwriting.length} Needed for Underwriting
+              </span>
+            </button>
+          )}
+
+          {unresolvedBind.length > 0 && (
+            <button
+              onClick={handleViewAll}
+              className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <CheckCircle2 className="h-4 w-4 text-blue-500" />
+              <span className="text-foreground">
+                {unresolvedBind.length} Needed for Bind
               </span>
             </button>
           )}
@@ -127,14 +156,14 @@ export function StickyWarningsBar({
       {isExpanded && (
         <div className="border-t border-border bg-muted/30 p-4 animate-in fade-in-0 slide-in-from-top-2">
           <div className="space-y-3">
-            {/* Errors */}
-            {unresolvedErrors.length > 0 && (
+            {/* Needed for Quote */}
+            {unresolvedQuote.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-xs font-semibold text-destructive uppercase tracking-wide">
-                  Errors ({unresolvedErrors.length})
+                  Needed for Quote ({unresolvedQuote.length})
                 </h4>
                 <div className="space-y-1">
-                  {unresolvedErrors.map((item) => (
+                  {unresolvedQuote.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => {
@@ -144,7 +173,7 @@ export function StickyWarningsBar({
                       className="group flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       <div className="flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                        <FileText className="h-4 w-4 text-destructive flex-shrink-0" />
                         <span className="text-foreground">{item.label}</span>
                       </div>
                       <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
@@ -154,14 +183,14 @@ export function StickyWarningsBar({
               </div>
             )}
 
-            {/* Warnings */}
-            {unresolvedWarnings.length > 0 && (
+            {/* Needed for Underwriting */}
+            {unresolvedUnderwriting.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide">
-                  Warnings ({unresolvedWarnings.length})
+                  Needed for Underwriting ({unresolvedUnderwriting.length})
                 </h4>
                 <div className="space-y-1">
-                  {unresolvedWarnings.map((item) => (
+                  {unresolvedUnderwriting.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => {
@@ -171,7 +200,34 @@ export function StickyWarningsBar({
                       className="group flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                        <Shield className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                        <span className="text-foreground">{item.label}</span>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Needed for Bind */}
+            {unresolvedBind.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                  Needed for Bind ({unresolvedBind.length})
+                </h4>
+                <div className="space-y-1">
+                  {unresolvedBind.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        onItemClick(item)
+                        setIsExpanded(false)
+                      }}
+                      className="group flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-blue-500 flex-shrink-0" />
                         <span className="text-foreground">{item.label}</span>
                       </div>
                       <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />

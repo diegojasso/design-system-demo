@@ -809,7 +809,7 @@ export function VehiclesTable({
 
             {/* Right Sidebar - Inside scrollable container, scrolls with content */}
             {vehicles.length > 0 && (
-              <div className="bg-card shrink-0 border-l border-border" style={{ width: '323px' }}>
+              <div className="bg-card shrink-0 border-border" style={{ width: '323px' }}>
                 <div className="p-4">
                   {/* Add Another Vehicle Button */}
                   <Button

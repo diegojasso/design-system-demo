@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { AlertTriangle, CheckCircle } from "lucide-react"
+import { AlertTriangle, CheckCircle, CheckCircle2 } from "lucide-react"
 import { useQuote } from "@/app/contexts/quote-context"
 import type { ImportSummaryData, ImportSummaryItem } from "./mock-ezlynx-data"
 import {
@@ -16,7 +16,9 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { ImportSummaryStats } from "./import-summary-stats"
 import { ImportSummaryGroup } from "./import-summary-group"
+import { WorkflowStageGroup } from "./workflow-stage-group"
 import { ImportSummarySearch } from "./import-summary-search"
+import { getWorkflowStage } from "./mock-ezlynx-data"
 import { CoverageGapWizard } from "./coverage-gap-wizard"
 import { ImportTimeline } from "./import-timeline"
 import { ImportSummaryHeader } from "./import-summary-header"
@@ -24,6 +26,7 @@ import { CompactProgressIndicator } from "./compact-progress-indicator"
 import { StickyWarningsBar } from "./sticky-warnings-bar"
 import { CollapsibleImportedInfo } from "./collapsible-imported-info"
 import { CollapsibleTimeline } from "./collapsible-timeline"
+import { TwoColumnLayout } from "./two-column-layout"
 
 interface ImportSummaryProps {
   data?: ImportSummaryData
@@ -31,7 +34,7 @@ interface ImportSummaryProps {
 }
 
 export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
-  const { quoteData, updateImportSummaryItem, setCurrentStep } = useQuote()
+  const { quoteData, updateImportSummaryItem, setCurrentStep, updateVehicles } = useQuote()
   const [selectedItem, setSelectedItem] = React.useState<ImportSummaryItem | null>(null)
   const [resolutionOption, setResolutionOption] = React.useState<string>("")
   const [searchQuery, setSearchQuery] = React.useState<string>("")
@@ -56,21 +59,22 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
     )
   }, [importSummary.missingInfo, searchQuery])
 
-  // Group items by severity
+  // Group items by workflow stage
   const groupedItems = React.useMemo(() => {
     const groups: {
-      error: ImportSummaryItem[]
-      warning: ImportSummaryItem[]
-      info: ImportSummaryItem[]
+      quote: ImportSummaryItem[]
+      underwriting: ImportSummaryItem[]
+      bind: ImportSummaryItem[]
     } = {
-      error: [],
-      warning: [],
-      info: [],
+      quote: [],
+      underwriting: [],
+      bind: [],
     }
 
     filteredItems.forEach((item) => {
-      if (groups[item.severity]) {
-        groups[item.severity].push(item)
+      const stage = getWorkflowStage(item)
+      if (groups[stage]) {
+        groups[stage].push(item)
       }
     })
 
@@ -112,6 +116,26 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
       handleQuickResolve(itemId)
     },
     [handleQuickResolve]
+  )
+
+  const handleVINSave = React.useCallback(
+    async (vin: string) => {
+      // Find the item to get vehicle ID
+      const item = importSummary.missingInfo.find(
+        (i) => i.details?.type === "missing-vin"
+      )
+      
+      if (item?.details?.data?.vehicleId && quoteData.vehicles) {
+        // Update the vehicle VIN
+        const updatedVehicles = quoteData.vehicles.map((vehicle) =>
+          vehicle.id === item.details.data.vehicleId
+            ? { ...vehicle, vin }
+            : vehicle
+        )
+        updateVehicles(updatedVehicles)
+      }
+    },
+    [importSummary.missingInfo, quoteData.vehicles, updateVehicles]
   )
 
   const handleResolveCoverageGap = (option: string) => {
@@ -239,10 +263,9 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
   }
 
   const handleResolveAllWarnings = () => {
-    const allUnresolvedIds = [
-      ...unresolvedErrors.map((item) => item.id),
-      ...unresolvedWarnings.map((item) => item.id),
-    ]
+    const allUnresolvedIds = importSummary.missingInfo
+      .filter((item) => !item.checked)
+      .map((item) => item.id)
     allUnresolvedIds.forEach((itemId) => {
       updateImportSummaryItem?.(itemId, true)
     })
@@ -274,10 +297,9 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
       </div>
 
       {/* Sticky Warnings Bar */}
-      {(unresolvedErrors.length > 0 || unresolvedWarnings.length > 0) && (
+      {importSummary.missingInfo.filter((item) => !item.checked).length > 0 && (
         <StickyWarningsBar
-          errors={unresolvedErrors}
-          warnings={unresolvedWarnings}
+          items={importSummary.missingInfo}
           onResolveAll={handleResolveAllWarnings}
           onDismissAll={handleDismissAllWarnings}
           onItemClick={handleItemClick}
@@ -285,99 +307,120 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
         />
       )}
 
-      {/* Search */}
-      <div className="flex flex-col gap-4">
-        <ImportSummarySearch
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search items..."
-        />
-      </div>
+      {/* Two-Column Layout */}
+      <TwoColumnLayout
+        leftColumn={
+          <>
+            {/* Reference Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Reference Information
+              </h3>
+              
+              {/* Collapsible Imported Info */}
+              <CollapsibleImportedInfo
+                drivers={importSummary.importedInfo.drivers}
+                vehicles={importSummary.importedInfo.vehicles}
+                defaultOpen={false}
+              />
 
-      {/* Grouped Items - WARNINGS FIRST (Most Important) */}
-      <div ref={warningsSectionRef} className="flex flex-col gap-6">
-        {groupedItems.error.length > 0 && (
-          <div className="space-y-2">
-            <h2 className="text-lg font-bold text-foreground">Action Required</h2>
-            <ImportSummaryGroup
-              severity="error"
-              items={groupedItems.error}
-              onItemClick={handleItemClick}
-              onCheckboxChange={handleCheckboxChange}
-              defaultExpanded={true}
-              startIndex={0}
-              onQuickResolve={handleQuickResolve}
-              onQuickDismiss={handleQuickDismiss}
-              showQuickActions={true}
-            />
-          </div>
-        )}
-
-        {groupedItems.warning.length > 0 && (
-          <div className="space-y-2">
-            {groupedItems.error.length === 0 && (
+              {/* Collapsible Timeline */}
+              <CollapsibleTimeline events={timelineEvents} defaultOpen={false} />
+            </div>
+          </>
+        }
+        rightColumn={
+          <>
+            {/* Action Required Section */}
+            <div className="space-y-6">
               <h2 className="text-lg font-bold text-foreground">Action Required</h2>
-            )}
-            <ImportSummaryGroup
-              severity="warning"
-              items={groupedItems.warning}
-              onItemClick={handleItemClick}
-              onCheckboxChange={handleCheckboxChange}
-              defaultExpanded={true}
-              startIndex={groupedItems.error.length}
-              onQuickResolve={handleQuickResolve}
-              onQuickDismiss={handleQuickDismiss}
-              showQuickActions={true}
-            />
-          </div>
-        )}
 
-        {groupedItems.info.length > 0 && (
-          <div className="space-y-2">
-            {(groupedItems.error.length > 0 || groupedItems.warning.length > 0) && (
-              <h2 className="text-lg font-bold text-foreground">Reference</h2>
-            )}
-            <ImportSummaryGroup
-              severity="info"
-              items={groupedItems.info}
-              onItemClick={handleItemClick}
-              onCheckboxChange={handleCheckboxChange}
-              defaultExpanded={true}
-              startIndex={groupedItems.error.length + groupedItems.warning.length}
-              onQuickResolve={handleQuickResolve}
-              onQuickDismiss={handleQuickDismiss}
-              showQuickActions={true}
-            />
-          </div>
-        )}
+              {/* Search */}
+              <div className="flex flex-col gap-4">
+                <ImportSummarySearch
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search items..."
+                />
+              </div>
 
-        {filteredItems.length === 0 && (
-          <div className="rounded-lg border border-border bg-card p-12 text-center">
-            <p className="text-muted-foreground">
-              {searchQuery.trim() 
-                ? "No items match your search."
-                : "No items to display."}
-            </p>
-          </div>
-        )}
-      </div>
+              {/* Grouped Items by Workflow Stage */}
+              <div ref={warningsSectionRef} className="flex flex-col gap-6">
+                {/* Needed for Quote */}
+                {groupedItems.quote.length > 0 && (
+                  <WorkflowStageGroup
+                    stage="quote"
+                    items={groupedItems.quote}
+                    onItemClick={handleItemClick}
+                    onCheckboxChange={handleCheckboxChange}
+                    defaultExpanded={true}
+                    startIndex={0}
+                    onQuickResolve={handleQuickResolve}
+                    onQuickDismiss={handleQuickDismiss}
+                    showQuickActions={true}
+                    onVINSave={handleVINSave}
+                  />
+                )}
 
-      {/* Reference Information - Less Critical (Collapsed by Default) */}
-      <div className="mt-8 flex flex-col gap-4 border-t border-border pt-6">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Reference Information
-        </h3>
-        
-        {/* Collapsible Imported Info */}
-        <CollapsibleImportedInfo
-          drivers={importSummary.importedInfo.drivers}
-          vehicles={importSummary.importedInfo.vehicles}
-          defaultOpen={false}
-        />
+                {/* Needed for Underwriting */}
+                {groupedItems.underwriting.length > 0 && (
+                  <WorkflowStageGroup
+                    stage="underwriting"
+                    items={groupedItems.underwriting}
+                    onItemClick={handleItemClick}
+                    onCheckboxChange={handleCheckboxChange}
+                    defaultExpanded={true}
+                    startIndex={groupedItems.quote.length}
+                    onQuickResolve={handleQuickResolve}
+                    onQuickDismiss={handleQuickDismiss}
+                    showQuickActions={true}
+                    onVINSave={handleVINSave}
+                  />
+                )}
 
-        {/* Collapsible Timeline */}
-        <CollapsibleTimeline events={timelineEvents} defaultOpen={false} />
-      </div>
+                {/* Needed for Bind */}
+                {groupedItems.bind.length > 0 && (
+                  <WorkflowStageGroup
+                    stage="bind"
+                    items={groupedItems.bind}
+                    onItemClick={handleItemClick}
+                    onCheckboxChange={handleCheckboxChange}
+                    defaultExpanded={true}
+                    startIndex={groupedItems.quote.length + groupedItems.underwriting.length}
+                    onQuickResolve={handleQuickResolve}
+                    onQuickDismiss={handleQuickDismiss}
+                    showQuickActions={true}
+                    onVINSave={handleVINSave}
+                  />
+                )}
+
+                {/* Show "All requirements met" if all stages are empty */}
+                {groupedItems.quote.length === 0 &&
+                  groupedItems.underwriting.length === 0 &&
+                  groupedItems.bind.length === 0 && (
+                    <div className="rounded-lg border-2 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950 p-8 text-center">
+                      <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-3" />
+                      <p className="text-lg font-semibold text-green-900 dark:text-green-100 mb-1">
+                        All requirements met
+                      </p>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        Ready to proceed with quote generation
+                      </p>
+                    </div>
+                  )}
+
+                {filteredItems.length === 0 && searchQuery.trim() && (
+                  <div className="rounded-lg border border-border bg-card p-12 text-center">
+                    <p className="text-muted-foreground">
+                      No items match your search.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        }
+      />
 
       {/* Coverage Gap Wizard Modal */}
       {selectedItem?.details?.type === "coverage-gap" && coverageGapData && (

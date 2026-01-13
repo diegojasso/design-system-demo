@@ -8,10 +8,46 @@ export interface ImportSummaryItem {
   label: string
   checked: boolean
   severity: "warning" | "error" | "info"
+  workflowStage?: "quote" | "underwriting" | "bind" // Workflow stage for grouping
   relatedSection?: "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "review"
   details?: {
     type: "coverage-gap" | "accident-history" | "missing-vin" | "additional-driver"
     data?: any
+  }
+}
+
+/**
+ * Maps item details type to workflow stage
+ */
+export function getWorkflowStage(item: ImportSummaryItem): "quote" | "underwriting" | "bind" {
+  // If workflowStage is explicitly set, use it
+  if (item.workflowStage) {
+    return item.workflowStage
+  }
+
+  // Map based on item type and severity
+  const type = item.details?.type
+
+  switch (type) {
+    case "missing-vin":
+      // Missing VIN blocks quote generation
+      return "quote"
+    case "coverage-gap":
+    case "accident-history":
+      // Coverage gaps and accident history need underwriting review
+      return "underwriting"
+    case "additional-driver":
+      // Additional driver info is needed for binding
+      return "bind"
+    default:
+      // Default mapping based on severity
+      if (item.severity === "error") {
+        return "quote" // Errors typically block quote
+      } else if (item.severity === "warning") {
+        return "underwriting" // Warnings typically need review
+      } else {
+        return "bind" // Info items typically for binding
+      }
   }
 }
 
@@ -127,6 +163,7 @@ export const MOCK_EZLYNX_QUOTE: EzlynxQuoteData = {
         label: "Verify Coverage Gap",
         checked: false,
         severity: "warning",
+        workflowStage: "underwriting",
         relatedSection: "coverage",
         details: {
           type: "coverage-gap",
@@ -154,6 +191,7 @@ export const MOCK_EZLYNX_QUOTE: EzlynxQuoteData = {
         label: "Verify Accident History",
         checked: false,
         severity: "warning",
+        workflowStage: "underwriting",
         relatedSection: "driver",
         details: {
           type: "accident-history",
@@ -178,6 +216,7 @@ export const MOCK_EZLYNX_QUOTE: EzlynxQuoteData = {
         label: "VIN of 2023 Accord Missing",
         checked: false,
         severity: "error",
+        workflowStage: "quote",
         relatedSection: "vehicle",
         details: {
           type: "missing-vin",
@@ -192,6 +231,7 @@ export const MOCK_EZLYNX_QUOTE: EzlynxQuoteData = {
         label: "(1) Additional driver found",
         checked: false,
         severity: "info",
+        workflowStage: "bind",
         relatedSection: "driver",
         details: {
           type: "additional-driver",

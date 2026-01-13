@@ -8,6 +8,7 @@ import { AlertTriangle, Info, XCircle, CheckCircle2, ArrowRight, HelpCircle } fr
 import { cn } from "@/lib/utils"
 import type { ImportSummaryItem } from "./mock-ezlynx-data"
 import { ImportSummaryQuickActions } from "./import-summary-quick-actions"
+import { InlineVINEditor } from "./inline-vin-editor"
 
 interface ImportSummaryItemCardProps {
   item: ImportSummaryItem
@@ -20,6 +21,7 @@ interface ImportSummaryItemCardProps {
   onQuickResolve?: () => void
   onQuickDismiss?: () => void
   showQuickActions?: boolean
+  onVINSave?: (vin: string) => Promise<void> | void
 }
 
 export function ImportSummaryItemCard({
@@ -33,6 +35,7 @@ export function ImportSummaryItemCard({
   onQuickResolve,
   onQuickDismiss,
   showQuickActions = true,
+  onVINSave,
 }: ImportSummaryItemCardProps) {
   const getSeverityIcon = (severity: ImportSummaryItem["severity"]) => {
     switch (severity) {
@@ -216,8 +219,30 @@ export function ImportSummaryItemCard({
             )}
           </div>
 
+          {/* Inline VIN Editor for missing VIN items */}
+          {!item.checked &&
+            item.details?.type === "missing-vin" &&
+            onVINSave &&
+            item.details.data?.vehicleName && (
+              <div 
+                className="mt-3 pt-3 border-t border-border animate-in fade-in-0 slide-in-from-top-2 duration-300"
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <InlineVINEditor
+                  value={""}
+                  vehicleName={item.details.data.vehicleName}
+                  onSave={async (vin) => {
+                    await onVINSave(vin)
+                    // Auto-resolve the item after saving VIN
+                    onCheckboxChange(true)
+                  }}
+                />
+              </div>
+            )}
+
           {/* Action Hints */}
-          {!item.checked && (
+          {!item.checked && item.details?.type !== "missing-vin" && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               {hasDetails && (
                 <span className="flex items-center gap-1">

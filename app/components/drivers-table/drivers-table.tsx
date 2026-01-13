@@ -780,7 +780,7 @@ export function DriversTable({
             ))}
 
               {/* Right Sidebar - Inside scrollable container, scrolls with content */}
-              <div className="bg-card shrink-0 border-l border-border" style={{ width: '323px' }}>
+              <div className="bg-card shrink-0 border-border" style={{ width: '323px' }}>
                 <div className="p-4">
                   {/* Add Another Driver Button */}
                   <Button
