@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AlertTriangle, Info, XCircle, CheckCircle2, ArrowRight, HelpCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -50,37 +49,6 @@ export function ImportSummaryItemCard({
     }
   }
 
-  const getSeverityBadge = (severity: ImportSummaryItem["severity"]) => {
-    switch (severity) {
-      case "error":
-        return (
-          <Badge
-            variant="destructive"
-            className="text-[10px] font-semibold"
-          >
-            Error
-          </Badge>
-        )
-      case "warning":
-        return (
-          <Badge
-            className="border-amber-500 bg-amber-500 text-white text-[10px] font-semibold"
-          >
-            Warning
-          </Badge>
-        )
-      case "info":
-        return (
-          <Badge
-            className="border-blue-500 bg-blue-500 text-white text-[10px] font-semibold"
-          >
-            Info
-          </Badge>
-        )
-      default:
-        return null
-    }
-  }
 
   const hasDetails = item.details?.type === "coverage-gap" || item.details?.type === "accident-history"
   const hasNavigation = !!item.relatedSection
@@ -199,7 +167,6 @@ export function ImportSummaryItemCard({
             >
               {item.label}
             </span>
-            {getSeverityBadge(item.severity)}
             {!item.checked && (
               <TooltipProvider>
                 <Tooltip>

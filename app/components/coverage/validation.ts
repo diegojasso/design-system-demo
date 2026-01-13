@@ -174,6 +174,64 @@ export function validateCoverage(
         field: "bodilyInjury",
       })
     }
+
+    // Check if Property Damage exceeds BI per-person amount
+    const pdMatch = coverage.liability.propertyDamage.match(/\$(\d+)K/)
+    if (pdMatch) {
+      const pdAmount = parseInt(pdMatch[1]) * 1000
+      if (pdAmount > perPerson) {
+        warnings.push({
+          id: "property-damage-exceeds-bi",
+          severity: "warning",
+          message: `Property Damage (${coverage.liability.propertyDamage}) exceeds Bodily Injury per-person limit ($${biMatch[1]}K). Consider increasing Bodily Injury coverage to match or exceed Property Damage.`,
+          field: "propertyDamage",
+          autoFix: {
+            action: "Increase Bodily Injury to match Property Damage",
+            newValue: `$${pdMatch[1]}K/$${Math.max(parseInt(biMatch[2]), parseInt(pdMatch[1]) * 2)}K`,
+          },
+        })
+      }
+    }
+
+    // Check if Uninsured Motorists exceeds BI per-person amount
+    if (coverage.additional.uninsuredMotoristsBodilyInjury !== "Not Included") {
+      const umMatch = coverage.additional.uninsuredMotoristsBodilyInjury.match(/\$(\d+)K\/\$(\d+)K/)
+      if (umMatch) {
+        const umPerPerson = parseInt(umMatch[1]) * 1000
+        if (umPerPerson > perPerson) {
+          warnings.push({
+            id: "um-exceeds-bi",
+            severity: "warning",
+            message: `Uninsured Motorists Bodily Injury (${coverage.additional.uninsuredMotoristsBodilyInjury}) exceeds Bodily Injury per-person limit ($${biMatch[1]}K). Consider increasing Bodily Injury coverage to match or exceed Uninsured Motorists.`,
+            field: "uninsuredMotoristsBodilyInjury",
+            autoFix: {
+              action: "Increase Bodily Injury to match Uninsured Motorists",
+              newValue: `$${umMatch[1]}K/$${Math.max(parseInt(biMatch[2]), parseInt(umMatch[2]))}K`,
+            },
+          })
+        }
+      }
+    }
+
+    // Check if Underinsured Motorists exceeds BI per-person amount
+    if (coverage.additional.underinsuredMotoristsBodilyInjury && coverage.additional.underinsuredMotoristsBodilyInjury !== "Not Included") {
+      const uimMatch = coverage.additional.underinsuredMotoristsBodilyInjury.match(/\$(\d+)K\/\$(\d+)K/)
+      if (uimMatch) {
+        const uimPerPerson = parseInt(uimMatch[1]) * 1000
+        if (uimPerPerson > perPerson) {
+          warnings.push({
+            id: "uim-exceeds-bi",
+            severity: "warning",
+            message: `Underinsured Motorists Bodily Injury (${coverage.additional.underinsuredMotoristsBodilyInjury}) exceeds Bodily Injury per-person limit ($${biMatch[1]}K). Consider increasing Bodily Injury coverage to match or exceed Underinsured Motorists.`,
+            field: "underinsuredMotoristsBodilyInjury",
+            autoFix: {
+              action: "Increase Bodily Injury to match Underinsured Motorists",
+              newValue: `$${uimMatch[1]}K/$${Math.max(parseInt(biMatch[2]), parseInt(uimMatch[2]))}K`,
+            },
+          })
+        }
+      }
+    }
   }
 
   return warnings

@@ -140,15 +140,6 @@ export function StickyWarningsBar({
               </>
             )}
           </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={onResolveAll}
-            className="h-8 text-xs"
-          >
-            <CheckCircle2 className="mr-1 h-3 w-3" />
-            Resolve All
-          </Button>
         </div>
       </div>
 
@@ -246,15 +237,6 @@ export function StickyWarningsBar({
                 className="h-8 text-xs"
               >
                 Dismiss All
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={onResolveAll}
-                className="h-8 text-xs"
-              >
-                <CheckCircle2 className="mr-1 h-3 w-3" />
-                Resolve All
               </Button>
             </div>
           </div>

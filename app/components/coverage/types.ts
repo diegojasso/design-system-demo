@@ -15,11 +15,12 @@ export interface AdditionalCoverage {
 
 export interface VehicleCoverage {
   vehicleId: string
-  comprehensiveDeductible: string // e.g., "$500", "$1,000", "$2,500"
-  collisionDeductible?: string // Optional
-  glassDeductible: boolean // Separate deductible for glass repairs
+  comprehensiveDeductible: string // e.g., "$500", "$1,000", "$2,500", "Not Included"
+  collisionDeductible?: string // e.g., "$500", "$1,000", "$2,500", "Not Included"
+  glassDeductible: boolean // Glass Damage Deductible $0
   loanLeasePayoff: boolean // Covers gap between value and loan
   customPartsEquipment: boolean
+  customPartsAmount?: number // Coverage amount in dollars
   rentalReimbursement?: boolean
 }
 
@@ -86,6 +87,7 @@ export const UNDERINSURED_MOTORISTS_OPTIONS = [
 ]
 
 export const COMPREHENSIVE_DEDUCTIBLE_OPTIONS = [
+  "Not Included",
   "$250",
   "$500",
   "$1,000",
@@ -94,6 +96,7 @@ export const COMPREHENSIVE_DEDUCTIBLE_OPTIONS = [
 ]
 
 export const COLLISION_DEDUCTIBLE_OPTIONS = [
+  "Not Included",
   "$250",
   "$500",
   "$1,000",

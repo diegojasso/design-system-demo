@@ -16,10 +16,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { Download, Check, ChevronDown, ChevronUp } from "lucide-react"
+import { Download, Check, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
 import { CoverageData, PricingSummary } from "./types"
 import { PRICING_PLANS, calculatePlanPricing } from "./pricing-calculator"
 import { format } from "date-fns"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useQuote } from "@/app/contexts/quote-context"
+import { cn } from "@/lib/utils"
 
 interface PricingSummarySectionProps {
   coverage: CoverageData
@@ -36,6 +39,7 @@ export function PricingSummarySection({
   onCollectPayment,
   onDownloadPDF,
 }: PricingSummarySectionProps) {
+  const { quoteData } = useQuote()
   const [isPlanDetailsExpanded, setIsPlanDetailsExpanded] = React.useState(true)
   
   const calculatedPricing = calculatePlanPricing(
@@ -45,6 +49,26 @@ export function PricingSummarySection({
   )
 
   const selectedPlan = PRICING_PLANS.find((p) => p.id === pricing.selectedPlanId) || PRICING_PLANS[0]
+
+  // Check for unresolved import summary items
+  // Unresolved = items with checked: false OR items with error/warning severity (UW block)
+  const hasUnresolvedItems = React.useMemo(() => {
+    if (!quoteData.importSummary) return false
+    
+    const unresolvedItems = quoteData.importSummary.missingInfo.filter((item) => {
+      // Items that are not checked OR items with error/warning severity (block binding)
+      return !item.checked || item.severity === "error" || item.severity === "warning"
+    })
+    
+    return unresolvedItems.length > 0
+  }, [quoteData.importSummary])
+
+  const unresolvedCount = React.useMemo(() => {
+    if (!quoteData.importSummary) return 0
+    return quoteData.importSummary.missingInfo.filter((item) => 
+      !item.checked || item.severity === "error" || item.severity === "warning"
+    ).length
+  }, [quoteData.importSummary])
 
   // Generate start date options (next 30 days)
   const startDateOptions = React.useMemo(() => {
@@ -252,11 +276,25 @@ export function PricingSummarySection({
             </div>
           </Collapsible>
 
+          {/* Bind Blocking Banner */}
+          {hasUnresolvedItems && (
+            <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertDescription className="text-sm text-amber-900 dark:text-amber-100">
+                Cannot bind policy: {unresolvedCount} unresolved item{unresolvedCount !== 1 ? "s" : ""} from import summary must be resolved before binding. You can still view and adjust coverage settings.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Action Buttons */}
           <div className="space-y-2 pt-2">
             <Button
               onClick={onCollectPayment}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              disabled={hasUnresolvedItems}
+              className={cn(
+                "w-full bg-green-600 hover:bg-green-700 text-white",
+                hasUnresolvedItems && "opacity-50 cursor-not-allowed"
+              )}
             >
               Collect Payment & Bind
             </Button>

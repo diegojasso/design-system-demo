@@ -54,9 +54,11 @@ export function CoverageForm() {
     const vehicleCoverages: VehicleCoverage[] = vehicles.map((vehicle) => ({
       vehicleId: vehicle.id,
       comprehensiveDeductible: "$1,000",
+      collisionDeductible: "$1,000",
       glassDeductible: true,
       loanLeasePayoff: false,
       customPartsEquipment: false,
+      customPartsAmount: 0,
     }))
 
     return {
@@ -86,9 +88,11 @@ export function CoverageForm() {
       const newVehicleCoverages: VehicleCoverage[] = newVehicles.map((vehicle) => ({
         vehicleId: vehicle.id,
         comprehensiveDeductible: "$1,000",
+        collisionDeductible: "$1,000",
         glassDeductible: true,
         loanLeasePayoff: false,
         customPartsEquipment: false,
+        customPartsAmount: 0,
       }))
 
       setCoverage((prev) => ({

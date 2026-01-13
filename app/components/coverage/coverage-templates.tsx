@@ -18,10 +18,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Sparkles, Check, X } from "lucide-react"
-import { CoverageTemplate, loadTemplates, applyTemplate } from "./templates"
+import { Sparkles, Check, X, Save } from "lucide-react"
+import { CoverageTemplate, loadTemplates, applyTemplate, saveCustomTemplate } from "./templates"
 import { CoverageData } from "./types"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { useQuote } from "@/app/contexts/quote-context"
 
 interface CoverageTemplatesProps {
   currentCoverage: CoverageData
@@ -34,13 +36,35 @@ export function CoverageTemplates({
   vehicleIds,
   onApplyTemplate,
 }: CoverageTemplatesProps) {
+  const { quoteData } = useQuote()
   const [templates, setTemplates] = React.useState<CoverageTemplate[]>([])
   const [isOpen, setIsOpen] = React.useState(false)
   const [selectedTemplate, setSelectedTemplate] = React.useState<CoverageTemplate | null>(null)
+  const [showSaveDialog, setShowSaveDialog] = React.useState(false)
+  const [templateName, setTemplateName] = React.useState("")
 
   React.useEffect(() => {
-    setTemplates(loadTemplates())
-  }, [])
+    const loadedTemplates = loadTemplates()
+    
+    // Add imported from ezlynx template if import summary exists
+    if (quoteData.importSummary && quoteData.importSummary.missingInfo.length > 0) {
+      const importedTemplate: CoverageTemplate = {
+        id: "imported-ezlynx",
+        name: "Imported from ezlynx",
+        description: "Coverage configuration imported from ezlynx aggregator",
+        category: "custom",
+        isDefault: false,
+        coverage: {
+          liability: currentCoverage.liability,
+          additional: currentCoverage.additional,
+          vehicleCoverages: [], // Vehicle coverages are applied per vehicle
+        },
+      }
+      setTemplates([importedTemplate, ...loadedTemplates])
+    } else {
+      setTemplates(loadedTemplates)
+    }
+  }, [quoteData.importSummary, currentCoverage])
 
   const handleApplyTemplate = () => {
     if (!selectedTemplate) return
@@ -49,6 +73,27 @@ export function CoverageTemplates({
     onApplyTemplate(newCoverage)
     setIsOpen(false)
     setSelectedTemplate(null)
+  }
+
+  const handleSaveAsTemplate = () => {
+    if (!templateName.trim()) return
+
+    const newTemplate = saveCustomTemplate({
+      name: templateName.trim(),
+      description: `Custom template: ${templateName.trim()}`,
+      category: "custom",
+      isDefault: false,
+      coverage: {
+        liability: currentCoverage.liability,
+        additional: currentCoverage.additional,
+        vehicleCoverages: [], // Only save liability and additional
+      },
+    })
+
+    setTemplates(loadTemplates())
+    setShowSaveDialog(false)
+    setTemplateName("")
+    setSelectedTemplate(newTemplate)
   }
 
   const templateCategories = {
@@ -61,50 +106,67 @@ export function CoverageTemplates({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Sparkles className="h-4 w-4" />
-          Templates
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Coverage Templates</DialogTitle>
-          <DialogDescription>
-            Quickly apply pre-configured coverage settings to your quote
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Templates
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Coverage Templates</DialogTitle>
+            <DialogDescription>
+              Quickly apply pre-configured coverage settings to your quote
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Select a template</Label>
-            <Select
-              value={selectedTemplate?.id || ""}
-              onValueChange={(value) => {
-                const template = templates.find((t) => t.id === value)
-                setSelectedTemplate(template || null)
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a template..." />
-              </SelectTrigger>
-              <SelectContent>
-                {templates.map((template) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>{template.name}</span>
-                      {template.isDefault && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          Default
-                        </span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2 flex-1">
+                <Label>Select a template</Label>
+                <Select
+                  value={selectedTemplate?.id || ""}
+                  onValueChange={(value) => {
+                    const template = templates.find((t) => t.id === value)
+                    setSelectedTemplate(template || null)
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a template..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{template.name}</span>
+                          {template.isDefault && (
+                            <span className="text-xs text-muted-foreground ml-2">
+                              Default
+                            </span>
+                          )}
+                          {template.id === "imported-ezlynx" && (
+                            <span className="text-xs text-muted-foreground ml-2">
+                              Imported
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-4 gap-2"
+                onClick={() => setShowSaveDialog(true)}
+              >
+                <Save className="h-4 w-4" />
+                Save as Template
+              </Button>
+            </div>
 
           {selectedTemplate && (
             <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
@@ -150,19 +212,62 @@ export function CoverageTemplates({
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setIsOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleApplyTemplate}
-              disabled={!selectedTemplate || vehicleIds.length === 0}
-            >
-              Apply Template
-            </Button>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setIsOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleApplyTemplate}
+                disabled={!selectedTemplate || vehicleIds.length === 0 || selectedTemplate.id === "imported-ezlynx"}
+              >
+                Apply Template
+              </Button>
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save as Template Dialog */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save as Template</DialogTitle>
+            <DialogDescription>
+              Save your current liability and additional coverage settings as a reusable template
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">Template Name</Label>
+              <Input
+                id="template-name"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="Enter template name..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && templateName.trim()) {
+                    handleSaveAsTemplate()
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => {
+                setShowSaveDialog(false)
+                setTemplateName("")
+              }}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveAsTemplate}
+                disabled={!templateName.trim()}
+              >
+                Save Template
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

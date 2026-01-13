@@ -122,25 +122,6 @@ export const DEFAULT_TEMPLATES: CoverageTemplate[] = [
       vehicleCoverages: [], // Will be populated when applied
     },
   },
-  {
-    id: "commercial",
-    name: "Commercial Vehicle",
-    description: "Coverage optimized for commercial use",
-    category: "commercial",
-    isDefault: true,
-    coverage: {
-      liability: {
-        bodilyInjury: "$500K/$1M",
-        propertyDamage: "$500K",
-      },
-      additional: {
-        medicalPayments: "$10K",
-        uninsuredMotoristsBodilyInjury: "$500K/$1M",
-        roadsideAssistance: true,
-      },
-      vehicleCoverages: [], // Will be populated when applied
-    },
-  },
 ]
 
 // Template storage key
@@ -155,13 +136,17 @@ export function loadTemplates(): CoverageTemplate[] {
     if (!stored) return DEFAULT_TEMPLATES
 
     const parsed = JSON.parse(stored) as CoverageTemplate[]
-    // Merge with defaults, prioritizing stored custom templates
+    // Filter out commercial templates and merge with defaults
     const defaultIds = new Set(DEFAULT_TEMPLATES.map((t) => t.id))
-    const customTemplates = parsed.filter((t) => !defaultIds.has(t.id))
-    return [...DEFAULT_TEMPLATES, ...customTemplates]
+    const customTemplates = parsed.filter(
+      (t) => !defaultIds.has(t.id) && t.category !== "commercial"
+    )
+    // Also filter out commercial from defaults
+    const filteredDefaults = DEFAULT_TEMPLATES.filter((t) => t.category !== "commercial")
+    return [...filteredDefaults, ...customTemplates]
   } catch (error) {
     console.error("Failed to load templates:", error)
-    return DEFAULT_TEMPLATES
+    return DEFAULT_TEMPLATES.filter((t) => t.category !== "commercial")
   }
 }
 
@@ -222,6 +207,7 @@ export function applyTemplate(
         vehicleCoverage = {
           vehicleId,
           comprehensiveDeductible: "$2,500",
+          collisionDeductible: "$2,500",
           glassDeductible: false,
           loanLeasePayoff: false,
           customPartsEquipment: false,
@@ -231,6 +217,7 @@ export function applyTemplate(
         vehicleCoverage = {
           vehicleId,
           comprehensiveDeductible: "$1,000",
+          collisionDeductible: "$1,000",
           glassDeductible: true,
           loanLeasePayoff: false,
           customPartsEquipment: false,
@@ -240,6 +227,7 @@ export function applyTemplate(
         vehicleCoverage = {
           vehicleId,
           comprehensiveDeductible: "$500",
+          collisionDeductible: "$500",
           glassDeductible: true,
           loanLeasePayoff: false,
           customPartsEquipment: false,
@@ -249,18 +237,10 @@ export function applyTemplate(
         vehicleCoverage = {
           vehicleId,
           comprehensiveDeductible: "$500",
+          collisionDeductible: "$500",
           glassDeductible: true,
           loanLeasePayoff: true,
           customPartsEquipment: true,
-        }
-        break
-      case "commercial":
-        vehicleCoverage = {
-          vehicleId,
-          comprehensiveDeductible: "$1,000",
-          glassDeductible: true,
-          loanLeasePayoff: false,
-          customPartsEquipment: false,
         }
         break
       default:
@@ -268,6 +248,7 @@ export function applyTemplate(
         vehicleCoverage = existing || {
           vehicleId,
           comprehensiveDeductible: "$1,000",
+          collisionDeductible: "$1,000",
           glassDeductible: true,
           loanLeasePayoff: false,
           customPartsEquipment: false,

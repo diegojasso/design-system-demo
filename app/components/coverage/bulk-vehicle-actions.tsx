@@ -56,7 +56,7 @@ export function BulkVehicleActions({
     setIsOpen(false)
   }
 
-  if (vehicles.length === 0) return null
+  if (vehicles.length === 0 || vehicles.length <= 2) return null
 
   return (
     <div className="flex items-center justify-between mb-4 p-3 border rounded-lg bg-muted/30">

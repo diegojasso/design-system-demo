@@ -39,7 +39,7 @@ export function TopBar({ className }: TopBarProps) {
           <div className="flex min-w-0 flex-1 items-center gap-4">
             {/* Logo */}
             <Link
-              href="/"
+              href="/quotes"
               className="flex shrink-0 items-center"
               aria-label="Novo Home"
             >
