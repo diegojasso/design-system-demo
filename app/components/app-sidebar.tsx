@@ -50,57 +50,90 @@ export function AppSidebar() {
   const isExpanded = isHovered
 
   return (
-    <TooltipProvider delayDuration={0}>
+    <TooltipProvider delayDuration={200}>
       <div
         className={cn(
-          "group flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-200 ease-linear",
+          "group flex h-screen flex-col border-r border-sidebar-border bg-sidebar",
           isExpanded ? "w-[240px]" : "w-[48px]"
         )}
+        style={{
+          transition: isExpanded 
+            ? "width 250ms cubic-bezier(0.4, 0, 0.2, 1)" 
+            : "width 200ms cubic-bezier(0.4, 0, 1, 1)"
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Navigation Menu */}
-        <div className="flex flex-1 flex-col gap-0.5 px-2 pt-6">
+        <div className="flex flex-1 flex-col px-2 pt-4">
           {menuItems.map((item) => {
             const Icon = item.icon
             const menuItem = (
-              <div
+              <button
                 key={item.label}
+                type="button"
                 className={cn(
-                  "flex items-center rounded-md py-1.5 transition-colors",
-                  isExpanded ? "gap-5 px-3" : "justify-center px-0",
+                  "group/item flex h-10 w-full items-center rounded-md transition-colors duration-150 ease-out",
+                  isExpanded ? "gap-3 px-3" : "justify-center px-0",
                   item.active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground active:bg-sidebar-accent/70",
+                  "mb-1 last:mb-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2"
                 )}
               >
-                <Icon className="h-5 w-5 shrink-0 text-sidebar-foreground" />
+                <Icon 
+                  className={cn(
+                    "h-5 w-5 shrink-0 transition-colors duration-150 ease-out",
+                    item.active 
+                      ? "text-sidebar-accent-foreground" 
+                      : "text-sidebar-foreground/70 group-hover/item:text-sidebar-foreground"
+                  )} 
+                />
                 <span
                   className={cn(
-                    "flex-1 text-base leading-[1.5] text-sidebar-foreground transition-opacity duration-200",
-                    item.active ? "font-medium" : "font-normal",
-                    isExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
+                    "flex-1 min-w-0 text-left text-sm leading-[1.5] whitespace-nowrap",
+                    item.active 
+                      ? "font-medium text-sidebar-accent-foreground" 
+                      : "font-normal text-sidebar-foreground/70"
                   )}
-                  style={{ fontFamily: "Inter, sans-serif" }}
+                  style={{ 
+                    fontFamily: "Inter, sans-serif",
+                    transition: isExpanded
+                      ? "opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 50ms, transform 200ms cubic-bezier(0.4, 0, 0.2, 1) 50ms, max-width 200ms cubic-bezier(0.4, 0, 0.2, 1) 50ms"
+                      : "opacity 150ms cubic-bezier(0.4, 0, 1, 1) 0ms, transform 150ms cubic-bezier(0.4, 0, 1, 1) 0ms, max-width 150ms cubic-bezier(0.4, 0, 1, 1) 0ms",
+                    opacity: isExpanded ? 1 : 0,
+                    transform: isExpanded ? "translateX(0)" : "translateX(-8px)",
+                    maxWidth: isExpanded ? "100%" : "0",
+                    overflow: "hidden"
+                  }}
                 >
                   {item.label}
                 </span>
                 {item.badge && (
                   <div
-                    className={cn(
-                      "flex h-5 w-5 items-center justify-center rounded-[12px] bg-destructive px-[7px] py-0 transition-opacity duration-200",
-                      isExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
-                    )}
+                    className="flex shrink-0 items-center justify-center rounded-full bg-destructive"
+                    style={{
+                      transition: isExpanded
+                        ? "opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 50ms, transform 200ms cubic-bezier(0.4, 0, 0.2, 1) 50ms, width 200ms cubic-bezier(0.4, 0, 0.2, 1) 50ms, padding 200ms cubic-bezier(0.4, 0, 0.2, 1) 50ms"
+                        : "opacity 150ms cubic-bezier(0.4, 0, 1, 1) 0ms, transform 150ms cubic-bezier(0.4, 0, 1, 1) 0ms, width 150ms cubic-bezier(0.4, 0, 1, 1) 0ms, padding 150ms cubic-bezier(0.4, 0, 1, 1) 0ms",
+                      opacity: isExpanded ? 1 : 0,
+                      transform: isExpanded ? "translateX(0)" : "translateX(8px)",
+                      width: isExpanded ? "auto" : "0",
+                      minWidth: isExpanded ? "20px" : "0",
+                      padding: isExpanded ? "2px 6px" : "0",
+                      overflow: "hidden",
+                      pointerEvents: isExpanded ? "auto" : "none"
+                    }}
                   >
                     <span
-                      className="text-sm font-medium leading-[1.5] text-destructive-foreground"
+                      className="text-xs font-medium leading-none text-destructive-foreground whitespace-nowrap"
                       style={{ fontFamily: "Inter, sans-serif" }}
                     >
                       {item.badge}
                     </span>
                   </div>
                 )}
-              </div>
+              </button>
             )
 
             // Show tooltip when collapsed
@@ -110,11 +143,19 @@ export function AppSidebar() {
                   <TooltipTrigger asChild>
                     {menuItem}
                   </TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={8}>
-                    {item.label}
-                    {item.badge && (
-                      <span className="ml-2">({item.badge})</span>
-                    )}
+                  <TooltipContent 
+                    side="right" 
+                    sideOffset={12}
+                    className="bg-sidebar-accent text-sidebar-accent-foreground border border-sidebar-border shadow-lg"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>{item.label}</span>
+                      {item.badge && (
+                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-medium text-destructive-foreground">
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
                   </TooltipContent>
                 </Tooltip>
               )
