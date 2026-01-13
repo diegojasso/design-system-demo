@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 
 export interface BreadcrumbItem {
   label: string
@@ -22,9 +22,14 @@ const routeLabels: Record<string, string> = {
 /**
  * Generates breadcrumbs from the current pathname
  * Automatically creates breadcrumb items based on the route segments
+ * Includes quote ID in breadcrumb when on quote page
  */
 export function useBreadcrumbs(): BreadcrumbItem[] {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  // Get quote ID from URL params if present
+  const quoteId = searchParams.get("quote")
   
   // Split pathname into segments
   const segments = pathname.split("/").filter(Boolean)
@@ -36,8 +41,23 @@ export function useBreadcrumbs(): BreadcrumbItem[] {
   breadcrumbs.push({
     label: routeLabels["/"] || "Home",
     href: "/",
-    isActive: pathname === "/",
+    isActive: pathname === "/" && !quoteId,
   })
+  
+  // If we're on the home page with a quote ID, show Quotes > Quote ID
+  if (pathname === "/" && quoteId) {
+    breadcrumbs.push({
+      label: routeLabels["/quotes"] || "Quotes",
+      href: "/quotes",
+      isActive: false,
+    })
+    breadcrumbs.push({
+      label: quoteId,
+      href: `/?quote=${quoteId}`,
+      isActive: true,
+    })
+    return breadcrumbs
+  }
   
   // Build path incrementally for each segment
   let currentPath = ""

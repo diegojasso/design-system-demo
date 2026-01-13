@@ -69,12 +69,12 @@ export default function Home() {
   return (
     <>
       <div className="flex h-screen w-full bg-background">
-        {/* Sidebar - Hidden */}
-        {/* <AppSidebar /> */}
+        {/* Sidebar */}
+        <AppSidebar />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col overflow-auto bg-background pb-0 pt-14">
-          <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6">
+          <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pt-10">
 
             {/* Page Header */}
             <QuoteHeader />

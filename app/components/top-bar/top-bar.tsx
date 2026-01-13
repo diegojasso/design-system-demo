@@ -82,7 +82,7 @@ export function TopBar({ className }: TopBarProps) {
 
             {/* Breadcrumbs */}
             {breadcrumbs.length > 1 && (
-              <Breadcrumb className="hidden sm:flex">
+              <Breadcrumb className="flex">
                 <BreadcrumbList className="gap-1.5">
                   {breadcrumbs.map((crumb, index) => {
                     const isLast = index === breadcrumbs.length - 1

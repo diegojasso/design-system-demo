@@ -7,6 +7,7 @@ import { MOCK_QUOTES } from "@/app/components/quotes-list/mock-quotes"
 import { useSearchParams, useRouter } from "next/navigation"
 import { CommandPalette } from "@/app/components/command-palette"
 import { useTheme } from "@/hooks/use-theme"
+import { AppSidebar } from "@/app/components/app-sidebar"
 
 function QuotesPageContent() {
   const searchParams = useSearchParams()
@@ -50,9 +51,12 @@ function QuotesPageContent() {
   return (
     <>
       <div className="flex h-screen w-full bg-background">
+        {/* Sidebar */}
+        <AppSidebar />
+
         {/* Main Content */}
         <div className="flex flex-1 flex-col overflow-auto bg-background pb-0 pt-14">
-          <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6">
+          <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pt-10">
 
             {/* Quote List */}
             <QuotesList

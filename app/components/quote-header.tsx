@@ -1,7 +1,6 @@
 "use client"
 
 import { QuoteSaveStatus } from "./quote-save-status"
-import { CommandPaletteHint } from "./command-palette-hint"
 import { useQuote } from "@/app/contexts/quote-context"
 
 export function QuoteHeader() {
@@ -20,7 +19,6 @@ export function QuoteHeader() {
         {quoteTitle}
       </h1>
       <div className="flex items-center gap-3">
-        <CommandPaletteHint variant="minimal" />
         <QuoteSaveStatus
           isSaving={isSaving}
           lastSaved={lastSaved}

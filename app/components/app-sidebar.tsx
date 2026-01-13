@@ -1,21 +1,30 @@
 "use client"
 
+import * as React from "react"
 import {
-  FileText,
+  House,
+  Contact,
   Shield,
-  BookOpen,
-  Bell,
-  MessageSquare,
-  HelpCircle,
-  ChevronRight,
+  BookUser,
+  ClipboardCheck,
 } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const menuItems = [
   {
+    label: "Overview",
+    icon: House,
+    active: false,
+  },
+  {
     label: "Quotes",
-    icon: FileText,
+    icon: Contact,
     active: true,
   },
   {
@@ -25,108 +34,97 @@ const menuItems = [
   },
   {
     label: "Book of Business",
-    icon: BookOpen,
+    icon: BookUser,
     active: false,
   },
   {
     label: "Tasks",
-    icon: Bell,
+    icon: ClipboardCheck,
     active: false,
     badge: 3,
-  },
-  {
-    label: "Chat Hisotry",
-    icon: MessageSquare,
-    active: false,
-  },
-  {
-    label: "Help Center",
-    icon: HelpCircle,
-    active: false,
   },
 ]
 
 export function AppSidebar() {
+  const [isHovered, setIsHovered] = React.useState(false)
+  const isExpanded = isHovered
+
   return (
-    <div
-      className="flex h-screen w-[240px] flex-col border-r border-sidebar-border bg-sidebar pb-4 pt-6"
-    >
-      {/* Logo Section */}
-      <div className="mb-8 px-4">
-        <div className="mb-2 flex h-5 items-center">
-          <span className="text-xl font-bold leading-none tracking-tight text-sidebar-foreground">novo</span>
-        </div>
-        <p className="text-base font-semibold leading-[1.5] text-sidebar-foreground" style={{ fontFamily: "Inter, sans-serif" }}>
-          Canary
-        </p>
-      </div>
-
-      {/* Navigation Menu */}
-      <div className="flex flex-1 flex-col gap-0.5 px-2">
-        {menuItems.map((item) => {
-          const Icon = item.icon
-          return (
-            <div
-              key={item.label}
-              className={cn(
-                "flex items-center gap-5 rounded-md px-3 py-1.5 transition-colors",
-                item.active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-              )}
-            >
-              <Icon className="h-5 w-5 shrink-0 text-sidebar-foreground" />
-              <span
+    <TooltipProvider delayDuration={0}>
+      <div
+        className={cn(
+          "group flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-200 ease-linear",
+          isExpanded ? "w-[240px]" : "w-[48px]"
+        )}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Navigation Menu */}
+        <div className="flex flex-1 flex-col gap-0.5 px-2 pt-6">
+          {menuItems.map((item) => {
+            const Icon = item.icon
+            const menuItem = (
+              <div
+                key={item.label}
                 className={cn(
-                  "flex-1 text-base leading-[1.5] text-sidebar-foreground",
-                  item.active ? "font-medium" : "font-normal"
+                  "flex items-center rounded-md py-1.5 transition-colors",
+                  isExpanded ? "gap-5 px-3" : "justify-center px-0",
+                  item.active
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                 )}
-                style={{ fontFamily: "Inter, sans-serif" }}
               >
-                {item.label}
-              </span>
-              {item.badge && (
-                <div className="flex h-5 w-5 items-center justify-center rounded-[12px] bg-destructive px-[7px] py-0">
-                  <span
-                    className="text-sm font-medium leading-[1.5] text-destructive-foreground"
-                    style={{ fontFamily: "Inter, sans-serif" }}
+                <Icon className="h-5 w-5 shrink-0 text-sidebar-foreground" />
+                <span
+                  className={cn(
+                    "flex-1 text-base leading-[1.5] text-sidebar-foreground transition-opacity duration-200",
+                    item.active ? "font-medium" : "font-normal",
+                    isExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
+                  )}
+                  style={{ fontFamily: "Inter, sans-serif" }}
+                >
+                  {item.label}
+                </span>
+                {item.badge && (
+                  <div
+                    className={cn(
+                      "flex h-5 w-5 items-center justify-center rounded-[12px] bg-destructive px-[7px] py-0 transition-opacity duration-200",
+                      isExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
+                    )}
                   >
-                    {item.badge}
-                  </span>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+                    <span
+                      className="text-sm font-medium leading-[1.5] text-destructive-foreground"
+                      style={{ fontFamily: "Inter, sans-serif" }}
+                    >
+                      {item.badge}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
 
-      {/* User Profile Section */}
-      <div className="mt-auto px-4">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="/placeholder-avatar.jpg" alt="Kaiya Yehia" />
-            <AvatarFallback className="bg-muted">KY</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p
-              className="text-base font-normal text-sidebar-foreground"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              Kaiya Yehia
-            </p>
-            <p
-              className="text-sm font-normal text-sidebar-foreground/70"
-              style={{ fontFamily: "Inter, sans-serif", lineHeight: 1.42 }}
-            >
-              CSR
-            </p>
-          </div>
-          <button className="flex h-10 w-10 items-center justify-center rounded-md hover:bg-sidebar-accent/50">
-            <ChevronRight className="h-5 w-5 text-sidebar-foreground" />
-          </button>
+            // Show tooltip when collapsed
+            if (!isExpanded) {
+              return (
+                <Tooltip key={item.label}>
+                  <TooltipTrigger asChild>
+                    {menuItem}
+                  </TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={8}>
+                    {item.label}
+                    {item.badge && (
+                      <span className="ml-2">({item.badge})</span>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              )
+            }
+
+            return menuItem
+          })}
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   )
 }
 
