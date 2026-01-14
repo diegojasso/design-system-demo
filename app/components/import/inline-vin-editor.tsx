@@ -54,11 +54,6 @@ export function InlineVINEditor({
 
   return (
     <div className={cn("space-y-2", className)}>
-      {vehicleName && (
-        <p className="text-sm text-muted-foreground mb-2 animate-in fade-in-0 duration-200">
-          Vehicle: <span className="font-medium text-foreground">{vehicleName}</span>
-        </p>
-      )}
       <InlineEditableField
         value={value}
         type="text"

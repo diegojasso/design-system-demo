@@ -113,7 +113,7 @@ export function ThirdPartyReportsDetail({
         >
           <Badge
             className={cn(
-              "text-[10px] font-semibold cursor-pointer transition-opacity hover:opacity-80",
+              "text-xs font-semibold cursor-pointer transition-opacity hover:opacity-80",
               progressStatus === "completed"
                 ? "border-green-500 bg-green-500 text-white"
                 : progressStatus === "failed"
@@ -121,7 +121,7 @@ export function ThirdPartyReportsDetail({
                   : "border-amber-500 bg-amber-500 text-white"
             )}
           >
-            {completedCount}/{totalCount} {progressStatus === "completed" ? "Completed" : progressStatus === "failed" ? "Failed" : "Pending"}
+            {completedCount}/{totalCount} Completed
           </Badge>
           <ChevronDown
             className={cn(

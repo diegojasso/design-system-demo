@@ -14,16 +14,10 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { ImportSummaryStats } from "./import-summary-stats"
-import { ImportSummaryGroup } from "./import-summary-group"
 import { WorkflowStageGroup } from "./workflow-stage-group"
-import { ImportSummarySearch } from "./import-summary-search"
 import { getWorkflowStage } from "./mock-ezlynx-data"
 import { CoverageGapWizard } from "./coverage-gap-wizard"
-import { ImportTimeline } from "./import-timeline"
 import { ImportSummaryHeader } from "./import-summary-header"
-import { CompactProgressIndicator } from "./compact-progress-indicator"
-import { StickyWarningsBar } from "./sticky-warnings-bar"
 import { CollapsibleImportedInfo } from "./collapsible-imported-info"
 import { CollapsibleTimeline } from "./collapsible-timeline"
 import { TwoColumnLayout } from "./two-column-layout"
@@ -37,7 +31,6 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
   const { quoteData, updateImportSummaryItem, setCurrentStep, updateVehicles } = useQuote()
   const [selectedItem, setSelectedItem] = React.useState<ImportSummaryItem | null>(null)
   const [resolutionOption, setResolutionOption] = React.useState<string>("")
-  const [searchQuery, setSearchQuery] = React.useState<string>("")
 
   const importSummary = data || quoteData.importSummary
 
@@ -48,16 +41,6 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
       </div>
     )
   }
-
-  // Filter items based on search query only
-  const filteredItems = React.useMemo(() => {
-    if (!searchQuery.trim()) {
-      return importSummary.missingInfo
-    }
-    return importSummary.missingInfo.filter((item) =>
-      item.label.toLowerCase().includes(searchQuery.toLowerCase().trim())
-    )
-  }, [importSummary.missingInfo, searchQuery])
 
   // Group items by workflow stage
   const groupedItems = React.useMemo(() => {
@@ -71,7 +54,7 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
       bind: [],
     }
 
-    filteredItems.forEach((item) => {
+    importSummary.missingInfo.forEach((item) => {
       const stage = getWorkflowStage(item)
       if (groups[stage]) {
         groups[stage].push(item)
@@ -79,7 +62,7 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
     })
 
     return groups
-  }, [filteredItems])
+  }, [importSummary.missingInfo])
 
   const handleItemClick = React.useCallback(
     (item: ImportSummaryItem) => {
@@ -237,45 +220,6 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
     return events
   }, [importSummary])
 
-  const resolvedItems = importSummary.missingInfo.filter((item) => item.checked).length
-  const totalItems = importSummary.missingInfo.length
-
-  // Get unresolved errors and warnings for sticky bar
-  const unresolvedErrors = React.useMemo(() => {
-    return importSummary.missingInfo.filter(
-      (item) => item.severity === "error" && !item.checked
-    )
-  }, [importSummary.missingInfo])
-
-  const unresolvedWarnings = React.useMemo(() => {
-    return importSummary.missingInfo.filter(
-      (item) => item.severity === "warning" && !item.checked
-    )
-  }, [importSummary.missingInfo])
-
-  // Ref for scrolling to warnings section
-  const warningsSectionRef = React.useRef<HTMLDivElement>(null)
-
-  const handleScrollToWarnings = () => {
-    warningsSectionRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    })
-  }
-
-  const handleResolveAllWarnings = () => {
-    const allUnresolvedIds = importSummary.missingInfo
-      .filter((item) => !item.checked)
-      .map((item) => item.id)
-    allUnresolvedIds.forEach((itemId) => {
-      updateImportSummaryItem?.(itemId, true)
-    })
-  }
-
-  const handleDismissAllWarnings = () => {
-    // Same as resolve for now
-    handleResolveAllWarnings()
-  }
 
   return (
     <div className="mb-8 flex w-full flex-col gap-6">
@@ -287,66 +231,16 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
         thirdPartyReports={importSummary.thirdPartyReports}
       />
 
-      {/* Compact Progress Indicator */}
-      <div className="rounded-lg border border-border bg-card p-4">
-        <CompactProgressIndicator
-          resolved={resolvedItems}
-          total={totalItems}
-          driversCount={importSummary.importedInfo.drivers.length}
-          vehiclesCount={importSummary.importedInfo.vehicles.length}
-        />
-      </div>
-
-      {/* Sticky Warnings Bar */}
-      {importSummary.missingInfo.filter((item) => !item.checked).length > 0 && (
-        <StickyWarningsBar
-          items={importSummary.missingInfo}
-          onResolveAll={handleResolveAllWarnings}
-          onDismissAll={handleDismissAllWarnings}
-          onItemClick={handleItemClick}
-          onScrollToWarnings={handleScrollToWarnings}
-        />
-      )}
-
       {/* Two-Column Layout */}
       <TwoColumnLayout
         leftColumn={
-          <>
-            {/* Reference Information */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Reference Information
-              </h3>
-              
-              {/* Collapsible Imported Info */}
-              <CollapsibleImportedInfo
-                drivers={importSummary.importedInfo.drivers}
-                vehicles={importSummary.importedInfo.vehicles}
-                defaultOpen={false}
-              />
-
-              {/* Collapsible Timeline */}
-              <CollapsibleTimeline events={timelineEvents} defaultOpen={false} />
-            </div>
-          </>
-        }
-        rightColumn={
           <>
             {/* Action Required Section */}
             <div className="space-y-6">
               <h2 className="text-lg font-bold text-foreground">Action Required</h2>
 
-              {/* Search */}
-              <div className="flex flex-col gap-4">
-                <ImportSummarySearch
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                  placeholder="Search items..."
-                />
-              </div>
-
               {/* Grouped Items by Workflow Stage */}
-              <div ref={warningsSectionRef} className="flex flex-col gap-6">
+              <div className="flex flex-col gap-6">
                 {/* Needed for Quote */}
                 {groupedItems.quote.length > 0 && (
                   <WorkflowStageGroup
@@ -409,15 +303,25 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
                       </p>
                     </div>
                   )}
-
-                {filteredItems.length === 0 && searchQuery.trim() && (
-                  <div className="rounded-lg border border-border bg-card p-12 text-center">
-                    <p className="text-muted-foreground">
-                      No items match your search.
-                    </p>
-                  </div>
-                )}
               </div>
+            </div>
+          </>
+        }
+        rightColumn={
+          <>
+            {/* Client's Information Section */}
+            <div className="space-y-6">
+              <h2 className="text-lg font-bold text-foreground">Client's Information</h2>
+              
+              {/* Collapsible Imported Info */}
+              <CollapsibleImportedInfo
+                drivers={importSummary.importedInfo.drivers}
+                vehicles={importSummary.importedInfo.vehicles}
+                defaultOpen={true}
+              />
+
+              {/* Collapsible Timeline */}
+              <CollapsibleTimeline events={timelineEvents} defaultOpen={false} />
             </div>
           </>
         }

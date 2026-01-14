@@ -62,7 +62,7 @@ export function ImportSummaryHeader({
           Premium Estimate
         </span>
         <span
-          className="text-lg font-semibold text-foreground"
+          className="text-lg font-bold text-foreground"
           style={{ fontFamily: "Inter, sans-serif" }}
         >
           {formatPremium()}
@@ -76,7 +76,7 @@ export function ImportSummaryHeader({
         </span>
         <div className="flex items-center gap-2">
           <span
-            className="text-sm font-medium text-foreground underline decoration-dotted underline-offset-4"
+            className="text-sm font-bold text-foreground"
             style={{ fontFamily: "Inter, sans-serif" }}
           >
             {quoteNumber}

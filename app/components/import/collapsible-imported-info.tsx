@@ -32,15 +32,15 @@ export function CollapsibleImportedInfo({
               <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
               <div>
                 <h3 className="text-sm font-semibold text-foreground">
-                  Imported Information
+                  Imported from Ezlynx
                 </h3>
                 <p className="text-xs text-muted-foreground">{summary}</p>
               </div>
             </div>
             {isOpen ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
-            ) : (
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
             )}
           </button>
         </CollapsibleTrigger>
@@ -50,7 +50,7 @@ export function CollapsibleImportedInfo({
             {/* Drivers */}
             <div>
               <h4 className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Drivers ({drivers.length})
+                DRIVERS ({drivers.length}):
               </h4>
               <div className="space-y-1.5">
                 {drivers.map((driver, index) => (
@@ -68,7 +68,7 @@ export function CollapsibleImportedInfo({
             {/* Vehicles */}
             <div>
               <h4 className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Vehicles ({vehicles.length})
+                VEHICLES ({vehicles.length}):
               </h4>
               <div className="space-y-1.5">
                 {vehicles.map((vehicle, index) => (

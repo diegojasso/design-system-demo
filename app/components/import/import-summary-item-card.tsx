@@ -3,10 +3,9 @@
 import * as React from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { AlertTriangle, Info, XCircle, CheckCircle2, ArrowRight, HelpCircle } from "lucide-react"
+import { CheckCircle2, ArrowRight, HelpCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ImportSummaryItem } from "./mock-ezlynx-data"
-import { ImportSummaryQuickActions } from "./import-summary-quick-actions"
 import { InlineVINEditor } from "./inline-vin-editor"
 
 interface ImportSummaryItemCardProps {
@@ -21,6 +20,7 @@ interface ImportSummaryItemCardProps {
   onQuickDismiss?: () => void
   showQuickActions?: boolean
   onVINSave?: (vin: string) => Promise<void> | void
+  isInWorkflowGroup?: boolean
 }
 
 export function ImportSummaryItemCard({
@@ -35,21 +35,8 @@ export function ImportSummaryItemCard({
   onQuickDismiss,
   showQuickActions = true,
   onVINSave,
+  isInWorkflowGroup = false,
 }: ImportSummaryItemCardProps) {
-  const getSeverityIcon = (severity: ImportSummaryItem["severity"]) => {
-    switch (severity) {
-      case "error":
-        return <XCircle className="h-5 w-5 text-destructive" />
-      case "warning":
-        return <AlertTriangle className="h-5 w-5 text-amber-500" />
-      case "info":
-        return <Info className="h-5 w-5 text-blue-500" />
-      default:
-        return null
-    }
-  }
-
-
   const hasDetails = item.details?.type === "coverage-gap" || item.details?.type === "accident-history"
   const hasNavigation = !!item.relatedSection
 
@@ -103,12 +90,20 @@ export function ImportSummaryItemCard({
           ? "bg-muted/30 opacity-60 animate-out fade-out-0 slide-out-to-right-4"
           : cn(
               "hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-in fade-in-0 slide-in-from-left-4",
-              item.severity === "error" &&
+              // Only add left border if NOT in workflow group (content area has border)
+              !isInWorkflowGroup && item.severity === "error" &&
                 "border-l-4 border-l-destructive hover:bg-destructive/5",
-              item.severity === "warning" &&
+              !isInWorkflowGroup && item.severity === "warning" &&
                 "border-l-4 border-l-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-950/50",
-              item.severity === "info" &&
-                "border-l-4 border-l-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/50"
+              !isInWorkflowGroup && item.severity === "info" &&
+                "border-l-4 border-l-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/50",
+              // Hover states when in workflow group
+              isInWorkflowGroup && item.severity === "error" &&
+                "hover:bg-destructive/5",
+              isInWorkflowGroup && item.severity === "warning" &&
+                "hover:bg-amber-50/50 dark:hover:bg-amber-950/50",
+              isInWorkflowGroup && item.severity === "info" &&
+                "hover:bg-blue-50/50 dark:hover:bg-blue-950/50"
             ),
         !item.checked && "focus-visible:bg-muted/70",
         isSelected && !item.checked && "bg-primary/5 ring-2 ring-primary/20"
@@ -134,21 +129,7 @@ export function ImportSummaryItemCard({
       />
 
       {/* Content */}
-      <div className="flex flex-1 items-start gap-3">
-        {/* Icon - Larger for better visibility */}
-        <div className="mt-0.5 flex-shrink-0">
-          <div
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-full",
-              item.severity === "error" && "bg-destructive/10",
-              item.severity === "warning" && "bg-amber-500/10",
-              item.severity === "info" && "bg-blue-500/10"
-            )}
-          >
-            {getSeverityIcon(item.severity)}
-          </div>
-        </div>
-
+      <div className="flex flex-1 items-start">
         {/* Text Content */}
         <div className="flex flex-1 flex-col gap-1.5">
           <div className="flex items-center gap-2 flex-wrap">
@@ -186,25 +167,30 @@ export function ImportSummaryItemCard({
             )}
           </div>
 
-          {/* Inline VIN Editor for missing VIN items */}
+          {/* VIN Missing Item Details */}
           {!item.checked &&
             item.details?.type === "missing-vin" &&
-            onVINSave &&
             item.details.data?.vehicleName && (
-              <div 
-                className="mt-3 pt-3 border-t border-border animate-in fade-in-0 slide-in-from-top-2 duration-300"
-                onClick={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-              >
-                <InlineVINEditor
-                  value={""}
-                  vehicleName={item.details.data.vehicleName}
-                  onSave={async (vin) => {
-                    await onVINSave(vin)
-                    // Auto-resolve the item after saving VIN
-                    onCheckboxChange(true)
-                  }}
-                />
+              <div className="space-y-1 mt-2">
+                <p className="text-sm text-muted-foreground">
+                  Vehicle: {item.details.data.vehicleName}
+                </p>
+                {onVINSave && (
+                  <div 
+                    className="mt-2"
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    <InlineVINEditor
+                      value={""}
+                      onSave={async (vin) => {
+                        await onVINSave(vin)
+                        // Auto-resolve the item after saving VIN
+                        onCheckboxChange(true)
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -234,24 +220,6 @@ export function ImportSummaryItemCard({
           </div>
         )}
 
-        {/* Quick Actions */}
-        {showQuickActions && !item.checked && (
-          <ImportSummaryQuickActions
-            item={item}
-            onResolve={() => {
-              onQuickResolve?.()
-              if (!onQuickResolve) {
-                onCheckboxChange(true)
-              }
-            }}
-            onDismiss={() => {
-              onQuickDismiss?.()
-            }}
-            onNavigate={() => {
-              onClick()
-            }}
-          />
-        )}
       </div>
     </div>
   )
