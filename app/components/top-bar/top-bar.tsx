@@ -3,19 +3,9 @@
 import * as React from "react"
 import Link from "next/link"
 import { LifeBuoy, HelpCircle } from "lucide-react"
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { CommandPaletteHint } from "../command-palette-hint"
 import { FeedbackModal } from "./feedback-modal"
-import { AccountDropdown } from "./account-dropdown"
-import { useBreadcrumbs } from "./breadcrumb-utils"
 import { cn } from "@/lib/utils"
 
 interface TopBarProps {
@@ -24,7 +14,6 @@ interface TopBarProps {
 
 export function TopBar({ className }: TopBarProps) {
   const [feedbackOpen, setFeedbackOpen] = React.useState(false)
-  const breadcrumbs = useBreadcrumbs()
 
   return (
     <>
@@ -35,7 +24,7 @@ export function TopBar({ className }: TopBarProps) {
         )}
       >
         <div className="flex w-full items-center justify-between gap-4">
-          {/* Left Section: Logo + Breadcrumbs */}
+          {/* Left Section: Logo */}
           <div className="flex min-w-0 flex-1 items-center gap-4">
             {/* Logo */}
             <Link
@@ -80,41 +69,6 @@ export function TopBar({ className }: TopBarProps) {
               </svg>
             </Link>
 
-            {/* Breadcrumbs */}
-            {breadcrumbs.length > 1 && (
-              <Breadcrumb className="flex">
-                <BreadcrumbList className="gap-1.5">
-                  {breadcrumbs.map((crumb, index) => {
-                    const isLast = index === breadcrumbs.length - 1
-                    return (
-                      <React.Fragment key={crumb.href}>
-                        <BreadcrumbItem>
-                          {isLast ? (
-                            <BreadcrumbPage
-                              className="text-sm leading-[1.5] text-foreground"
-                              style={{ fontFamily: "Inter, sans-serif" }}
-                            >
-                              {crumb.label}
-                            </BreadcrumbPage>
-                          ) : (
-                            <BreadcrumbLink
-                              href={crumb.href}
-                              className="text-sm leading-[1.5] text-muted-foreground hover:text-foreground"
-                              style={{ fontFamily: "Inter, sans-serif" }}
-                            >
-                              {crumb.label}
-                            </BreadcrumbLink>
-                          )}
-                        </BreadcrumbItem>
-                        {!isLast && (
-                          <BreadcrumbSeparator className="text-foreground" />
-                        )}
-                      </React.Fragment>
-                    )
-                  })}
-                </BreadcrumbList>
-              </Breadcrumb>
-            )}
           </div>
 
           {/* Right Section: Actions */}
@@ -143,8 +97,6 @@ export function TopBar({ className }: TopBarProps) {
               <HelpCircle className="h-4 w-4" />
             </Button>
 
-            {/* Account Dropdown */}
-            <AccountDropdown />
           </div>
         </div>
       </header>

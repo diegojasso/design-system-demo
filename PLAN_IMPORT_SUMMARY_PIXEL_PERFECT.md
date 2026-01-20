@@ -3,6 +3,13 @@
 ## Overview
 This plan outlines the adjustments needed to match the import summary page design shown in the screenshot at a pixel-perfect level. The work is organized into phases based on complexity and dependencies.
 
+## Disclosures / Notices (Agent Script)
+Objective: surface disclosure notices the agent should read to the client during the import summary flow.
+
+Disclose to client:
+- Novo doesn't currently cover vehicles used for ride-share.
+- We are unable to offer an SR-22.
+
 ## Key Corrections from Initial Analysis
 
 1. **Layout Structure**: 
@@ -40,15 +47,15 @@ This plan outlines the adjustments needed to match the import summary page desig
 2. **Left Column - "Action Required" Section**:
    - **Section Title**: "Action Required" (above cards, not inside)
    - **Three colored cards stacked vertically**:
-     - **"Needed for Quote" Card** (Red header bar):
-       - Header: Red background, white document icon (left), "Needed for Quote" (white text), red badge "1 unresolved" (white text), chevron (right)
-       - Content: White background with checkbox, "VIN of 2023 Accord Missing" (bold black) + question mark icon, "Vehicle: 2023 Honda Accord" (gray), "VIN: Enter 17-character VIN" (gray placeholder)
+    - **"Needed for Quote" Card** (Red header bar):
+      - Header: Red background, white document icon (left), "Needed for Quote" (white text), red badge "1 unresolved" (white text), chevron (right)
+      - Content: White background with placeholder item(s) (no VIN missing item here)
      - **"Needed for Underwriting" Card** (Yellow header bar):
        - Header: Yellow background, white shield icon (left), "Needed for Underwriting" (white text), yellow badge "2 unresolved" (white text), chevron (right)
        - Content: White background with 2 items, each with checkbox, label + question mark, "→ Click to view details" (gray)
-     - **"Needed for Bind" Card** (Blue header bar):
-       - Header: Blue background, white checkmark icon in circle (left), "Needed for Bind" (white text), blue badge "1 unresolved" (white text), chevron (right)
-       - Content: White background with checkbox, "(1) Additional driver found" + question mark, "→ Navigate to driver" (gray)
+    - **"Needed for Bind" Card** (Blue header bar):
+      - Header: Blue background, white checkmark icon in circle (left), "Needed for Bind" (white text), blue badge "1 unresolved" (white text), chevron (right)
+      - Content: White background with checkbox, "VIN of 2023 Accord Missing" (bold black) + question mark icon, "Vehicle: 2023 Honda Accord" (gray), "VIN: Enter 17-character VIN" (gray placeholder)
 
 3. **Right Column - "Client's Information" Section**:
    - **Section Title**: "Client's Information" (above cards, not inside)
@@ -103,6 +110,31 @@ This plan outlines the adjustments needed to match the import summary page desig
 #### Files to Modify:
 - `app/components/import/import-summary.tsx`
 - `app/components/import/two-column-layout.tsx`
+
+---
+
+### **Phase 1.5: Disclosures / Notices** (Agent Script)
+**Complexity: Low-Medium**  
+**Estimated Time: 1-2 hours**
+
+#### Tasks:
+1. **Add Disclosures Section**
+   - Add a "Disclosures / Notices" block to the import summary page
+   - Anchor it above the "Action Required" section (left column)
+   - Purpose: show notices the agent must read to the client
+   - Ensure it is visually distinct but consistent with existing cards
+
+2. **Populate Initial Disclosures**
+   - "Novo doesn't currently cover vehicles used for ride-share."
+   - "We are unable to offer an SR-22."
+
+3. **Accessibility & Behavior**
+   - Ensure notices are readable and scannable
+   - Keep copy selectable and easy to reference during calls
+
+#### Files to Modify:
+- `app/components/import/import-summary.tsx`
+- `app/components/import/` (new or existing disclosure component if needed)
 
 ---
 
@@ -235,7 +267,7 @@ This plan outlines the adjustments needed to match the import summary page desig
 **Estimated Time: 2-3 hours**
 
 #### Tasks:
-1. **VIN Missing Item Format**
+1. **VIN Missing Item Format** (under "Needed for Bind")
    - Update to show structured format:
      - Main label: "VIN of 2023 Accord Missing"
      - Detail line 1: "Vehicle: 2023 Honda Accord"
@@ -345,6 +377,11 @@ This plan outlines the adjustments needed to match the import summary page desig
 - [ ] Remove ImportSummarySearch component usage
 - [ ] Remove "Reference Information" heading
 
+### Phase 1.5: Disclosures / Notices
+- [ ] Add "Disclosures / Notices" block above Action Required (left column)
+- [ ] Include initial disclosures (ride-share + SR-22)
+- [ ] Ensure copy is readable and scannable for agents
+
 ### Phase 2: Action Cards - Header Bars ⚠️
 - [ ] Redesign card structure: colored header bar + white content area
 - [ ] Header bars: Use lighter backgrounds (`bg-destructive/10`, `bg-amber-50`, `bg-blue-50`)
@@ -388,7 +425,7 @@ This plan outlines the adjustments needed to match the import summary page desig
 - [ ] Proper styling
 
 ### Phase 7: Item Detail Formatting
-- [ ] VIN missing item: Structured format
+- [ ] VIN missing item (under "Needed for Bind"): Structured format
   - "VIN of 2023 Accord Missing" (bold) + question mark
   - "Vehicle: 2023 Honda Accord" (gray)
   - "VIN: Enter 17-character VIN" (inline editable - already implemented)
@@ -414,12 +451,13 @@ This plan outlines the adjustments needed to match the import summary page desig
 
 **Recommended Sequence:**
 1. Phase 1 (Layout) → Foundation first - swap columns, add section titles, remove unnecessary elements
-2. Phase 2 (Action Cards) → Core visual elements - colored header bars, white content areas
-3. Phase 3 (Card Polish) → Shadows, borders, spacing
-4. Phase 4 & 5 (Sidebar Cards) → Right column cards styling
-5. Phase 6 (Item Details) → Content formatting within cards
-6. Phase 7 (Header) → Top section refinement
-7. Phase 8 (Polish) → Final details
+2. Phase 1.5 (Disclosures) → Add agent disclosures block and copy
+3. Phase 2 (Action Cards) → Core visual elements - colored header bars, white content areas
+4. Phase 3 (Card Polish) → Shadows, borders, spacing
+5. Phase 4 & 5 (Sidebar Cards) → Right column cards styling
+6. Phase 6 (Item Details) → Content formatting within cards
+7. Phase 7 (Header) → Top section refinement
+8. Phase 8 (Polish) → Final details
 
 **Total Estimated Time: 15-20 hours**
 

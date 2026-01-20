@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { AppSidebar } from "./components/app-sidebar"
 import { QuoteHeader } from "./components/quote-header"
 import { QuoteProgress } from "./components/quote-progress"
 import { ClientInfoForm } from "./components/client-info-form"
@@ -69,9 +68,6 @@ export default function Home() {
   return (
     <>
       <div className="flex h-screen w-full bg-background">
-        {/* Sidebar */}
-        <AppSidebar />
-
         {/* Main Content */}
         <div className="flex flex-1 flex-col overflow-auto bg-background pb-0 pt-14">
           <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pt-10">

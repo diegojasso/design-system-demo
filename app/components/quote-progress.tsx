@@ -4,6 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useQuote, StepId } from "@/app/contexts/quote-context"
 import { AlertTriangle } from "lucide-react"
+import { isQuoteUnbindable } from "@/app/lib/quote-binding"
 
 export const steps = [
   {
@@ -50,6 +51,7 @@ export function QuoteProgress({
 
   const isImported = quoteData.isImported
   const hasUncheckedItems = quoteData.importSummary?.missingInfo.some(item => !item.checked) ?? false
+  const isUnbindable = isQuoteUnbindable(quoteData.importSummary)
 
   // Calculate indicator position when active tab changes
   React.useEffect(() => {
@@ -86,7 +88,7 @@ export function QuoteProgress({
     : steps
 
   return (
-    <div className="mb-8 flex w-full flex-col gap-4">
+    <div className="sticky top-0 z-20 mb-8 flex w-full flex-col gap-4 bg-background">
       {/* Enhanced Tab Navigation */}
       <div className="relative flex items-center gap-0 border-b border-border">
         {/* Animated Sliding Underline Indicator */}
@@ -103,20 +105,25 @@ export function QuoteProgress({
         {allSteps.map((step) => {
           const isActive = step.id === currentStep
           const showWarning = step.id === "import-summary" && hasUncheckedItems
+          const isBindBlockedStep =
+            isUnbindable && (step.id === "payment" || step.id === "e-sign")
           
           return (
             <button
               key={step.id}
               ref={isActive ? activeTabRef : null}
               onClick={() => onStepChange?.(step.id as StepId)}
+              disabled={isBindBlockedStep}
               role="tab"
               aria-selected={isActive}
               aria-current={isActive ? "page" : undefined}
+              aria-disabled={isBindBlockedStep || undefined}
               className={cn(
                 "relative flex items-center gap-2 px-6 py-3.5 text-sm font-medium transition-all duration-200 ease-out",
                 "hover:bg-muted/50 hover:text-foreground hover:scale-[1.01]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 "active:scale-[0.99]",
+                "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-muted-foreground disabled:scale-100 disabled:active:scale-100",
                 isActive
                   ? "text-foreground font-semibold"
                   : "text-muted-foreground bg-transparent"

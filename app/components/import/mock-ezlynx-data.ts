@@ -30,8 +30,8 @@ export function getWorkflowStage(item: ImportSummaryItem): "quote" | "underwriti
 
   switch (type) {
     case "missing-vin":
-      // Missing VIN blocks quote generation
-      return "quote"
+      // Missing VIN is required before binding
+      return "bind"
     case "coverage-gap":
     case "accident-history":
       // Coverage gaps and accident history need underwriting review
@@ -216,7 +216,7 @@ export const MOCK_EZLYNX_QUOTE: EzlynxQuoteData = {
         label: "VIN of 2023 Accord Missing",
         checked: false,
         severity: "error",
-        workflowStage: "quote",
+        workflowStage: "bind",
         relatedSection: "vehicle",
         details: {
           type: "missing-vin",

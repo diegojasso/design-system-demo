@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { CheckCircle2, ArrowRight, HelpCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { ImportSummaryItem } from "./mock-ezlynx-data"
+import { getWorkflowStage, type ImportSummaryItem } from "./mock-ezlynx-data"
 import { InlineVINEditor } from "./inline-vin-editor"
 
 interface ImportSummaryItemCardProps {
@@ -39,6 +39,8 @@ export function ImportSummaryItemCard({
 }: ImportSummaryItemCardProps) {
   const hasDetails = item.details?.type === "coverage-gap" || item.details?.type === "accident-history"
   const hasNavigation = !!item.relatedSection
+
+  const workflowStage = item.workflowStage ?? getWorkflowStage(item)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (item.checked) return
@@ -91,18 +93,18 @@ export function ImportSummaryItemCard({
           : cn(
               "hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-in fade-in-0 slide-in-from-left-4",
               // Only add left border if NOT in workflow group (content area has border)
-              !isInWorkflowGroup && item.severity === "error" &&
+              !isInWorkflowGroup && workflowStage === "quote" &&
                 "border-l-4 border-l-destructive hover:bg-destructive/5",
-              !isInWorkflowGroup && item.severity === "warning" &&
+              !isInWorkflowGroup && workflowStage === "underwriting" &&
                 "border-l-4 border-l-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-950/50",
-              !isInWorkflowGroup && item.severity === "info" &&
+              !isInWorkflowGroup && workflowStage === "bind" &&
                 "border-l-4 border-l-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/50",
               // Hover states when in workflow group
-              isInWorkflowGroup && item.severity === "error" &&
+              isInWorkflowGroup && workflowStage === "quote" &&
                 "hover:bg-destructive/5",
-              isInWorkflowGroup && item.severity === "warning" &&
+              isInWorkflowGroup && workflowStage === "underwriting" &&
                 "hover:bg-amber-50/50 dark:hover:bg-amber-950/50",
-              isInWorkflowGroup && item.severity === "info" &&
+              isInWorkflowGroup && workflowStage === "bind" &&
                 "hover:bg-blue-50/50 dark:hover:bg-blue-950/50"
             ),
         !item.checked && "focus-visible:bg-muted/70",
@@ -140,8 +142,9 @@ export function ImportSummaryItemCard({
                   ? "text-muted-foreground line-through"
                   : cn(
                       "text-foreground",
-                      item.severity === "error" && "text-destructive",
-                      item.severity === "warning" && "text-amber-600 dark:text-amber-400"
+                      workflowStage === "quote" && "text-destructive",
+                      workflowStage === "underwriting" && "text-amber-600 dark:text-amber-400",
+                      workflowStage === "bind" && "text-blue-600 dark:text-blue-400"
                     )
               )}
               style={{ fontFamily: "Inter, sans-serif" }}

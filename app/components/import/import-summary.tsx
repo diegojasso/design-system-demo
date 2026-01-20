@@ -21,6 +21,7 @@ import { ImportSummaryHeader } from "./import-summary-header"
 import { CollapsibleImportedInfo } from "./collapsible-imported-info"
 import { CollapsibleTimeline } from "./collapsible-timeline"
 import { TwoColumnLayout } from "./two-column-layout"
+import { DisclosuresNotices } from "./disclosures-notices"
 
 interface ImportSummaryProps {
   data?: ImportSummaryData
@@ -235,12 +236,15 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
       <TwoColumnLayout
         leftColumn={
           <>
-            {/* Action Required Section */}
             <div className="space-y-6">
-              <h2 className="text-lg font-bold text-foreground">Action Required</h2>
+              <DisclosuresNotices />
 
-              {/* Grouped Items by Workflow Stage */}
-              <div className="flex flex-col gap-6">
+              {/* Action Required Section */}
+              <div className="space-y-6">
+                <h2 className="text-lg font-bold text-foreground">Action Required</h2>
+
+                {/* Grouped Items by Workflow Stage */}
+                <div className="flex flex-col gap-6">
                 {/* Needed for Quote */}
                 {groupedItems.quote.length > 0 && (
                   <WorkflowStageGroup
@@ -303,6 +307,7 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
                       </p>
                     </div>
                   )}
+                </div>
               </div>
             </div>
           </>

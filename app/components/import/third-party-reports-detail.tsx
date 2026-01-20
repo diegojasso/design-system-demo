@@ -92,9 +92,9 @@ export function ThirdPartyReportsDetail({
 
   // Determine status badge based on progress
   const getProgressStatus = () => {
-    if (completedCount === totalCount) return "completed"
     if (failedCount > 0) return "failed"
-    return "completed"
+    if (completedCount === totalCount) return "completed"
+    return "in-progress"
   }
 
   const progressStatus = getProgressStatus()
@@ -118,7 +118,7 @@ export function ThirdPartyReportsDetail({
                 ? "border-green-500 bg-green-500 text-white"
                 : progressStatus === "failed"
                   ? "border-destructive bg-destructive text-white"
-                  : "border-amber-500 bg-amber-500 text-white"
+                  : "border-border bg-muted text-foreground"
             )}
           >
             {completedCount}/{totalCount} Completed

@@ -354,6 +354,60 @@ app/components/command-palette.tsx
   - Pass quotes page context to buildCommands
 ```
 
+## Extension: Quote Progress Tabs Integration
+
+### Overview
+Keep the command palette in sync with the quote progress tabs so agents can navigate steps using the same labels and order shown in `QuoteProgress`.
+
+### Goals
+1. **Parity with Tabs**: Step commands reflect the exact tab labels and ordering
+2. **Dynamic Import Step**: Include "Import Summary" only when the quote is imported
+3. **Disabled Steps**: Respect unbindable states (payment/e-sign) and match tab disabled state
+4. **Single Source of Truth**: Avoid duplicating step labels between the tabs and command palette
+
+### Proposed Approach
+
+#### 1) Centralize Step Metadata
+Create a shared step definition module that both the tabs and command palette use.
+```
+app/components/quote-steps.ts
+  - Export `steps` array with id/label/order
+  - Export `getAllSteps({ isImported })` to include import-summary when needed
+```
+
+#### 2) Update Quote Progress
+- Replace local `steps` usage with `getAllSteps({ isImported })`
+- Keep warning/disable logic in `QuoteProgress`
+
+#### 3) Update Command Builder
+- Update `buildCommands` to accept a `steps` list or `quoteProgressSteps` helper
+- Generate navigation commands directly from the shared step list
+- Set `context: "in-quote"` for step commands
+- Add `status: "disabled"` for steps that are bind-blocked
+
+#### 4) Command Labels & Keywords
+- Labels must match tab labels exactly
+- Keywords include: step label, step id, and common aliases (e.g. "client info" for `client-info`)
+
+### Implementation Steps
+1. Add shared step module and export helper for imported/non-imported flows
+2. Update `QuoteProgress` to use shared steps
+3. Update `commands.ts` to generate step commands from shared steps
+4. Align step availability with unbindable conditions
+5. Verify command palette and tabs stay aligned across states
+
+### File Changes
+```
+app/components/quote-steps.ts
+  - New shared step metadata + helper
+
+app/components/quote-progress.tsx
+  - Use shared step helper for tab rendering
+
+app/components/command-palette/commands.ts
+  - Use shared step list for navigation commands
+```
+
 ## Success Criteria
 
 - [ ] Agents can programmatically discover all available commands

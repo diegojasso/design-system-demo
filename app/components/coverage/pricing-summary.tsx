@@ -23,6 +23,7 @@ import { format } from "date-fns"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useQuote } from "@/app/contexts/quote-context"
 import { cn } from "@/lib/utils"
+import { getUnbindableImportCount, isQuoteUnbindable } from "@/app/lib/quote-binding"
 
 interface PricingSummarySectionProps {
   coverage: CoverageData
@@ -39,7 +40,7 @@ export function PricingSummarySection({
   onCollectPayment,
   onDownloadPDF,
 }: PricingSummarySectionProps) {
-  const { quoteData } = useQuote()
+  const { quoteData, setCurrentStep } = useQuote()
   const [isPlanDetailsExpanded, setIsPlanDetailsExpanded] = React.useState(true)
   
   const calculatedPricing = calculatePlanPricing(
@@ -53,22 +54,16 @@ export function PricingSummarySection({
   // Check for unresolved import summary items
   // Unresolved = items with checked: false OR items with error/warning severity (UW block)
   const hasUnresolvedItems = React.useMemo(() => {
-    if (!quoteData.importSummary) return false
-    
-    const unresolvedItems = quoteData.importSummary.missingInfo.filter((item) => {
-      // Items that are not checked OR items with error/warning severity (block binding)
-      return !item.checked || item.severity === "error" || item.severity === "warning"
-    })
-    
-    return unresolvedItems.length > 0
+    return isQuoteUnbindable(quoteData.importSummary)
   }, [quoteData.importSummary])
 
   const unresolvedCount = React.useMemo(() => {
-    if (!quoteData.importSummary) return 0
-    return quoteData.importSummary.missingInfo.filter((item) => 
-      !item.checked || item.severity === "error" || item.severity === "warning"
-    ).length
+    return getUnbindableImportCount(quoteData.importSummary)
   }, [quoteData.importSummary])
+
+  const handleJumpToImportSummary = () => {
+    setCurrentStep("import-summary")
+  }
 
   // Generate start date options (next 30 days)
   const startDateOptions = React.useMemo(() => {
@@ -280,8 +275,18 @@ export function PricingSummarySection({
           {hasUnresolvedItems && (
             <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
               <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <AlertDescription className="text-sm text-amber-900 dark:text-amber-100">
-                Cannot bind policy: {unresolvedCount} unresolved item{unresolvedCount !== 1 ? "s" : ""} from import summary must be resolved before binding. You can still view and adjust coverage settings.
+              <AlertDescription className="text-sm text-amber-900 dark:text-amber-100 space-y-2">
+                <div>
+                  Cannot bind policy: {unresolvedCount} unresolved item{unresolvedCount !== 1 ? "s" : ""} from import summary must be resolved before binding. You can still view and adjust coverage settings.
+                </div>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto p-0 text-amber-900 dark:text-amber-100"
+                  onClick={handleJumpToImportSummary}
+                >
+                  View all in Import Summary
+                </Button>
               </AlertDescription>
             </Alert>
           )}
