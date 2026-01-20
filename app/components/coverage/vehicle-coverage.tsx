@@ -295,7 +295,7 @@ export function VehicleCoverageSection({
                       className="text-sm font-medium text-foreground cursor-pointer"
                       style={{ fontFamily: "Inter, sans-serif" }}
                     >
-                      Glass Damage Deductible $0
+                      $0 Glass Damage Deductible
                     </Label>
                     <p
                       className="text-xs text-muted-foreground"

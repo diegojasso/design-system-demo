@@ -3,7 +3,7 @@ import { AlertTriangle } from "lucide-react"
 const DEFAULT_DISCLOSURES = [
   {
     id: "rideshare",
-    text: "Novo doesn't currently cover vehicles used for ride-share.",
+    text: "Novo does not cover vehicles used for ride-share.",
   },
   {
     id: "sr22",
@@ -22,9 +22,6 @@ export function DisclosuresNotices() {
         <h3 className="text-sm font-semibold text-foreground">Disclosures / Notices</h3>
       </div>
       <div className="px-4 py-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Disclose to client
-        </p>
         <ul className="mt-2 space-y-2 text-sm text-foreground">
           {DEFAULT_DISCLOSURES.map((disclosure) => (
             <li key={disclosure.id} className="flex gap-2">
