@@ -127,5 +127,5 @@ function generateMockQuotes(count: number): QuoteListItem[] {
   return quotes
 }
 
-// Generate 2000 mock quotes
-export const MOCK_QUOTES: QuoteListItem[] = generateMockQuotes(2000)
+// Generate 200 mock quotes
+export const MOCK_QUOTES: QuoteListItem[] = generateMockQuotes(200)

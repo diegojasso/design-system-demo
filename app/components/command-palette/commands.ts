@@ -12,6 +12,8 @@ import {
   Download,
   FileText,
   FileDown,
+  CreditCard,
+  FileSignature,
   Moon,
   Sun,
   Monitor,
@@ -23,6 +25,7 @@ import {
 import type { RecentQuote } from "./quote-types"
 import type { CommandHistoryEntry } from "./use-command-history"
 import type { QuoteListItem } from "../quotes-list/types"
+import { getQuoteProgressSteps } from "../quote-steps"
 
 export interface CommandParameter {
   name: string
@@ -51,6 +54,7 @@ export interface Command {
   // Optional metadata for display
   meta?: string
   status?: "draft" | "pending" | "sent" | "accepted" | "rejected"
+  disabled?: boolean
   // History and favorites
   usageCount?: number
   isFavorite?: boolean
@@ -68,6 +72,8 @@ interface CommandContext {
   onFindClient?: () => void
   // Quote context
   currentQuoteId?: string
+  isImported?: boolean
+  isUnbindable?: boolean
   onRunReports?: () => void
   onSendQuote?: () => void
   onDownloadPDF?: () => void
@@ -145,84 +151,114 @@ export function buildCommands(context: CommandContext): Command[] {
 
   // Navigation (only in quote workflow)
   if (context.currentStep) {
-    const stepCommands = [
-      {
-        id: "client-info",
-        label: "Client Information",
+    const stepMeta: Partial<
+      Record<
+        StepId,
+        {
+          shortcut?: string
+          icon: LucideIcon
+          keywords: string[]
+          description: string
+          agentDescription: string
+        }
+      >
+    > = {
+      "import-summary": {
+        icon: FileText,
+        keywords: ["import", "summary", "missing", "report"],
+        description: "Shows the import summary for the imported quote",
+        agentDescription: "Navigates to the Import Summary step. Review missing info and required actions from the import before continuing the quote flow.",
+      },
+      "client-info": {
         shortcut: "⌘1",
         icon: User,
-        keywords: ["client", "info", "information", "basic", "step", "1"],
+        keywords: ["basic", "info", "client", "information", "step", "1"],
+        description: "Navigates to the Basic Info section of the quote workflow",
+        agentDescription: "Navigates to the Basic Info step (step 1). Enter core client details like name, address, and contact information.",
       },
-      {
-        id: "vehicle",
-        label: "Vehicles",
+      vehicle: {
         shortcut: "⌘2",
         icon: Car,
         keywords: ["vehicle", "vehicles", "car", "cars", "step", "2"],
+        description: "Navigates to the Vehicles section of the quote workflow",
+        agentDescription: "Navigates to the Vehicles step (step 2). Add vehicles that need coverage, including make, model, year, and VIN.",
       },
-      {
-        id: "driver",
-        label: "Drivers",
+      driver: {
         shortcut: "⌘3",
         icon: Users,
         keywords: ["driver", "drivers", "step", "3"],
+        description: "Navigates to the Drivers section of the quote workflow",
+        agentDescription: "Navigates to the Drivers step (step 3). Add drivers and their license details for rating and underwriting.",
       },
-      {
-        id: "coverage",
-        label: "Coverages",
+      coverage: {
         shortcut: "⌘4",
         icon: Shield,
         keywords: ["coverage", "coverages", "step", "4"],
+        description: "Navigates to the Coverages section of the quote workflow",
+        agentDescription: "Navigates to the Coverages step (step 4). Configure coverage limits and options for the quote.",
       },
-      {
-        id: "review",
-        label: "Review",
+      payment: {
         shortcut: "⌘5",
-        icon: FileCheck,
-        keywords: ["review", "final", "step", "5"],
+        icon: CreditCard,
+        keywords: ["payment", "billing", "checkout", "step", "5"],
+        description: "Navigates to the Payment section of the quote workflow",
+        agentDescription: "Navigates to the Payment step (step 5). Collect payment details required to bind the policy.",
       },
-    ]
+      "e-sign": {
+        shortcut: "⌘6",
+        icon: FileSignature,
+        keywords: ["e-sign", "esign", "signature", "sign", "step", "6"],
+        description: "Navigates to the E-Sign section of the quote workflow",
+        agentDescription: "Navigates to the E-Sign step (step 6). Review and send documents for electronic signature.",
+      },
+      review: {
+        shortcut: "⌘7",
+        icon: FileCheck,
+        keywords: ["review", "final", "step", "7"],
+        description: "Navigates to the Review section of the quote workflow",
+        agentDescription: "Navigates to the Review step. Review the full quote before finalizing.",
+      },
+    }
 
-    stepCommands.forEach(({ id, label, shortcut, icon, keywords }) => {
-      const stepDescriptions: Record<string, { description: string; agentDescription: string }> = {
-        "client-info": {
-          description: "Navigates to the Client Information section of the quote workflow",
-          agentDescription: "Navigates to the Client Information step (step 1). This is where you enter basic client details like name, address, and contact information. Required for creating a new quote.",
-        },
-        vehicle: {
-          description: "Navigates to the Vehicles section of the quote workflow",
-          agentDescription: "Navigates to the Vehicles step (step 2). Add vehicles that need to be insured. You can add multiple vehicles with details like make, model, year, and VIN.",
-        },
-        driver: {
-          description: "Navigates to the Drivers section of the quote workflow",
-          agentDescription: "Navigates to the Drivers step (step 3). Add drivers who will be covered by the insurance policy. Include driver information like license number and driving history.",
-        },
-        coverage: {
-          description: "Navigates to the Coverages section of the quote workflow",
-          agentDescription: "Navigates to the Coverages step (step 4). Configure insurance coverages and limits for the quote. This includes liability, comprehensive, collision, and other coverage options.",
-        },
-        review: {
-          description: "Navigates to the Review section of the quote workflow",
-          agentDescription: "Navigates to the Review step (step 5). Review all quote information before finalizing. This is the final step where you can verify all details before sending or accepting the quote.",
-        },
+    const steps = getQuoteProgressSteps({ isImported: context.isImported })
+
+    steps.forEach((step) => {
+      const stepInfo = stepMeta[step.id] || {
+        icon: FileCheck,
+        keywords: ["step"],
+        description: `Navigates to the ${step.label} section of the quote workflow`,
+        agentDescription: `Navigates to the ${step.label} step. Use this to jump directly to this section of the quote workflow.`,
       }
-      const stepInfo = stepDescriptions[id] || {
-        description: `Navigates to the ${label} section of the quote workflow`,
-        agentDescription: `Navigates to the ${label} step. Use this to jump directly to this section of the quote workflow.`,
-      }
+
+      const keywords = Array.from(
+        new Set([
+          step.label.toLowerCase(),
+          step.id,
+          step.id.replace("-", " "),
+          ...stepInfo.keywords,
+        ])
+      )
+
+      const isBindBlockedStep =
+        !!context.isUnbindable &&
+        (step.id === "payment" || step.id === "e-sign")
+
       commands.push({
-        id: `go-${id}`,
-        label,
+        id: `go-${step.id}`,
+        label: step.label,
         keywords,
-        shortcut,
-        icon,
+        shortcut: stepInfo.shortcut,
+        icon: stepInfo.icon,
         group: "navigation",
         context: "in-quote",
         description: stepInfo.description,
         agentDescription: stepInfo.agentDescription,
         contextRequirements: ["current-step"],
+        disabled: isBindBlockedStep,
+        meta: isBindBlockedStep ? "Unavailable" : undefined,
         action: () => {
-          context.onStepChange?.(id as StepId)
+          if (isBindBlockedStep) return
+          context.onStepChange?.(step.id as StepId)
         },
       })
     })

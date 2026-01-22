@@ -244,10 +244,10 @@ export function CoverageForm() {
         />
       </div>
 
-      {/* Three-column responsive layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Column 1: Liability Coverage */}
-        <div className="lg:col-span-1">
+      {/* Two-column responsive layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+        {/* Left Column: Coverage Configuration */}
+        <div className="space-y-6">
           <LiabilityCoverageSection
             liability={coverage.liability}
             additional={coverage.additional}
@@ -256,10 +256,7 @@ export function CoverageForm() {
             onLiabilityChange={handleLiabilityChange}
             onAdditionalChange={handleAdditionalChange}
           />
-        </div>
 
-        {/* Column 2: Vehicle Coverage */}
-        <div className="lg:col-span-1">
           <VehicleCoverageSection
             vehicles={vehicles}
             vehicleCoverages={coverage.vehicleCoverages}
@@ -272,8 +269,8 @@ export function CoverageForm() {
           />
         </div>
 
-        {/* Column 3: Pricing Summary */}
-        <div className="lg:col-span-1">
+        {/* Right Column: Pricing Summary */}
+        <div className="lg:sticky lg:top-6 self-start">
           <PricingSummarySection
             coverage={coverage}
             pricing={pricing}

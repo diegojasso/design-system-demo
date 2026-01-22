@@ -309,7 +309,7 @@ export function PricingSummarySection({
               className="w-full"
             >
               <Download className="h-4 w-4 mr-2" />
-              Download as PDF
+              Download Quote as PDF
             </Button>
           </div>
         </CardContent>

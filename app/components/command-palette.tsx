@@ -32,6 +32,8 @@ interface CommandPaletteProps {
   onFindClient?: () => void
   // Quote context
   currentQuoteId?: string
+  isImported?: boolean
+  isUnbindable?: boolean
   onRunReports?: () => void
   onSendQuote?: () => void
   onDownloadPDF?: () => void
@@ -61,6 +63,8 @@ export function CommandPalette({
   onStepChange,
   onFindClient,
   currentQuoteId,
+  isImported,
+  isUnbindable,
   onRunReports,
   onSendQuote,
   onDownloadPDF,
@@ -109,6 +113,8 @@ export function CommandPalette({
     onStepChange,
     onFindClient,
     currentQuoteId,
+    isImported,
+    isUnbindable,
     onRunReports,
     onSendQuote,
     onDownloadPDF,
@@ -185,6 +191,7 @@ export function CommandPalette({
   }, [search, allCommands])
 
   const handleSelect = (command: Command) => {
+    if (command.disabled) return
     // Track command execution
     trackCommand(command.id)
     command.action()
@@ -279,7 +286,12 @@ export function CommandPalette({
                   key={command.id}
                   value={`${command.id} ${command.label} ${command.keywords.join(" ")} ${displayShortcut || ""} ${command.meta || ""}`}
                   onSelect={() => handleSelect(command)}
-                  className="group/item"
+                  disabled={command.disabled}
+                  className={
+                    command.disabled
+                      ? "group/item opacity-50 cursor-not-allowed"
+                      : "group/item"
+                  }
                 >
                   <Icon className="h-4 w-4" />
                   <div className="flex flex-1 items-center gap-2">

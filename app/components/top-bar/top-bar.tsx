@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { usePathname, useSearchParams } from "next/navigation"
 import { LifeBuoy, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CommandPaletteHint } from "../command-palette-hint"
@@ -14,6 +15,10 @@ interface TopBarProps {
 
 export function TopBar({ className }: TopBarProps) {
   const [feedbackOpen, setFeedbackOpen] = React.useState(false)
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const quoteId = searchParams.get("quote")
+  const showQuoteId = pathname === "/" && !!quoteId
 
   return (
     <>
@@ -68,6 +73,18 @@ export function TopBar({ className }: TopBarProps) {
                 />
               </svg>
             </Link>
+
+            {showQuoteId && (
+              <Link
+                href={`/?quote=${quoteId}`}
+                className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex"
+              >
+                <span>Quote</span>
+                <span className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-[11px] text-foreground">
+                  {quoteId}
+                </span>
+              </Link>
+            )}
 
           </div>
 

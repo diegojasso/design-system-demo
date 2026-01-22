@@ -130,18 +130,22 @@ export function CoverageGapWizard({
       <div className="min-h-[400px]">
         {currentStep === "overview" && (
           <div className="space-y-6 animate-in fade-in-0 slide-in-from-right-4 duration-300">
-            {/* Header */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-                <h3 className="text-lg font-semibold text-foreground">
-                  Coverage Gap Detected
-                </h3>
+            {/* Discrepancy */}
+            <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+              <h4 className="flex items-center gap-2 font-semibold text-foreground">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                Discrepancy Detected
+              </h4>
+              <div className="space-y-1 text-sm">
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Application states:</span> "
+                  {data.applicationStates}"
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Verisk RC2 report shows:</span>{" "}
+                  {data.reportShows}
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Review the coverage gap discrepancy for {clientName} and select
-                a resolution option.
-              </p>
             </div>
 
             {/* Report Details */}
@@ -176,24 +180,6 @@ export function CoverageGapWizard({
                     {new Date(data.currentCarrierStart).toLocaleDateString()}
                   </p>
                 </div>
-              </div>
-            </div>
-
-            {/* Discrepancy */}
-            <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
-              <h4 className="flex items-center gap-2 font-semibold text-foreground">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                Discrepancy Detected
-              </h4>
-              <div className="space-y-1 text-sm">
-                <p className="text-muted-foreground">
-                  <span className="font-medium">Application states:</span> "
-                  {data.applicationStates}"
-                </p>
-                <p className="text-muted-foreground">
-                  <span className="font-medium">Verisk RC2 report shows:</span>{" "}
-                  {data.reportShows}
-                </p>
               </div>
             </div>
 

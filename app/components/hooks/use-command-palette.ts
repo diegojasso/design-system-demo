@@ -15,6 +15,8 @@ interface UseCommandPaletteProps {
   onFindClient?: () => void
   // Quote context
   currentQuoteId?: string
+  isImported?: boolean
+  isUnbindable?: boolean
   onRunReports?: () => void
   onSendQuote?: () => void
   onDownloadPDF?: () => void
@@ -53,6 +55,8 @@ export function useCommandPalette({
   onStepChange,
   onFindClient,
   currentQuoteId,
+  isImported,
+  isUnbindable,
   onRunReports,
   onSendQuote,
   onDownloadPDF,
@@ -80,6 +84,8 @@ export function useCommandPalette({
         onStepChange,
         onFindClient,
         currentQuoteId,
+        isImported,
+        isUnbindable,
         onRunReports,
         onSendQuote,
         onDownloadPDF,
@@ -102,6 +108,8 @@ export function useCommandPalette({
       onStepChange,
       onFindClient,
       currentQuoteId,
+      isImported,
+      isUnbindable,
       onRunReports,
       onSendQuote,
       onDownloadPDF,

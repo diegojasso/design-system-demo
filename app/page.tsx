@@ -13,11 +13,14 @@ import { CommandPalette } from "./components/command-palette"
 import { useQuote, StepId } from "./contexts/quote-context"
 import { ImportSummary } from "./components/import/import-summary"
 import { useRouter } from "next/navigation"
+import { isQuoteUnbindable } from "./lib/quote-binding"
 
 export default function Home() {
   const router = useRouter()
   const { quoteData, setCurrentStep, quoteId } = useQuote()
   const currentStep = quoteData.currentStep || (quoteData.isImported ? "import-summary" : "client-info")
+  const isImported = quoteData.isImported
+  const isUnbindable = isQuoteUnbindable(quoteData.importSummary)
   
   // Sync step changes to context (fire-and-forget save)
   const handleStepChange = React.useCallback((step: StepId) => {
@@ -104,6 +107,8 @@ export default function Home() {
         onStepChange={handleStepChange}
         onFindClient={handleFindClient}
         currentQuoteId={currentQuoteId}
+        isImported={isImported}
+        isUnbindable={isUnbindable}
         onRunReports={handleRunReports}
         onSendQuote={handleSendQuote}
         onDownloadPDF={handleDownloadPDF}
