@@ -1,7 +1,9 @@
-import { ChevronLeft, ChevronRight } from "lucide-react"
+"use client"
+
+import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { steps } from "./quote-progress"
-import type { StepId } from "../contexts/quote-context"
+import { getQuoteProgressSteps } from "./quote-steps"
+import { useQuote, type StepId } from "../contexts/quote-context"
 
 interface QuoteNavigationProps {
   currentStep: StepId
@@ -9,11 +11,14 @@ interface QuoteNavigationProps {
 }
 
 export function QuoteNavigation({ currentStep, onStepChange }: QuoteNavigationProps) {
+  const { quoteData } = useQuote()
+
   // Only show navigation for client-info step
   if (currentStep !== "client-info") {
     return null
   }
 
+  const steps = getQuoteProgressSteps({ isImported: quoteData.isImported })
   const currentStepIndex = steps.findIndex((step) => step.id === currentStep)
   const isFirstStep = currentStepIndex === 0
 
