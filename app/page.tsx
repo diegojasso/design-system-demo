@@ -6,6 +6,8 @@ import { QuoteProgress } from "./components/quote-progress"
 import { ClientInfoForm } from "./components/client-info-form"
 import { DriversTable } from "./components/drivers-table/drivers-table"
 import { VehiclesTable } from "./components/vehicles-table/vehicles-table"
+import { IncidentsPage } from "./components/incidents/incidents-page"
+import { ReportsPage } from "./components/reports/reports-page"
 import { CoverageForm } from "./components/coverage/coverage-form"
 import { PaymentForm } from "./components/payment/payment-form"
 import { ESignatureForm } from "./components/e-signature/e-signature-form"
@@ -89,6 +91,8 @@ export default function Home() {
             {currentStep === "client-info" && <ClientInfoForm />}
             {currentStep === "driver" && <DriversTable />}
             {currentStep === "vehicle" && <VehiclesTable />}
+            {currentStep === "incidents" && <IncidentsPage />}
+            {currentStep === "reports" && <ReportsPage />}
             {currentStep === "coverage" && <CoverageForm />}
             {currentStep === "payment" && <PaymentForm />}
             {currentStep === "e-sign" && <ESignatureForm />}

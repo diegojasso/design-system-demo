@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useQuote, StepId } from "@/app/contexts/quote-context"
 import { AlertTriangle } from "lucide-react"
-import { getQuoteProgressSteps } from "@/app/components/quote-steps"
+import { findActiveGroup, getQuoteNavigation } from "@/app/components/quote-steps"
 
 interface QuoteProgressProps {
   currentStep?: StepId
@@ -52,11 +52,12 @@ export function QuoteProgress({
     return () => window.removeEventListener("resize", handleResize)
   }, [currentStep])
 
-  const allSteps = getQuoteProgressSteps({ isImported })
+  const groups = getQuoteNavigation({ isImported })
+  const activeGroup = findActiveGroup(groups, currentStep) ?? groups[0]
 
   return (
     <div className="sticky top-0 z-20 mb-8 flex w-full flex-col gap-4 bg-background">
-      {/* Enhanced Tab Navigation */}
+      {/* Level 1 Navigation */}
       <div className="relative flex items-center gap-0 border-b border-border">
         {/* Animated Sliding Underline Indicator */}
         <div
@@ -69,15 +70,15 @@ export function QuoteProgress({
         />
 
         {/* Tabs */}
-        {allSteps.map((step) => {
-          const isActive = step.id === currentStep
-          const showWarning = step.id === "import-summary" && hasUncheckedItems
+        {groups.map((group) => {
+          const isActive = group.id === activeGroup?.id
+          const showWarning = group.id === "import-summary" && hasUncheckedItems
           
           return (
             <button
-              key={step.id}
+              key={group.id}
               ref={isActive ? activeTabRef : null}
-              onClick={() => onStepChange?.(step.id as StepId)}
+              onClick={() => onStepChange?.(group.primaryStepId as StepId)}
               role="tab"
               aria-selected={isActive}
               aria-current={isActive ? "page" : undefined}
@@ -92,7 +93,7 @@ export function QuoteProgress({
               )}
               style={{ fontFamily: "Inter, sans-serif" }}
             >
-              {step.label}
+              {group.label}
               {showWarning && (
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
               )}
@@ -100,6 +101,34 @@ export function QuoteProgress({
           )
         })}
       </div>
+
+      {/* Level 2 Navigation */}
+      {activeGroup?.children && activeGroup.children.length > 0 && (
+        <div className="flex w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/30 p-1">
+          {activeGroup.children.map((child) => {
+            const isChildActive = child.id === currentStep
+
+            return (
+              <button
+                key={child.id}
+                onClick={() => onStepChange?.(child.id as StepId)}
+                role="tab"
+                aria-selected={isChildActive}
+                aria-current={isChildActive ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  isChildActive
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                )}
+              >
+                {child.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

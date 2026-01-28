@@ -5,6 +5,7 @@ import {
   User,
   Car,
   Users,
+  AlertTriangle,
   Shield,
   FileCheck,
   RefreshCw,
@@ -173,8 +174,8 @@ export function buildCommands(context: CommandContext): Command[] {
         shortcut: "⌘1",
         icon: User,
         keywords: ["basic", "info", "client", "information", "step", "1"],
-        description: "Navigates to the Basic Info section of the quote workflow",
-        agentDescription: "Navigates to the Basic Info step (step 1). Enter core client details like name, address, and contact information.",
+        description: "Navigates to the Basic Information section of the quote workflow",
+        agentDescription: "Navigates to the Basic Information step (step 1). Enter core client details like name, address, and contact information.",
       },
       vehicle: {
         shortcut: "⌘2",
@@ -189,6 +190,18 @@ export function buildCommands(context: CommandContext): Command[] {
         keywords: ["driver", "drivers", "step", "3"],
         description: "Navigates to the Drivers section of the quote workflow",
         agentDescription: "Navigates to the Drivers step (step 3). Add drivers and their license details for rating and underwriting.",
+      },
+      incidents: {
+        icon: AlertTriangle,
+        keywords: ["incident", "incidents", "claims", "loss", "history"],
+        description: "Navigates to the Incidents section of the quote workflow",
+        agentDescription: "Navigates to the Incidents step. Review and record driver or vehicle incidents for underwriting.",
+      },
+      reports: {
+        icon: FileText,
+        keywords: ["reports", "report", "mvr", "clue", "third-party"],
+        description: "Navigates to the Reports section of the quote workflow",
+        agentDescription: "Navigates to the Reports step. Review third-party reports such as MVR and CLUE.",
       },
       coverage: {
         shortcut: "⌘4",

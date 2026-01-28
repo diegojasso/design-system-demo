@@ -21,7 +21,17 @@ export type ClientInfoFormValues = {
   address: string
 }
 
-export type StepId = "import-summary" | "client-info" | "vehicle" | "driver" | "coverage" | "payment" | "e-sign" | "review"
+export type StepId =
+  | "import-summary"
+  | "client-info"
+  | "vehicle"
+  | "driver"
+  | "incidents"
+  | "reports"
+  | "coverage"
+  | "payment"
+  | "e-sign"
+  | "review"
 
 export interface QuoteData {
   id?: string
