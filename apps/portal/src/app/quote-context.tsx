@@ -2,13 +2,13 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { Driver } from "@/screens/components/drivers-table/types"
-import { Vehicle } from "@/screens/components/vehicles-table/types"
-import { Incident } from "@/screens/components/incidents/types"
-import { CoverageData, PricingSummary } from "@/screens/components/coverage/types"
-import { PaymentData } from "@/screens/components/payment/types"
-import type { ImportSummaryData } from "@/screens/components/import/mock-ezlynx-data"
-import { ESignatureData, Document } from "@/screens/components/e-signature/types"
+import { Driver } from "@/pages/components/drivers-table/types"
+import { Vehicle } from "@/pages/components/vehicles-table/types"
+import { Incident } from "@/pages/components/incidents/types"
+import { CoverageData, PricingSummary } from "@/pages/components/coverage/types"
+import { PaymentData } from "@/pages/components/payment/types"
+import type { ImportSummaryData } from "@/pages/components/import/mock-ezlynx-data"
+import { ESignatureData, Document } from "@/pages/components/e-signature/types"
 
 // ClientInfoFormValues type (we'll import the actual type later)
 export type ClientInfoFormValues = {

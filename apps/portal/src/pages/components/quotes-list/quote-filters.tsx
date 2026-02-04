@@ -11,7 +11,7 @@ import {
 } from "@novo/ui"
 import type { QuoteFilters, Agency } from "./types"
 import { AGENCIES } from "./types"
-import type { QuoteStatus } from "@/screens/components/command-palette/quote-types"
+import type { QuoteStatus } from "@/pages/components/command-palette/quote-types"
 
 interface QuoteFiltersProps {
   filters: QuoteFilters

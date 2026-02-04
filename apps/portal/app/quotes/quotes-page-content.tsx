@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { QuotesList } from "@/screens/components/quotes-list/quotes-list"
-import { MOCK_QUOTES } from "@/screens/components/quotes-list/mock-quotes"
+import { QuotesList } from "@/pages/components/quotes-list/quotes-list"
+import { MOCK_QUOTES } from "@/pages/components/quotes-list/mock-quotes"
 import { useSearchParams, useRouter } from "next/navigation"
-import { CommandPalette } from "@/screens/components/command-palette"
+import { CommandPalette } from "@/pages/components/command-palette"
 
 export function QuotesPageContent() {
   const searchParams = useSearchParams()

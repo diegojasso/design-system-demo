@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@novo/ui"
 import { VehicleLogo } from "./vehicle-logo"
-import { Vehicle } from "@/screens/components/vehicles-table/types"
+import { Vehicle } from "@/pages/components/vehicles-table/types"
 import { VehicleCoverage, COMPREHENSIVE_DEDUCTIBLE_OPTIONS, COLLISION_DEDUCTIBLE_OPTIONS } from "./types"
 import { BulkVehicleActions } from "./bulk-vehicle-actions"
 import { Input } from "@novo/ui"

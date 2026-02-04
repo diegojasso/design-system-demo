@@ -1,4 +1,4 @@
-import type { ImportSummaryData } from "@/screens/components/import/mock-ezlynx-data"
+import type { ImportSummaryData } from "@/pages/components/import/mock-ezlynx-data"
 
 export function getUnbindableImportCount(
   importSummary?: ImportSummaryData | null

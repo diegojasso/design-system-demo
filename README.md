@@ -74,7 +74,7 @@ design-system-demo/
 │       ├── app/            # Route binding (Server Components)
 │       ├── src/
 │       │   ├── app/        # App shell and providers
-│       │   ├── screens/    # UX-owned screen components
+│       │   ├── pages/      # UX-owned screen components
 │       │   ├── server/     # Server loaders/actions/adapters
 │       │   └── shared/     # Shared utilities
 │       └── public/         # Static assets
@@ -91,7 +91,7 @@ design-system-demo/
 ### Monorepo Notes
 
 - Yarn uses `node-modules` linker (see `.yarnrc.yml`).
-- App aliases (e.g., `@/screens/*`) are defined in `apps/portal/tsconfig.json`.
+- App aliases (e.g., `@/pages/*`) are defined in `apps/portal/tsconfig.json`.
 - Storybook tests are run via `yarn test:storybook` and use the UI package config.
 
 ### Available Scripts

@@ -1,7 +1,7 @@
-import { Driver } from "@/screens/components/drivers-table/types"
-import { Vehicle } from "@/screens/components/vehicles-table/types"
+import { Driver } from "@/pages/components/drivers-table/types"
+import { Vehicle } from "@/pages/components/vehicles-table/types"
 import { ClientInfoFormValues } from "@/app/quote-context"
-import { CoverageData } from "@/screens/components/coverage/types"
+import { CoverageData } from "@/pages/components/coverage/types"
 
 export interface ImportSummaryItem {
   id: string

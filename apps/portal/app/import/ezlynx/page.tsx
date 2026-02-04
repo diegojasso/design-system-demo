@@ -2,9 +2,9 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { ImportLoadingScreen } from "@/screens/components/import/import-loading-screen"
+import { ImportLoadingScreen } from "@/pages/components/import/import-loading-screen"
 import { useQuote } from "@/app/quote-context"
-import { MOCK_EZLYNX_QUOTE } from "@/screens/components/import/mock-ezlynx-data"
+import { MOCK_EZLYNX_QUOTE } from "@/pages/components/import/mock-ezlynx-data"
 
 export default function ImportEzlynxPage() {
   const router = useRouter()
