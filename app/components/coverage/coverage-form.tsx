@@ -17,6 +17,7 @@ import {
 import { useQuote } from "@/app/contexts/quote-context"
 import { useAutoSave } from "@/hooks/use-auto-save"
 import { CoverageWarning } from "./validation"
+import { getUnbindableImportCount, isQuoteUnbindable } from "@/app/lib/quote-binding"
 
 // Default coverage values
 const DEFAULT_LIABILITY: LiabilityCoverage = {
@@ -41,7 +42,7 @@ const DEFAULT_PRICING: PricingSummary = {
 }
 
 export function CoverageForm() {
-  const { quoteData, updateCoverage, updatePricing, saveQuote } = useQuote()
+  const { quoteData, updateCoverage, updatePricing, saveQuote, setCurrentStep } = useQuote()
   const vehicles = quoteData.vehicles || []
 
   // Initialize coverage data from context or defaults
@@ -71,6 +72,33 @@ export function CoverageForm() {
   const [pricing, setPricing] = React.useState<PricingSummary>(() => {
     return quoteData.pricing || DEFAULT_PRICING
   })
+
+  const hasUnresolvedItems = React.useMemo(() => {
+    return isQuoteUnbindable(quoteData.importSummary)
+  }, [quoteData.importSummary])
+
+  const unresolvedCount = React.useMemo(() => {
+    return getUnbindableImportCount(quoteData.importSummary)
+  }, [quoteData.importSummary])
+
+  const externalWarnings = React.useMemo<CoverageWarning[]>(() => {
+    if (!hasUnresolvedItems) {
+      return []
+    }
+
+    return [
+      {
+        id: "import-summary-bind-block",
+        severity: "warning",
+        message: `Cannot bind policy: ${unresolvedCount} unresolved item${unresolvedCount !== 1 ? "s" : ""} from import summary must be resolved before binding. You can still view and adjust coverage settings.`,
+        dismissible: false,
+        action: {
+          label: "View all in Import Summary",
+          onClick: () => setCurrentStep("import-summary"),
+        },
+      },
+    ]
+  }, [hasUnresolvedItems, unresolvedCount, setCurrentStep])
 
   // Update vehicle coverages when vehicles change
   const vehicleIdsString = React.useMemo(
@@ -240,6 +268,7 @@ export function CoverageForm() {
         <CoverageWarnings
           coverage={coverage}
           vehicles={vehicles}
+          externalWarnings={externalWarnings}
           onFixWarning={handleFixWarning}
         />
       </div>

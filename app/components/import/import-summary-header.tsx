@@ -52,7 +52,7 @@ export function ImportSummaryHeader({
   return (
     <div
       className={cn(
-        "grid grid-cols-1 gap-4 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4",
+        "grid grid-cols-1 gap-4 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 xl:grid-cols-5",
         className
       )}
     >
@@ -61,10 +61,7 @@ export function ImportSummaryHeader({
         <span className="text-xs font-medium text-muted-foreground">
           Premium Estimate
         </span>
-        <span
-          className="text-lg font-bold text-foreground"
-          style={{ fontFamily: "Inter, sans-serif" }}
-        >
+        <span className="text-sm font-semibold text-foreground">
           {formatPremium()}
         </span>
       </div>
@@ -75,10 +72,7 @@ export function ImportSummaryHeader({
           Quote Number
         </span>
         <div className="flex items-center gap-2">
-          <span
-            className="text-sm font-bold text-foreground"
-            style={{ fontFamily: "Inter, sans-serif" }}
-          >
+          <span className="text-sm font-semibold text-foreground">
             {quoteNumber}
           </span>
           <Button
@@ -102,12 +96,7 @@ export function ImportSummaryHeader({
         <span className="text-xs font-medium text-muted-foreground">
           Primary Address
         </span>
-        <span
-          className="text-sm text-foreground"
-          style={{ fontFamily: "Inter, sans-serif" }}
-        >
-          {primaryAddress}
-        </span>
+        <span className="text-sm text-foreground">{primaryAddress}</span>
       </div>
 
       {/* Third Party Reports */}

@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils"
 interface CoverageWarningsProps {
   coverage: CoverageData
   vehicles: Vehicle[]
+  externalWarnings?: CoverageWarning[]
   onFixWarning?: (warning: CoverageWarning) => void
   onDismissWarning?: (warningId: string) => void
 }
@@ -24,6 +25,7 @@ interface CoverageWarningsProps {
 export function CoverageWarnings({
   coverage,
   vehicles,
+  externalWarnings,
   onFixWarning,
   onDismissWarning,
 }: CoverageWarningsProps) {
@@ -31,8 +33,12 @@ export function CoverageWarnings({
   const [isExpanded, setIsExpanded] = React.useState(false)
 
   const warnings = React.useMemo(() => {
-    return validateCoverage(coverage, vehicles)
-  }, [coverage, vehicles])
+    const coverageWarnings = validateCoverage(coverage, vehicles)
+    if (externalWarnings && externalWarnings.length > 0) {
+      return [...externalWarnings, ...coverageWarnings]
+    }
+    return coverageWarnings
+  }, [coverage, vehicles, externalWarnings])
 
   const visibleWarnings = warnings.filter((w) => !dismissedWarnings.has(w.id))
 
@@ -186,6 +192,17 @@ export function CoverageWarnings({
                 <span className="text-xs font-medium flex-1">{warning.message}</span>
               </div>
               <div className="flex items-center gap-1">
+                {warning.action && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={warning.action.onClick}
+                  >
+                    {warning.action.label}
+                  </Button>
+                )}
                 {warning.autoFix && (
                   <Button
                     variant="outline"
@@ -196,14 +213,16 @@ export function CoverageWarnings({
                     {warning.autoFix.action}
                   </Button>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={() => handleDismiss(warning.id)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+                {warning.dismissible !== false && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => handleDismiss(warning.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>

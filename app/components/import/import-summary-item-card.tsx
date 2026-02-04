@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { CheckCircle2, ArrowRight, HelpCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -87,18 +88,18 @@ export function ImportSummaryItemCard({
       role="button"
       tabIndex={tabIndex}
       className={cn(
-        "group relative flex items-start gap-4 p-5 transition-all duration-200",
+        "group relative flex items-start gap-3 px-4 py-4 transition-colors",
         item.checked
           ? "bg-muted/30 opacity-60 animate-out fade-out-0 slide-out-to-right-4"
           : cn(
-              "hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-in fade-in-0 slide-in-from-left-4",
+              "hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               // Only add left border if NOT in workflow group (content area has border)
               !isInWorkflowGroup && workflowStage === "quote" &&
                 "border-l-4 border-l-destructive hover:bg-destructive/5",
               !isInWorkflowGroup && workflowStage === "underwriting" &&
-                "border-l-4 border-l-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-950/50",
+                "border-l-4 border-l-amber-400/70 hover:bg-amber-50/50 dark:hover:bg-amber-950/50",
               !isInWorkflowGroup && workflowStage === "bind" &&
-                "border-l-4 border-l-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/50",
+                "border-l-4 border-l-blue-400/70 hover:bg-blue-50/50 dark:hover:bg-blue-950/50",
               // Hover states when in workflow group
               isInWorkflowGroup && workflowStage === "quote" &&
                 "hover:bg-destructive/5",
@@ -137,7 +138,7 @@ export function ImportSummaryItemCard({
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className={cn(
-                "text-base font-semibold",
+                "text-sm font-semibold",
                 item.checked
                   ? "text-muted-foreground line-through"
                   : cn(
@@ -147,7 +148,6 @@ export function ImportSummaryItemCard({
                       workflowStage === "bind" && "text-blue-600 dark:text-blue-400"
                     )
               )}
-              style={{ fontFamily: "Inter, sans-serif" }}
             >
               {item.label}
             </span>
@@ -174,16 +174,20 @@ export function ImportSummaryItemCard({
           {!item.checked &&
             item.details?.type === "missing-vin" &&
             item.details.data?.vehicleName && (
-              <div className="space-y-1 mt-2">
-                <p className="text-sm text-muted-foreground">
-                  Vehicle: {item.details.data.vehicleName}
+              <div className="space-y-2 pt-2">
+                <p className="text-xs text-muted-foreground">
+                  Vehicle:{" "}
+                  <span className="font-medium text-foreground">
+                    {item.details.data.vehicleName}
+                  </span>
                 </p>
                 {onVINSave && (
-                  <div 
-                    className="mt-2"
+                  <div
+                    className="flex items-center gap-2 text-xs text-muted-foreground"
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                   >
+                    <span className="font-medium">VIN:</span>
                     <InlineVINEditor
                       value={""}
                       onSave={async (vin) => {
@@ -222,6 +226,26 @@ export function ImportSummaryItemCard({
             <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
           </div>
         )}
+
+        {/* Inline Action */}
+        {!item.checked &&
+          hasNavigation &&
+          !hasDetails &&
+          item.details?.type !== "missing-vin" && (
+            <div className="ml-3 flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2.5 text-xs"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onClick()
+                }}
+              >
+                Go to {item.relatedSection === "client-info" ? "client" : item.relatedSection}
+              </Button>
+            </div>
+          )}
 
       </div>
     </div>

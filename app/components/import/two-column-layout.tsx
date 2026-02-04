@@ -21,13 +21,13 @@ export function TwoColumnLayout({
         className
       )}
     >
-      {/* Left Column - Reference Information (33% on desktop) */}
-      <div className="lg:col-span-4 space-y-6">
+      {/* Left Column - Action Required */}
+      <div className="lg:col-span-5 space-y-6">
         {leftColumn}
       </div>
 
-      {/* Right Column - Action Required (67% on desktop) */}
-      <div className="lg:col-span-8 space-y-6">
+      {/* Right Column - Imported Info */}
+      <div className="lg:col-span-7 space-y-6">
         {rightColumn}
       </div>
     </div>

@@ -16,14 +16,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { Download, Check, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
+import { Download, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { CoverageData, PricingSummary } from "./types"
 import { PRICING_PLANS, calculatePlanPricing } from "./pricing-calculator"
 import { format } from "date-fns"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useQuote } from "@/app/contexts/quote-context"
 import { cn } from "@/lib/utils"
-import { getUnbindableImportCount, isQuoteUnbindable } from "@/app/lib/quote-binding"
+import { isQuoteUnbindable } from "@/app/lib/quote-binding"
 
 interface PricingSummarySectionProps {
   coverage: CoverageData
@@ -40,7 +39,7 @@ export function PricingSummarySection({
   onCollectPayment,
   onDownloadPDF,
 }: PricingSummarySectionProps) {
-  const { quoteData, setCurrentStep } = useQuote()
+  const { quoteData } = useQuote()
   const [isPlanDetailsExpanded, setIsPlanDetailsExpanded] = React.useState(false)
   
   const calculatedPricing = calculatePlanPricing(
@@ -56,14 +55,6 @@ export function PricingSummarySection({
   const hasUnresolvedItems = React.useMemo(() => {
     return isQuoteUnbindable(quoteData.importSummary)
   }, [quoteData.importSummary])
-
-  const unresolvedCount = React.useMemo(() => {
-    return getUnbindableImportCount(quoteData.importSummary)
-  }, [quoteData.importSummary])
-
-  const handleJumpToImportSummary = () => {
-    setCurrentStep("import-summary")
-  }
 
   // Generate start date options (next 30 days)
   const startDateOptions = React.useMemo(() => {
@@ -281,26 +272,6 @@ export function PricingSummarySection({
               </div>
             </div>
           </div>
-
-          {/* Bind Blocking Banner */}
-          {hasUnresolvedItems && (
-            <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
-              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <AlertDescription className="text-sm text-amber-900 dark:text-amber-100 space-y-2">
-                <div>
-                  Cannot bind policy: {unresolvedCount} unresolved item{unresolvedCount !== 1 ? "s" : ""} from import summary must be resolved before binding. You can still view and adjust coverage settings.
-                </div>
-                <Button
-                  type="button"
-                  variant="link"
-                  className="h-auto p-0 text-amber-900 dark:text-amber-100"
-                  onClick={handleJumpToImportSummary}
-                >
-                  View all in Import Summary
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
 
         </CardContent>
       </Card>

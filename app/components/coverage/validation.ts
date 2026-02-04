@@ -8,6 +8,11 @@ export interface CoverageWarning {
   message: string
   field?: string
   vehicleId?: string
+  dismissible?: boolean
+  action?: {
+    label: string
+    onClick: () => void
+  }
   autoFix?: {
     action: string
     newValue: any

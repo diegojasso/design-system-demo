@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { AlertTriangle, CheckCircle, CheckCircle2 } from "lucide-react"
+import { AlertTriangle, CheckCircle, CheckCircle2, ChevronDown } from "lucide-react"
 import { useQuote } from "@/app/contexts/quote-context"
 import type { ImportSummaryData, ImportSummaryItem } from "./mock-ezlynx-data"
 import {
@@ -14,12 +14,11 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { WorkflowStageGroup } from "./workflow-stage-group"
 import { getWorkflowStage } from "./mock-ezlynx-data"
 import { CoverageGapWizard } from "./coverage-gap-wizard"
 import { ImportSummaryHeader } from "./import-summary-header"
-import { CollapsibleImportedInfo } from "./collapsible-imported-info"
-import { CollapsibleTimeline } from "./collapsible-timeline"
 import { TwoColumnLayout } from "./two-column-layout"
 import { DisclosuresNotices } from "./disclosures-notices"
 
@@ -168,58 +167,32 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
       ? selectedItem.details.data
       : null
 
-  // Generate timeline events from import summary
-  const timelineEvents = React.useMemo(() => {
-    const events: Array<{
-      id: string
-      label: string
-      status: "completed" | "pending" | "failed"
-      timestamp: Date
-    }> = [
-      {
-        id: "connect",
-        label: "Connected to Ezlynx",
-        status: "completed",
-        timestamp: new Date(Date.now() - 5000),
-      },
-      {
-        id: "fetch",
-        label: "Fetched quote data",
-        status: "completed",
-        timestamp: new Date(Date.now() - 4000),
-      },
-      {
-        id: "import-drivers",
-        label: `Imported ${importSummary.importedInfo.drivers.length} driver${importSummary.importedInfo.drivers.length !== 1 ? "s" : ""}`,
-        status: "completed",
-        timestamp: new Date(Date.now() - 3000),
-      },
-      {
-        id: "import-vehicles",
-        label: `Imported ${importSummary.importedInfo.vehicles.length} vehicle${importSummary.importedInfo.vehicles.length !== 1 ? "s" : ""}`,
-        status: "completed",
-        timestamp: new Date(Date.now() - 2000),
-      },
-    ]
+  const unresolvedItems = React.useMemo(
+    () => importSummary.missingInfo.filter((item) => !item.checked),
+    [importSummary.missingInfo]
+  )
 
-    // Add reports status
-    if (importSummary.thirdPartyReports) {
-      importSummary.thirdPartyReports.reports.forEach((report) => {
-        const status: "completed" | "pending" | "failed" = 
-          report.status === "completed" ? "completed" :
-          report.status === "failed" ? "failed" :
-          "pending"
-        events.push({
-          id: `report-${report.type}`,
-          label: `${report.type.toUpperCase()} report ${status}`,
-          status,
-          timestamp: new Date(Date.now() - 1000),
-        })
-      })
-    }
+  const hasDriverAlert = React.useCallback(
+    (driverName: string) =>
+      unresolvedItems.some(
+        (item) =>
+          item.relatedSection === "driver" &&
+          (!item.details?.data?.driverName ||
+            item.details.data.driverName === driverName)
+      ),
+    [unresolvedItems]
+  )
 
-    return events
-  }, [importSummary])
+  const hasVehicleAlert = React.useCallback(
+    (vehicleLabel: string) =>
+      unresolvedItems.some(
+        (item) =>
+          item.relatedSection === "vehicle" &&
+          (!item.details?.data?.vehicleName ||
+            item.details.data.vehicleName === vehicleLabel)
+      ),
+    [unresolvedItems]
+  )
 
 
   return (
@@ -312,21 +285,87 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
         }
         rightColumn={
           <>
-            {/* Client's Information Section */}
             <div className="space-y-6">
-              <h2 className="text-lg font-bold text-foreground">Client's Information</h2>
-              
-              {/* Collapsible Imported Info */}
-              <CollapsibleImportedInfo
-                drivers={importSummary.importedInfo.drivers}
-                vehicles={importSummary.importedInfo.vehicles}
-                defaultOpen={true}
-              />
+              <div className="rounded-lg border border-border bg-card">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                  <h3 className="text-sm font-semibold text-foreground">Drivers</h3>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="divide-y divide-border">
+                  {quoteData.drivers?.map((driver, index) => {
+                    const driverName = `${driver.firstName} ${driver.lastName}`.trim()
+                    const isPrimary = index === 0
+                    return (
+                      <div key={driver.id} className="px-4 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-1 items-center gap-3">
+                            <div className="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-muted-foreground">
+                              {driver.firstName?.[0]}
+                            </div>
+                            <span className="text-sm font-semibold text-foreground">
+                              {driverName}
+                            </span>
+                          </div>
+                          {hasDriverAlert(driverName) && (
+                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                          )}
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <Badge variant="secondary">
+                            {isPrimary ? "Primary Insured" : "Covered Driver"}
+                          </Badge>
+                          {driver.dateOfBirth && (
+                            <Badge variant="secondary">
+                              {new Date(driver.dateOfBirth).toLocaleDateString("en-US", {
+                                month: "2-digit",
+                                day: "2-digit",
+                                year: "numeric",
+                              })}
+                            </Badge>
+                          )}
+                          <Badge variant="secondary">Verified</Badge>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border bg-card">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                  <h3 className="text-sm font-semibold text-foreground">Vehicles</h3>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="divide-y divide-border">
+                  {quoteData.vehicles?.map((vehicle) => {
+                    const vehicleLabel = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim()
+                    return (
+                      <div key={vehicle.id} className="px-4 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-1 items-center gap-3">
+                            <div className="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-muted-foreground">
+                              {vehicle.make?.[0]}
+                            </div>
+                            <span className="text-sm font-semibold text-foreground">
+                              {vehicleLabel}
+                            </span>
+                          </div>
+                          {hasVehicleAlert(vehicleLabel) && (
+                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                          )}
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <Badge variant="secondary">Clean Title</Badge>
+                          <Badge variant="secondary">Carfax</Badge>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
 
               <DisclosuresNotices />
 
-              {/* Collapsible Timeline */}
-              <CollapsibleTimeline events={timelineEvents} defaultOpen={false} />
             </div>
           </>
         }

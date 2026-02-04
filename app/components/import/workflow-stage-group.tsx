@@ -27,33 +27,33 @@ const stageConfig = {
     description: "Items required to generate quote",
     icon: FileText,
     color: "text-destructive",
-    bgColor: "bg-destructive/10",
     borderColor: "border-destructive/30",
     headerBg: "bg-destructive/5",
-    shadow: "shadow-destructive/10",
-    iconBg: "bg-destructive/20",
+    iconBg: "bg-destructive/10",
+    badgeBg: "bg-destructive/10 text-destructive",
+    accentBorder: "border-destructive/40",
   },
   underwriting: {
     label: "Needed for Underwriting",
     description: "Items required for underwriting review",
     icon: Shield,
     color: "text-amber-600 dark:text-amber-400",
-    bgColor: "bg-amber-50 dark:bg-amber-950",
     borderColor: "border-amber-200 dark:border-amber-800",
     headerBg: "bg-amber-50 dark:bg-amber-950",
-    shadow: "shadow-amber-500/10",
     iconBg: "bg-amber-100 dark:bg-amber-900",
+    badgeBg: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
+    accentBorder: "border-amber-400/60",
   },
   bind: {
     label: "Needed for Bind",
     description: "Items required to bind policy",
     icon: CheckCircle2,
     color: "text-blue-600 dark:text-blue-400",
-    bgColor: "bg-blue-50 dark:bg-blue-950",
     borderColor: "border-blue-200 dark:border-blue-800",
     headerBg: "bg-blue-50 dark:bg-blue-950",
-    shadow: "shadow-blue-500/10",
     iconBg: "bg-blue-100 dark:bg-blue-900",
+    badgeBg: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+    accentBorder: "border-blue-400/60",
   },
 }
 
@@ -85,18 +85,17 @@ export function WorkflowStageGroup({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border bg-card transition-all shadow-sm overflow-hidden",
-        config.shadow
+        "rounded-lg border bg-card shadow-sm transition-all overflow-hidden",
+        config.borderColor
       )}
     >
       {/* Colored Header Bar */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
-          "w-full flex items-center justify-between p-4 transition-all duration-200",
+          "w-full flex items-center justify-between gap-3 p-4 transition-colors",
           config.headerBg,
-          "hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2",
-          config.color.replace("text-", "focus:ring-")
+          "hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         )}
         aria-expanded={isExpanded}
         aria-label={`${config.label} - ${items.length} items`}
@@ -112,20 +111,15 @@ export function WorkflowStageGroup({
             <Icon className="h-5 w-5" />
           </div>
           <div className="flex items-center gap-2">
-            <span className={cn("text-base font-bold", config.color)}>
+            <span className={cn("text-base font-semibold", config.color)}>
               {config.label}
             </span>
             <span
               className={cn(
                 "text-xs font-semibold px-2 py-0.5 rounded-full",
                 allResolved
-                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                  : cn(
-                      // Slightly different shade for badge contrast
-                      stage === "quote" && "bg-destructive/20 text-destructive dark:bg-destructive/30 dark:text-destructive",
-                      stage === "underwriting" && "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
-                      stage === "bind" && "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                    )
+                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200"
+                  : config.badgeBg
               )}
             >
               {unresolvedCount > 0 ? `${unresolvedCount} unresolved` : "All resolved ✓"}
@@ -145,11 +139,10 @@ export function WorkflowStageGroup({
       {isExpanded && (
         <div 
           className={cn(
-            "bg-muted/30 border-t border-border animate-in fade-in-0 slide-in-from-top-2 duration-300",
+            "bg-background border-t border-border animate-in fade-in-0 slide-in-from-top-2 duration-300",
             // Colored left border matching stage
-            stage === "quote" && "border-l-2 border-l-destructive",
-            stage === "underwriting" && "border-l-2 border-l-amber-500",
-            stage === "bind" && "border-l-2 border-l-blue-500"
+            "border-l-2",
+            config.accentBorder
           )}
         >
           <div className="space-y-0">
