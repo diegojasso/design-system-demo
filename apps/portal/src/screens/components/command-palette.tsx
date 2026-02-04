@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, useCallback } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Search } from "lucide-react"
 import {
   CommandDialog,
@@ -18,7 +18,7 @@ import { useCommandHistory } from "./command-palette/use-command-history"
 import { useCommandPaletteContext } from "./command-palette-context"
 import { useTheme } from "@/shared/hooks/use-theme"
 import { useCommandRegistry } from "./command-palette/command-registry"
-import type { StepId } from "../contexts/quote-context"
+import type { StepId } from "@/app/quote-context"
 import type { Command } from "./command-palette/commands"
 import type { RecentQuote } from "./command-palette/quote-types"
 import { Badge } from "@novo/ui"
@@ -108,7 +108,9 @@ export function CommandPalette({
   }
 
   const context = useCommandPaletteContext()
-  const { isOpen: hookIsOpen, setIsOpen: setHookIsOpen, commands } = useCommandPalette({
+  const { commands } = useCommandPalette({
+    isOpen: context.isOpen,
+    setIsOpen: context.setIsOpen,
     currentStep,
     onStepChange,
     onFindClient,
@@ -132,22 +134,8 @@ export function CommandPalette({
     onFilterStatus,
     onClearFilters,
   })
-
-  // Use hook state as source of truth
-  const isOpen = hookIsOpen
-  
-  // Sync context to hook when opened from hint button (one-way: context -> hook)
-  useEffect(() => {
-    if (context.isOpen && !hookIsOpen) {
-      setHookIsOpen(true)
-    }
-  }, [context.isOpen, hookIsOpen, setHookIsOpen])
-
-  // Unified setIsOpen that updates both states
-  const setIsOpen = useCallback((open: boolean) => {
-    setHookIsOpen(open)
-    context.setIsOpen(open)
-  }, [context.setIsOpen])
+  const isOpen = context.isOpen
+  const setIsOpen = context.setIsOpen
 
   const [search, setSearch] = useState("")
 
@@ -165,6 +153,13 @@ export function CommandPalette({
       context._registerRegistry(registry)
     }
   }, [registry, context])
+
+  // Allow other components to open the palette via window event
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true)
+    window.addEventListener("command-palette:open", handleOpen)
+    return () => window.removeEventListener("command-palette:open", handleOpen)
+  }, [setIsOpen])
 
   // Get popular/suggested commands for empty state
   const suggestedCommands = useMemo(() => {

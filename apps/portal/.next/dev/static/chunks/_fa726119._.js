@@ -8585,6 +8585,7 @@ __turbopack_context__.s([
     ()=>CommandPaletteHint
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$search$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Search$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/search.js [app-client] (ecmascript) <export default as Search>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/packages/ui/src/index.ts [app-client] (ecmascript) <locals>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/packages/ui/src/components/button.tsx [app-client] (ecmascript)");
@@ -8599,14 +8600,26 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+;
 function CommandPaletteHint({ className, variant = "button" }) {
     _s();
     const { open } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$screens$2f$components$2f$command$2d$palette$2d$context$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCommandPaletteContext"])();
-    const isMac = ("TURBOPACK compile-time value", "object") !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    const [isMac, setIsMac] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](false);
+    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"]({
+        "CommandPaletteHint.useEffect": ()=>{
+            setIsMac(navigator.platform.toUpperCase().includes("MAC"));
+        }
+    }["CommandPaletteHint.useEffect"], []);
     const shortcut = isMac ? "⌘K" : "Ctrl+K";
+    const handleOpen = ()=>{
+        open();
+        if ("TURBOPACK compile-time truthy", 1) {
+            window.dispatchEvent(new CustomEvent("command-palette:open"));
+        }
+    };
     if (variant === "minimal") {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-            onClick: open,
+            onClick: handleOpen,
             className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$shared$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors", className),
             "aria-label": "Open command palette",
             children: [
@@ -8614,7 +8627,7 @@ function CommandPaletteHint({ className, variant = "button" }) {
                     className: "h-3.5 w-3.5"
                 }, void 0, false, {
                     fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                    lineNumber: 32,
+                    lineNumber: 43,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$kbd$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["KbdGroup"], {
@@ -8622,24 +8635,24 @@ function CommandPaletteHint({ className, variant = "button" }) {
                         children: shortcut
                     }, void 0, false, {
                         fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                        lineNumber: 34,
+                        lineNumber: 45,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                    lineNumber: 33,
+                    lineNumber: 44,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-            lineNumber: 24,
+            lineNumber: 35,
             columnNumber: 7
         }, this);
     }
     if (variant === "text") {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-            onClick: open,
+            onClick: handleOpen,
             className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$shared$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm transition-colors", className),
             "aria-label": "Open command palette",
             children: [
@@ -8647,14 +8660,14 @@ function CommandPaletteHint({ className, variant = "button" }) {
                     className: "h-4 w-4"
                 }, void 0, false, {
                     fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                    lineNumber: 50,
+                    lineNumber: 61,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                     children: "Search"
                 }, void 0, false, {
                     fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                    lineNumber: 51,
+                    lineNumber: 62,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$kbd$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["KbdGroup"], {
@@ -8662,18 +8675,18 @@ function CommandPaletteHint({ className, variant = "button" }) {
                         children: shortcut
                     }, void 0, false, {
                         fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                        lineNumber: 53,
+                        lineNumber: 64,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                    lineNumber: 52,
+                    lineNumber: 63,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-            lineNumber: 42,
+            lineNumber: 53,
             columnNumber: 7
         }, this);
     }
@@ -8681,7 +8694,7 @@ function CommandPaletteHint({ className, variant = "button" }) {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
         variant: "outline",
         size: "sm",
-        onClick: open,
+        onClick: handleOpen,
         className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$shared$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("gap-2", className),
         "aria-label": "Open command palette",
         children: [
@@ -8689,7 +8702,7 @@ function CommandPaletteHint({ className, variant = "button" }) {
                 className: "h-4 w-4"
             }, void 0, false, {
                 fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                lineNumber: 68,
+                lineNumber: 79,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8697,7 +8710,7 @@ function CommandPaletteHint({ className, variant = "button" }) {
                 children: "Search"
             }, void 0, false, {
                 fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                lineNumber: 69,
+                lineNumber: 80,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$kbd$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["KbdGroup"], {
@@ -8706,22 +8719,22 @@ function CommandPaletteHint({ className, variant = "button" }) {
                     children: shortcut
                 }, void 0, false, {
                     fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                    lineNumber: 71,
+                    lineNumber: 82,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-                lineNumber: 70,
+                lineNumber: 81,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/apps/portal/src/screens/components/command-palette-hint.tsx",
-        lineNumber: 61,
+        lineNumber: 72,
         columnNumber: 5
     }, this);
 }
-_s(CommandPaletteHint, "W3Hh8010aB2/uDeqKtRD2M3zzJA=", false, function() {
+_s(CommandPaletteHint, "CfTIz7TawjNF30fPU0bRf7mPO7c=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$screens$2f$components$2f$command$2d$palette$2d$context$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCommandPaletteContext"]
     ];

@@ -1,4 +1,4 @@
-import type { StepId } from "../../contexts/quote-context"
+import type { StepId } from "@/app/quote-context"
 import {
   Plus,
   Search,

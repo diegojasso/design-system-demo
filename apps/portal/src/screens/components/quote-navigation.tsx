@@ -3,7 +3,7 @@
 import { ChevronRight } from "lucide-react"
 import { Button } from "@novo/ui"
 import { getQuoteProgressSteps } from "./quote-steps"
-import { useQuote, type StepId } from "../contexts/quote-context"
+import { useQuote, type StepId } from "@/app/quote-context"
 
 interface QuoteNavigationProps {
   currentStep: StepId

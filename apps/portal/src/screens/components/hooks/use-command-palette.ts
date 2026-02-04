@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { buildCommands, Command } from "../command-palette/commands"
-import type { StepId } from "../../contexts/quote-context"
+import type { StepId } from "@/app/quote-context"
 import type { RecentQuote } from "../command-palette/quote-types"
 import type {
   CommandHistoryEntry,
@@ -10,6 +10,8 @@ import type {
 import type { QuoteListItem } from "../quotes-list/types"
 
 interface UseCommandPaletteProps {
+  isOpen?: boolean
+  setIsOpen?: (open: boolean) => void
   currentStep?: StepId
   onStepChange?: (step: StepId) => void
   onFindClient?: () => void
@@ -51,6 +53,8 @@ interface UseCommandPaletteReturn {
 }
 
 export function useCommandPalette({
+  isOpen: externalIsOpen,
+  setIsOpen: externalSetIsOpen,
   currentStep,
   onStepChange,
   onFindClient,
@@ -74,7 +78,9 @@ export function useCommandPalette({
   onFilterStatus,
   onClearFilters,
 }: UseCommandPaletteProps): UseCommandPaletteReturn {
-  const [isOpen, setIsOpen] = useState(false)
+  const [internalIsOpen, setInternalIsOpen] = useState(false)
+  const isOpen = externalIsOpen ?? internalIsOpen
+  const setIsOpen = externalSetIsOpen ?? setInternalIsOpen
 
   // Build commands based on context
   const allCommands = useMemo(
@@ -227,7 +233,7 @@ export function useCommandPalette({
       // ⌘K on Mac, Ctrl+K on Windows/Linux
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault()
-        setIsOpen((prev) => !prev)
+        setIsOpen(!isOpen)
       }
 
       // Prevent default browser shortcuts when palette is open
@@ -242,7 +248,7 @@ export function useCommandPalette({
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [isOpen])
+  }, [isOpen, setIsOpen])
 
   // Commands are already grouped in groupedCommands
   const commands = groupedCommands

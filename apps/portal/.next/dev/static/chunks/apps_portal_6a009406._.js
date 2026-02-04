@@ -2158,9 +2158,11 @@ var _s = __turbopack_context__.k.signature();
 "use client";
 ;
 ;
-function useCommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteId, isImported, isUnbindable, onRunReports, onSendQuote, onDownloadPDF, onImportEzlynx, recentQuotes, onOpenQuote, history = [], favorites = new Set(), customShortcuts = new Map(), onSetTheme, currentTheme, isQuotesPage, availableQuotes, onStartQuote, onFilterStatus, onClearFilters }) {
+function useCommandPalette({ isOpen: externalIsOpen, setIsOpen: externalSetIsOpen, currentStep, onStepChange, onFindClient, currentQuoteId, isImported, isUnbindable, onRunReports, onSendQuote, onDownloadPDF, onImportEzlynx, recentQuotes, onOpenQuote, history = [], favorites = new Set(), customShortcuts = new Map(), onSetTheme, currentTheme, isQuotesPage, availableQuotes, onStartQuote, onFilterStatus, onClearFilters }) {
     _s();
-    const [isOpen, setIsOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [internalIsOpen, setInternalIsOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const isOpen = externalIsOpen ?? internalIsOpen;
+    const setIsOpen = externalSetIsOpen ?? setInternalIsOpen;
     // Build commands based on context
     const allCommands = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "useCommandPalette.useMemo[allCommands]": ()=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$screens$2f$components$2f$command$2d$palette$2f$commands$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["buildCommands"])({
@@ -2320,9 +2322,7 @@ function useCommandPalette({ currentStep, onStepChange, onFindClient, currentQuo
                     // ⌘K on Mac, Ctrl+K on Windows/Linux
                     if ((e.metaKey || e.ctrlKey) && e.key === "k") {
                         e.preventDefault();
-                        setIsOpen({
-                            "useCommandPalette.useEffect.handleKeyDown": (prev)=>!prev
-                        }["useCommandPalette.useEffect.handleKeyDown"]);
+                        setIsOpen(!isOpen);
                     }
                     // Prevent default browser shortcuts when palette is open
                     if (isOpen) {
@@ -2340,7 +2340,8 @@ function useCommandPalette({ currentStep, onStepChange, onFindClient, currentQuo
             })["useCommandPalette.useEffect"];
         }
     }["useCommandPalette.useEffect"], [
-        isOpen
+        isOpen,
+        setIsOpen
     ]);
     // Commands are already grouped in groupedCommands
     const commands = groupedCommands;
@@ -2350,7 +2351,7 @@ function useCommandPalette({ currentStep, onStepChange, onFindClient, currentQuo
         commands
     };
 }
-_s(useCommandPalette, "4TUeDYNciZz3S1+Zr949tL/+yQg=");
+_s(useCommandPalette, "mrDWh9T/N73dB+tgPONaB/yztkU=");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -3021,7 +3022,9 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
         onOpenQuote?.(quoteId);
     };
     const context = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$screens$2f$components$2f$command$2d$palette$2d$context$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCommandPaletteContext"])();
-    const { isOpen: hookIsOpen, setIsOpen: setHookIsOpen, commands } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$screens$2f$components$2f$hooks$2f$use$2d$command$2d$palette$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCommandPalette"])({
+    const { commands } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$screens$2f$components$2f$hooks$2f$use$2d$command$2d$palette$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCommandPalette"])({
+        isOpen: context.isOpen,
+        setIsOpen: context.setIsOpen,
         currentStep,
         onStepChange,
         onFindClient,
@@ -3045,29 +3048,8 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
         onFilterStatus,
         onClearFilters
     });
-    // Use hook state as source of truth
-    const isOpen = hookIsOpen;
-    // Sync context to hook when opened from hint button (one-way: context -> hook)
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
-        "CommandPalette.useEffect": ()=>{
-            if (context.isOpen && !hookIsOpen) {
-                setHookIsOpen(true);
-            }
-        }
-    }["CommandPalette.useEffect"], [
-        context.isOpen,
-        hookIsOpen,
-        setHookIsOpen
-    ]);
-    // Unified setIsOpen that updates both states
-    const setIsOpen = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
-        "CommandPalette.useCallback[setIsOpen]": (open)=>{
-            setHookIsOpen(open);
-            context.setIsOpen(open);
-        }
-    }["CommandPalette.useCallback[setIsOpen]"], [
-        context.setIsOpen
-    ]);
+    const isOpen = context.isOpen;
+    const setIsOpen = context.setIsOpen;
     const [search, setSearch] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     // Get all available commands for suggestions
     const allCommands = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
@@ -3082,7 +3064,7 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
     // Create registry from all commands
     const registry = (0, __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$screens$2f$components$2f$command$2d$palette$2f$command$2d$registry$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCommandRegistry"])(allCommands);
     // Register registry with context (for agent access)
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+    useEffect({
         "CommandPalette.useEffect": ()=>{
             if (context && '_registerRegistry' in context && typeof context._registerRegistry === 'function') {
                 context._registerRegistry(registry);
@@ -3150,7 +3132,7 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                 onValueChange: setSearch
             }, void 0, false, {
                 fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                lineNumber: 222,
+                lineNumber: 210,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$command$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CommandList"], {
@@ -3165,12 +3147,12 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                         className: "h-6 w-6 text-muted-foreground"
                                     }, void 0, false, {
                                         fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                        lineNumber: 231,
+                                        lineNumber: 219,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                    lineNumber: 230,
+                                    lineNumber: 218,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3189,13 +3171,13 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 237,
+                                                    lineNumber: 225,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                            lineNumber: 234,
+                                            lineNumber: 222,
                                             columnNumber: 15
                                         }, this),
                                         search && suggestedCommands.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3206,7 +3188,7 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                                     children: "Did you mean:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 242,
+                                                    lineNumber: 230,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3221,26 +3203,26 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                                                     className: "h-3 w-3"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                                    lineNumber: 254,
+                                                                    lineNumber: 242,
                                                                     columnNumber: 27
                                                                 }, this),
                                                                 cmd.label
                                                             ]
                                                         }, cmd.id, true, {
                                                             fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                            lineNumber: 249,
+                                                            lineNumber: 237,
                                                             columnNumber: 25
                                                         }, this);
                                                     })
                                                 }, void 0, false, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 245,
+                                                    lineNumber: 233,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                            lineNumber: 241,
+                                            lineNumber: 229,
                                             columnNumber: 17
                                         }, this),
                                         !search && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3248,24 +3230,24 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                             children: "Try searching for actions, navigation, or use shortcuts"
                                         }, void 0, false, {
                                             fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                            lineNumber: 263,
+                                            lineNumber: 251,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                    lineNumber: 233,
+                                    lineNumber: 221,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                            lineNumber: 229,
+                            lineNumber: 217,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                        lineNumber: 228,
+                        lineNumber: 216,
                         columnNumber: 9
                     }, this),
                     commands.map(({ group, commands: groupCommands })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$command$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CommandGroup"], {
@@ -3292,7 +3274,7 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                             className: "h-4 w-4"
                                         }, void 0, false, {
                                             fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                            lineNumber: 296,
+                                            lineNumber: 284,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3302,7 +3284,7 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                                     children: command.label
                                                 }, void 0, false, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 298,
+                                                    lineNumber: 286,
                                                     columnNumber: 21
                                                 }, this),
                                                 command.meta && !isActiveTheme && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3310,7 +3292,7 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                                     children: command.meta
                                                 }, void 0, false, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 300,
+                                                    lineNumber: 288,
                                                     columnNumber: 23
                                                 }, this),
                                                 isActiveTheme && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
@@ -3319,7 +3301,7 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                                     children: "Active"
                                                 }, void 0, false, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 305,
+                                                    lineNumber: 293,
                                                     columnNumber: 23
                                                 }, this),
                                                 command.status && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
@@ -3328,7 +3310,7 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                                     children: command.status
                                                 }, void 0, false, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 313,
+                                                    lineNumber: 301,
                                                     columnNumber: 23
                                                 }, this),
                                                 command.usageCount !== undefined && command.usageCount > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3340,13 +3322,13 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 321,
+                                                    lineNumber: 309,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                            lineNumber: 297,
+                                            lineNumber: 285,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3356,48 +3338,48 @@ function CommandPalette({ currentStep, onStepChange, onFindClient, currentQuoteI
                                                     className: "h-3.5 w-3.5 fill-yellow-500 text-yellow-500"
                                                 }, void 0, false, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 328,
+                                                    lineNumber: 316,
                                                     columnNumber: 23
                                                 }, this),
                                                 displayShortcut && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$packages$2f$ui$2f$src$2f$components$2f$command$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CommandShortcut"], {
                                                     children: displayShortcut
                                                 }, void 0, false, {
                                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                                    lineNumber: 331,
+                                                    lineNumber: 319,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                            lineNumber: 326,
+                                            lineNumber: 314,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, command.id, true, {
                                     fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                                    lineNumber: 285,
+                                    lineNumber: 273,
                                     columnNumber: 17
                                 }, this);
                             })
                         }, group, false, {
                             fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                            lineNumber: 271,
+                            lineNumber: 259,
                             columnNumber: 11
                         }, this))
                 ]
             }, void 0, true, {
                 fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-                lineNumber: 227,
+                lineNumber: 215,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/apps/portal/src/screens/components/command-palette.tsx",
-        lineNumber: 221,
+        lineNumber: 209,
         columnNumber: 5
     }, this);
 }
-_s(CommandPalette, "F9E6lanQq/O9UL/FNlidvgdHgoI=", false, function() {
+_s(CommandPalette, "y+6rC+gaUinuUjXwfBUe0VVkX4Y=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$screens$2f$components$2f$command$2d$palette$2f$use$2d$recent$2d$quotes$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRecentQuotes"],
         __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$portal$2f$src$2f$screens$2f$components$2f$command$2d$palette$2f$use$2d$command$2d$history$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCommandHistory"],

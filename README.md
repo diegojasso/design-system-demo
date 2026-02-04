@@ -88,6 +88,12 @@ design-system-demo/
 
 ## Development
 
+### Monorepo Notes
+
+- Yarn uses `node-modules` linker (see `.yarnrc.yml`).
+- App aliases (e.g., `@/screens/*`) are defined in `apps/portal/tsconfig.json`.
+- Storybook tests are run via `yarn test:storybook` and use the UI package config.
+
 ### Available Scripts
 
 - `yarn dev` - Start the portal app (Next.js)

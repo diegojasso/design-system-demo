@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { Search } from "lucide-react"
 import { Button } from "@novo/ui"
 import { Kbd, KbdGroup } from "@novo/ui"
@@ -16,13 +17,23 @@ export function CommandPaletteHint({
   variant = "button",
 }: CommandPaletteHintProps) {
   const { open } = useCommandPaletteContext()
-  const isMac = typeof window !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0
+  const [isMac, setIsMac] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsMac(navigator.platform.toUpperCase().includes("MAC"))
+  }, [])
   const shortcut = isMac ? "⌘K" : "Ctrl+K"
+  const handleOpen = () => {
+    open()
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("command-palette:open"))
+    }
+  }
 
   if (variant === "minimal") {
     return (
       <button
-        onClick={open}
+        onClick={handleOpen}
         className={cn(
           "text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors",
           className
@@ -40,7 +51,7 @@ export function CommandPaletteHint({
   if (variant === "text") {
     return (
       <button
-        onClick={open}
+        onClick={handleOpen}
         className={cn(
           "text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm transition-colors",
           className
@@ -61,7 +72,7 @@ export function CommandPaletteHint({
     <Button
       variant="outline"
       size="sm"
-      onClick={open}
+      onClick={handleOpen}
       className={cn("gap-2", className)}
       aria-label="Open command palette"
     >
