@@ -23,17 +23,10 @@ export function CommandPaletteHint({
     setIsMac(navigator.platform.toUpperCase().includes("MAC"))
   }, [])
   const shortcut = isMac ? "⌘K" : "Ctrl+K"
-  const handleOpen = () => {
-    open()
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("command-palette:open"))
-    }
-  }
-
   if (variant === "minimal") {
     return (
       <button
-        onClick={handleOpen}
+        onClick={open}
         className={cn(
           "text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors",
           className
@@ -51,7 +44,7 @@ export function CommandPaletteHint({
   if (variant === "text") {
     return (
       <button
-        onClick={handleOpen}
+        onClick={open}
         className={cn(
           "text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm transition-colors",
           className
@@ -72,7 +65,7 @@ export function CommandPaletteHint({
     <Button
       variant="outline"
       size="sm"
-      onClick={handleOpen}
+      onClick={open}
       className={cn("gap-2", className)}
       aria-label="Open command palette"
     >

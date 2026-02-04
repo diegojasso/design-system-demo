@@ -154,13 +154,6 @@ export function CommandPalette({
     }
   }, [registry, context])
 
-  // Allow other components to open the palette via window event
-  useEffect(() => {
-    const handleOpen = () => setIsOpen(true)
-    window.addEventListener("command-palette:open", handleOpen)
-    return () => window.removeEventListener("command-palette:open", handleOpen)
-  }, [setIsOpen])
-
   // Get popular/suggested commands for empty state
   const suggestedCommands = useMemo(() => {
     if (!search) {
@@ -219,7 +212,7 @@ export function CommandPalette({
         value={search}
         onValueChange={setSearch}
       />
-      <CommandList>
+      <CommandList className="max-h-[60vh]">
         <CommandEmpty>
           <div className="flex flex-col items-center gap-3 py-6">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
