@@ -237,8 +237,6 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
         leftColumn={
           <>
             <div className="space-y-6">
-              <DisclosuresNotices />
-
               {/* Action Required Section */}
               <div className="space-y-6">
                 <h2 className="text-lg font-bold text-foreground">Action Required</h2>
@@ -324,6 +322,8 @@ export function ImportSummary({ data, quoteNumber }: ImportSummaryProps) {
                 vehicles={importSummary.importedInfo.vehicles}
                 defaultOpen={true}
               />
+
+              <DisclosuresNotices />
 
               {/* Collapsible Timeline */}
               <CollapsibleTimeline events={timelineEvents} defaultOpen={false} />

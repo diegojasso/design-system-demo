@@ -127,22 +127,12 @@ export function LiabilityCoverageSection({
 
   return (
     <div className="space-y-6">
-      {/* Additional Coverage Section */}
-      <div className="space-y-4">
-        <h2
-          className="text-lg font-semibold text-foreground"
-          style={{ fontFamily: "Inter, sans-serif" }}
-        >
-          Additional Coverage
-        </h2>
-      </div>
-
       <div className="border border-border rounded-lg overflow-hidden bg-background">
         <div ref={containerRef} className="grid grid-cols-[220px_1fr]">
-          <div className="col-span-2 border-b border-border bg-muted/60 px-4 py-3 text-sm font-medium text-foreground">
+          <div className="col-span-2 border-b border-border bg-muted/60 h-[44px] px-4 flex items-center text-sm font-medium text-foreground">
             Liability Coverage
           </div>
-          <div className="border-b border-r border-border px-4 py-3">
+          <div className="border-b border-r border-border h-[44px] px-4 flex items-center">
             <Label
               htmlFor="bodily-injury"
               className="text-sm font-medium text-foreground"
@@ -153,7 +143,7 @@ export function LiabilityCoverageSection({
           </div>
           {renderCell(
             0,
-            "border-b border-border px-4 py-3",
+            "border-b border-border h-[44px] px-4 flex items-center",
             <>
               {previewValue?.field === "bodilyInjury" && (
                 <div className="flex justify-end pb-2">
@@ -195,7 +185,7 @@ export function LiabilityCoverageSection({
             </>
           )}
 
-          <div className="border-b border-r border-border px-4 py-3">
+          <div className="border-b border-r border-border h-[44px] px-4 flex items-center">
             <Label
               htmlFor="property-damage"
               className="text-sm font-medium text-foreground"
@@ -206,7 +196,7 @@ export function LiabilityCoverageSection({
           </div>
           {renderCell(
             1,
-            "border-b border-border px-4 py-3",
+            "border-b border-border h-[44px] px-4 flex items-center",
             <>
               {previewValue?.field === "propertyDamage" && (
                 <div className="flex justify-end pb-2">
@@ -248,10 +238,10 @@ export function LiabilityCoverageSection({
             </>
           )}
 
-          <div className="col-span-2 border-b border-border bg-muted/60 px-4 py-3 text-sm font-medium text-foreground">
+          <div className="col-span-2 border-b border-border bg-muted/60 h-[44px] px-4 flex items-center text-sm font-medium text-foreground">
             Additional Coverage
           </div>
-          <div className="border-b border-r border-border px-4 py-3">
+          <div className="border-b border-r border-border h-[44px] px-4 flex items-center">
             <Label
               htmlFor="medical-payments"
               className="text-sm font-medium text-foreground"
@@ -262,7 +252,7 @@ export function LiabilityCoverageSection({
           </div>
           {renderCell(
             2,
-            "border-b border-border px-4 py-3",
+            "border-b border-border h-[44px] px-4 flex items-center",
             <>
               {previewValue?.field === "medicalPayments" && (
                 <div className="flex justify-end pb-2">
@@ -304,7 +294,7 @@ export function LiabilityCoverageSection({
             </>
           )}
 
-          <div className="border-b border-r border-border px-4 py-3">
+          <div className="border-b border-r border-border h-[44px] px-4 flex items-center">
             <Label
               htmlFor="uninsured-motorists-bi"
               className="text-sm font-medium text-foreground"
@@ -315,7 +305,7 @@ export function LiabilityCoverageSection({
           </div>
           {renderCell(
             3,
-            "border-b border-border px-4 py-3",
+            "border-b border-border h-[44px] px-4 flex items-center",
             <>
               {previewValue?.field === "uninsuredMotoristsBodilyInjury" && (
                 <div className="flex justify-end pb-2">
@@ -360,7 +350,7 @@ export function LiabilityCoverageSection({
             </>
           )}
 
-          <div className="border-b border-r border-border px-4 py-3">
+          <div className="border-b border-r border-border h-[44px] px-4 flex items-center">
             <Label
               htmlFor="underinsured-motorists-bi"
               className="text-sm font-medium text-foreground"
@@ -371,7 +361,7 @@ export function LiabilityCoverageSection({
           </div>
           {renderCell(
             4,
-            "border-b border-border px-4 py-3",
+            "border-b border-border h-[44px] px-4 flex items-center",
             <>
               {previewValue?.field === "underinsuredMotoristsBodilyInjury" && (
                 <div className="flex justify-end pb-2">
@@ -416,7 +406,7 @@ export function LiabilityCoverageSection({
             </>
           )}
 
-          <div className="border-r border-border px-4 py-3">
+          <div className="border-r border-border h-[64px] px-4 flex items-center">
             <div className="space-y-1">
               <Label
                 htmlFor="roadside-assistance"
@@ -435,7 +425,7 @@ export function LiabilityCoverageSection({
           </div>
           {renderCell(
             5,
-            "px-4 py-3",
+            "h-[64px] px-4 flex items-center",
             <>
               {previewValue?.field === "roadsideAssistance" && (
                 <div className="flex justify-end pb-2">

@@ -4,6 +4,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import { Driver } from "@/app/components/drivers-table/types"
 import { Vehicle } from "@/app/components/vehicles-table/types"
+import { Incident } from "@/app/components/incidents/types"
 import { CoverageData, PricingSummary } from "@/app/components/coverage/types"
 import { PaymentData } from "@/app/components/payment/types"
 import type { ImportSummaryData } from "@/app/components/import/mock-ezlynx-data"
@@ -38,6 +39,7 @@ export interface QuoteData {
   clientInfo?: ClientInfoFormValues
   drivers?: Driver[]
   vehicles?: Vehicle[]
+  incidents?: Incident[]
   coverage?: CoverageData
   pricing?: PricingSummary
   payment?: PaymentData
@@ -62,6 +64,7 @@ interface StoredQuote {
     clientInfo?: Omit<ClientInfoFormValues, 'dateOfBirth'> & { dateOfBirth: string | Date }
     drivers?: Driver[]
     vehicles?: Vehicle[]
+    incidents?: Incident[]
     coverage?: CoverageData
     pricing?: PricingSummary
     payment?: PaymentData
@@ -87,6 +90,7 @@ interface QuoteContextValue {
   updateClientInfo: (data: ClientInfoFormValues) => void
   updateDrivers: (drivers: Driver[]) => void
   updateVehicles: (vehicles: Vehicle[]) => void
+  updateIncidents: (incidents: Incident[]) => void
   updateCoverage: (coverage: CoverageData) => void
   updatePricing: (pricing: PricingSummary) => void
   updatePayment: (payment: PaymentData) => void
@@ -247,6 +251,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           clientInfo: clientInfo as ClientInfoFormValues | undefined,
           drivers: stored.data.drivers,
           vehicles: stored.data.vehicles,
+          incidents: stored.data.incidents,
           coverage: stored.data.coverage,
           pricing: stored.data.pricing,
           payment: stored.data.payment,
@@ -326,6 +331,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           clientInfo: serializedClientInfo as any,
           drivers: quoteData.drivers,
           vehicles: quoteData.vehicles,
+          incidents: quoteData.incidents,
           coverage: quoteData.coverage,
           pricing: quoteData.pricing,
           payment: quoteData.payment,
@@ -445,6 +451,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
       clientInfo: clientInfo as ClientInfoFormValues | undefined,
       drivers: stored.data.drivers,
       vehicles: stored.data.vehicles,
+      incidents: stored.data.incidents,
       coverage: stored.data.coverage,
       pricing: stored.data.pricing,
       payment: stored.data.payment,
@@ -497,6 +504,15 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     }))
   }, [])
 
+  // Update incidents
+  const updateIncidents = React.useCallback((incidents: Incident[]) => {
+    setQuoteData((prev) => ({
+      ...prev,
+      incidents,
+      isDirty: true,
+    }))
+  }, [])
+
   // Update coverage
   const updateCoverage = React.useCallback((coverage: CoverageData) => {
     setQuoteData((prev) => ({
@@ -544,6 +560,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
       clientInfo: importData.clientInfo,
       drivers: importData.drivers,
       vehicles: importData.vehicles,
+      incidents: importData.incidents,
       coverage: importData.coverage,
       pricing: importData.pricing,
       payment: importData.payment,
@@ -579,6 +596,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           clientInfo: serializedClientInfo as any,
           drivers: importedQuoteData.drivers,
           vehicles: importedQuoteData.vehicles,
+          incidents: importedQuoteData.incidents,
           coverage: importedQuoteData.coverage,
           pricing: importedQuoteData.pricing,
           payment: importedQuoteData.payment,
@@ -657,6 +675,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     updateClientInfo,
     updateDrivers,
     updateVehicles,
+    updateIncidents,
     updateCoverage,
     updatePricing,
     updatePayment,

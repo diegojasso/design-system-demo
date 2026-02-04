@@ -244,32 +244,17 @@ export function CoverageForm() {
         />
       </div>
 
-      {/* Two-column responsive layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-        {/* Left Column: Coverage Configuration */}
-        <div className="space-y-6">
-          <LiabilityCoverageSection
-            liability={coverage.liability}
-            additional={coverage.additional}
-            currentCoverage={coverage}
-            pricing={pricing}
-            onLiabilityChange={handleLiabilityChange}
-            onAdditionalChange={handleAdditionalChange}
-          />
+      {/* Top row: Liability + Pricing */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6">
+        <LiabilityCoverageSection
+          liability={coverage.liability}
+          additional={coverage.additional}
+          currentCoverage={coverage}
+          pricing={pricing}
+          onLiabilityChange={handleLiabilityChange}
+          onAdditionalChange={handleAdditionalChange}
+        />
 
-          <VehicleCoverageSection
-            vehicles={vehicles}
-            vehicleCoverages={coverage.vehicleCoverages}
-            onVehicleCoverageChange={handleVehicleCoverageChange}
-            onBulkUpdate={(vehicleIds, field, value) => {
-              vehicleIds.forEach((id) => {
-                handleVehicleCoverageChange(id, field, value)
-              })
-            }}
-          />
-        </div>
-
-        {/* Right Column: Pricing Summary */}
         <div className="lg:sticky lg:top-6 self-start">
           <PricingSummarySection
             coverage={coverage}
@@ -279,6 +264,20 @@ export function CoverageForm() {
             onDownloadPDF={handleDownloadPDF}
           />
         </div>
+      </div>
+
+      {/* Bottom row: Vehicle Coverages */}
+      <div>
+        <VehicleCoverageSection
+          vehicles={vehicles}
+          vehicleCoverages={coverage.vehicleCoverages}
+          onVehicleCoverageChange={handleVehicleCoverageChange}
+          onBulkUpdate={(vehicleIds, field, value) => {
+            vehicleIds.forEach((id) => {
+              handleVehicleCoverageChange(id, field, value)
+            })
+          }}
+        />
       </div>
     </div>
   )

@@ -258,7 +258,7 @@ export function VehicleCoverageSection({
                 }}
               >
                 <div className="contents">
-                  <div className="sticky left-0 top-0 z-30 border-b border-r border-border bg-muted/60 px-4 py-3 text-sm font-medium text-foreground">
+                  <div className="sticky left-0 top-0 z-30 border-b border-r border-border bg-muted/60 h-[64px] px-4 flex items-center text-sm font-medium text-foreground">
                     Coverage Type
                   </div>
                   {vehicles.map((vehicle, index) => {
@@ -267,7 +267,7 @@ export function VehicleCoverageSection({
                       <div
                         key={`header-${vehicle.id}`}
                         className={cn(
-                          "sticky top-0 z-20 border-b border-border bg-muted/60 px-4 py-3",
+                          "sticky top-0 z-20 border-b border-border bg-muted/60 h-[64px] px-4 flex items-center",
                           index < vehicles.length - 1 && "border-r border-border",
                           isSelected && "ring-2 ring-primary ring-inset"
                         )}
@@ -298,7 +298,7 @@ export function VehicleCoverageSection({
                 </div>
 
                 {/* Comprehensive Deductible */}
-                <div className="sticky left-0 z-10 border-b border-r border-border bg-background px-4 py-3 text-sm font-medium text-foreground">
+                <div className="sticky left-0 z-10 border-b border-r border-border bg-background h-[44px] px-4 flex items-center text-sm font-medium text-foreground">
                   Comprehensive Deductible
                 </div>
                 {vehicles.map((vehicle, index) => {
@@ -307,7 +307,10 @@ export function VehicleCoverageSection({
                   return renderCell(
                     0,
                     index,
-                    cn("border-b border-border px-4 py-3", index < vehicles.length - 1 && "border-r border-border"),
+                    cn(
+                      "border-b border-border h-[44px] px-4 flex items-center",
+                      index < vehicles.length - 1 && "border-r border-border"
+                    ),
                     <Select
                       value={coverage.comprehensiveDeductible || "Not Included"}
                       onValueChange={(value) => handleComprehensiveChange(vehicle.id, value)}
@@ -330,7 +333,7 @@ export function VehicleCoverageSection({
                 })}
 
                 {/* Collision Deductible */}
-                <div className="sticky left-0 z-10 border-b border-r border-border bg-background px-4 py-3 text-sm font-medium text-foreground">
+                <div className="sticky left-0 z-10 border-b border-r border-border bg-background h-[44px] px-4 flex items-center text-sm font-medium text-foreground">
                   Collision Deductible
                 </div>
                 {vehicles.map((vehicle, index) => {
@@ -339,7 +342,10 @@ export function VehicleCoverageSection({
                   return renderCell(
                     1,
                     index,
-                    cn("border-b border-border px-4 py-3", index < vehicles.length - 1 && "border-r border-border"),
+                    cn(
+                      "border-b border-border h-[44px] px-4 flex items-center",
+                      index < vehicles.length - 1 && "border-r border-border"
+                    ),
                     <Select
                       value={coverage.collisionDeductible || "Not Included"}
                       onValueChange={(value) => handleCollisionChange(vehicle.id, value)}
@@ -362,7 +368,7 @@ export function VehicleCoverageSection({
                 })}
 
                 {/* Rental Reimbursement */}
-                <div className="sticky left-0 z-10 border-b border-r border-border bg-background px-4 py-3 text-sm font-medium text-foreground">
+                <div className="sticky left-0 z-10 border-b border-r border-border bg-background h-[44px] px-4 flex items-center text-sm font-medium text-foreground">
                   Rental Reimbursement
                 </div>
                 {vehicles.map((vehicle, index) => {
@@ -373,7 +379,7 @@ export function VehicleCoverageSection({
                     2,
                     index,
                     cn(
-                      "border-b border-border px-4 py-3",
+                      "border-b border-border h-[44px] px-4 flex items-center",
                       index < vehicles.length - 1 && "border-r border-border",
                       disabled && "opacity-50"
                     ),
@@ -390,7 +396,7 @@ export function VehicleCoverageSection({
                 })}
 
                 {/* Glass Deductible */}
-                <div className="sticky left-0 z-10 border-b border-r border-border bg-background px-4 py-3 text-sm font-medium text-foreground">
+                <div className="sticky left-0 z-10 border-b border-r border-border bg-background h-[44px] px-4 flex items-center text-sm font-medium text-foreground">
                   $0 Glass Deductible
                 </div>
                 {vehicles.map((vehicle, index) => {
@@ -401,7 +407,7 @@ export function VehicleCoverageSection({
                     3,
                     index,
                     cn(
-                      "border-b border-border px-4 py-3",
+                      "border-b border-border h-[44px] px-4 flex items-center",
                       index < vehicles.length - 1 && "border-r border-border",
                       disabled && "opacity-50"
                     ),
@@ -419,7 +425,7 @@ export function VehicleCoverageSection({
                 })}
 
                 {/* Loan/Lease Payoff */}
-                <div className="sticky left-0 z-10 border-b border-r border-border bg-background px-4 py-3 text-sm font-medium text-foreground">
+                <div className="sticky left-0 z-10 border-b border-r border-border bg-background h-[44px] px-4 flex items-center text-sm font-medium text-foreground">
                   Loan/Lease Payoff
                 </div>
                 {vehicles.map((vehicle, index) => {
@@ -428,7 +434,10 @@ export function VehicleCoverageSection({
                   return renderCell(
                     4,
                     index,
-                    cn("border-b border-border px-4 py-3", index < vehicles.length - 1 && "border-r border-border"),
+                    cn(
+                      "border-b border-border h-[44px] px-4 flex items-center",
+                      index < vehicles.length - 1 && "border-r border-border"
+                    ),
                     <Switch
                       id={`loan-lease-${vehicle.id}`}
                       checked={coverage.loanLeasePayoff}
@@ -440,7 +449,7 @@ export function VehicleCoverageSection({
                 })}
 
                 {/* Custom Parts and Equipment */}
-                <div className="sticky left-0 z-10 border-b border-r border-border bg-background px-4 py-3 text-sm font-medium text-foreground">
+                <div className="sticky left-0 z-10 border-b border-r border-border bg-background h-[44px] px-4 flex items-center text-sm font-medium text-foreground">
                   Custom Parts and Equipment
                 </div>
                 {vehicles.map((vehicle, index) => {
@@ -451,7 +460,7 @@ export function VehicleCoverageSection({
                     5,
                     index,
                     cn(
-                      "border-b border-border px-4 py-3",
+                      "border-b border-border h-[44px] px-4 flex items-center",
                       index < vehicles.length - 1 && "border-r border-border",
                       disabled && "opacity-50"
                     ),
@@ -468,7 +477,7 @@ export function VehicleCoverageSection({
                 })}
 
                 {/* Custom Parts Amount */}
-                <div className="sticky left-0 z-10 border-r border-border bg-background px-4 py-3 text-sm font-medium text-foreground">
+                <div className="sticky left-0 z-10 border-r border-border bg-background h-[44px] px-4 flex items-center text-sm font-medium text-foreground">
                   Custom Parts Amount
                 </div>
                 {vehicles.map((vehicle, index) => {
@@ -478,7 +487,7 @@ export function VehicleCoverageSection({
                   return renderCell(
                     6,
                     index,
-                    cn("px-4 py-3", index < vehicles.length - 1 && "border-r border-border"),
+                    cn("h-[44px] px-4 flex items-center", index < vehicles.length - 1 && "border-r border-border"),
                     <Input
                       id={`custom-parts-amount-${vehicle.id}`}
                       type="text"
