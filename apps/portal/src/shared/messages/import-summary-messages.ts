@@ -1,0 +1,60 @@
+export const importSummaryMessages = {
+  "import-summary.empty": "No import summary available",
+  "import-summary.action-required": "Action Required",
+  "import-summary.aria-label": "Import summary",
+  "import-summary.all-requirements-met": "All requirements met",
+  "import-summary.ready-to-proceed": "Ready to proceed with quote generation",
+  "import-summary.clients-information": "Client's Information",
+  "import-summary.coverage-gap-title": "Coverage Gap Resolution",
+  "import-summary.coverage-gap-description":
+    "Step-by-step guide to resolve the coverage gap for {clientName}",
+  "import-summary.mvr-title": "MVR Report - {driverName}",
+  "import-summary.mvr-description":
+    "Review the Motor Vehicle Record report for this driver.",
+  "import-summary.driver-information": "Driver Information",
+  "import-summary.status-label": "Status:",
+  "import-summary.report-date-label": "Report Date:",
+  "import-summary.license-number-label": "License Number:",
+  "import-summary.summary": "Summary",
+  "import-summary.close": "Close",
+  "import-summary.download-report": "Download Full Report PDF ↓",
+  "import-summary.verify-close": "Verify & Close",
+  "import-summary.timeline.connected": "Connected to Ezlynx",
+  "import-summary.timeline.fetched": "Fetched quote data",
+  "import-summary.timeline.import-drivers":
+    "Imported {count} driver{countSuffix}",
+  "import-summary.timeline.import-vehicles":
+    "Imported {count} vehicle{countSuffix}",
+  "import-summary.timeline.report": "{reportType} report {status}",
+  "import-summary.timeline.title": "Import Timeline",
+  "import-summary.timeline.summary":
+    "{completed} completed{pendingSuffix}",
+  "import-summary.timeline.pending-suffix": ", {count} pending",
+  "import-summary.timeline.status.completed": "completed",
+  "import-summary.timeline.status.pending": "pending",
+  "import-summary.timeline.status.failed": "failed",
+  "import-summary.stage.quote.label": "Needed for Quote",
+  "import-summary.stage.quote.description": "Items required to generate quote",
+  "import-summary.stage.underwriting.label": "Needed for Underwriting",
+  "import-summary.stage.underwriting.description":
+    "Items required for underwriting review",
+  "import-summary.stage.bind.label": "Needed for Bind",
+  "import-summary.stage.bind.description": "Items required to bind policy",
+  "import-summary.stage.unresolved": "{count} unresolved",
+  "import-summary.stage.all-resolved": "All resolved ✓",
+  "import-summary.item.help.error":
+    "This is a critical issue that must be resolved before proceeding.",
+  "import-summary.item.help.warning":
+    "This item requires review. It may impact the quote rating.",
+  "import-summary.item.help.info":
+    "This is informational. Review and resolve as needed.",
+  "import-summary.item.vehicle-label": "Vehicle: {vehicleName}",
+  "import-summary.item.click-details": "Click to view details",
+  "import-summary.item.navigate-to": "Navigate to {section}",
+  "import-summary.header.premium-estimate": "Premium Estimate",
+  "import-summary.header.quote-number": "Quote Number",
+  "import-summary.header.primary-address": "Primary Address",
+  "import-summary.header.third-party-reports": "3rd Party Reports",
+  "import-summary.header.copy-quote-number": "Copy quote number",
+  "import-summary.header.premium-unavailable": "N/A",
+} as const;

@@ -15,11 +15,18 @@ export default defineConfig({
   test: {
     projects: [
       {
+        test: {
+          name: 'unit',
+          environment: 'node',
+          include: ['apps/portal/src/**/*.test.ts', 'apps/portal/src/**/*.test.tsx'],
+        },
+      },
+      {
         extends: true,
         plugins: [
           // The plugin will run tests for the stories defined in your Storybook config
           // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
-          storybookTest({ configDir: path.join(dirname, '.storybook') }),
+          storybookTest({ configDir: path.join(dirname, 'packages/ui/.storybook') }),
         ],
         test: {
           name: 'storybook',
@@ -29,7 +36,7 @@ export default defineConfig({
             provider: playwright({}),
             instances: [{ browser: 'chromium' }],
           },
-          setupFiles: ['.storybook/vitest.setup.ts'],
+          setupFiles: ['packages/ui/.storybook/vitest.setup.ts'],
         },
       },
     ],
