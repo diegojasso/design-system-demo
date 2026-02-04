@@ -19,7 +19,7 @@ import { useCommandPaletteContext } from "./command-palette-context"
 import { useTheme } from "@/shared/hooks/use-theme"
 import { useCommandRegistry } from "./command-palette/command-registry"
 import type { StepId } from "@/app/quote-context"
-import type { Command } from "./command-palette/commands"
+import type { Command as CommandType } from "./command-palette/commands"
 import type { RecentQuote } from "./command-palette/quote-types"
 import { Badge } from "@novo/ui"
 import { Star } from "lucide-react"
@@ -185,7 +185,7 @@ export function CommandPalette({
       .slice(0, 3)
   }, [search, allCommands])
 
-  const handleSelect = (command: Command) => {
+  const handleSelect = (command: CommandType) => {
     if (command.disabled) return
     // Track command execution
     trackCommand(command.id)
@@ -197,7 +197,7 @@ export function CommandPalette({
   // Handle right-click or long-press to favorite (for future enhancement)
   const handleFavoriteToggle = (
     e: React.MouseEvent,
-    command: Command
+    command: CommandType
   ) => {
     e.preventDefault()
     e.stopPropagation()
@@ -264,7 +264,7 @@ export function CommandPalette({
         </CommandEmpty>
         {commands.map(({ group, commands: groupCommands }) => (
           <CommandGroup key={group} heading={groupLabels[group] || group}>
-            {groupCommands.map((command: Command) => {
+            {groupCommands.map((command: CommandType) => {
               const Icon = command.icon
               const statusColors: Record<string, string> = {
                 draft: "bg-muted text-muted-foreground",
