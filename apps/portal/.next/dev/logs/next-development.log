@@ -1,0 +1,81 @@
+[00:00:00.862] Server  LOG     ✓ Ready in 656ms
+[00:00:03.533] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:03.558] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:03.967] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <CommandPaletteProvider>
+      <QuoteProvider>
+        <Suspense fallback={<div>}>
+          <TopBar>
+            <header className="fixed top-...">
+              <div className="flex w-ful...">
+                <div>
+                <div className="flex shrin...">
+                  <Button>
+                  <CommandPaletteHint variant="minimal">
+                    <button onClick={function CommandPaletteProvider.useCallback[open]} className="text-muted..." ...>
+                      <Search>
+                      <KbdGroup>
+                        <kbd data-slot="kbd-group" className="inline-fle...">
+                          <Kbd>
+                            <kbd
+                              data-slot="kbd"
+                              className={"bg-muted text-muted-foreground pointer-events-none inline-flex h-5 w-fit mi..."}
+                            >
++                             ⌘K
+-                             Ctrl+K
+                  ...
+            ...
+        ...
+      ...
+
+[00:00:03.974] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <CommandPaletteProvider>
+      <QuoteProvider>
+        <Suspense fallback={<div>}>
+          <TopBar>
+            <header className="fixed top-...">
+              <div className="flex w-ful...">
+                <div>
+                <div className="flex shrin...">
+                  <Button>
+                  <CommandPaletteHint variant="minimal">
+                    <button onClick={function CommandPaletteProvider.useCallback[open]} className="text-muted..." ...>
+                      <Search>
+                      <KbdGroup>
+                        <kbd data-slot="kbd-group" className="inline-fle...">
+                          <Kbd>
+                            <kbd
+                              data-slot="kbd"
+                              className={"bg-muted text-muted-foreground pointer-events-none inline-flex h-5 w-fit mi..."}
+                            >
++                             ⌘K
+-                             Ctrl+K
+                  ...
+            ...
+        ...
+      ...
+

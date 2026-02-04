@@ -21,6 +21,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*", "./app/*"],
+      "@/screens/*": ["./src/screens/*"],
       "@novo/ui": ["../../packages/ui/src/index.ts"],
       "@novo/ui/*": ["../../packages/ui/src/components/*"]
     }

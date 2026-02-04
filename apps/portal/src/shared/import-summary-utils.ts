@@ -1,4 +1,4 @@
-import type { ImportSummaryItem } from "@/pages/components/import/mock-ezlynx-data";
+import type { ImportSummaryItem } from "../pages/components/import/mock-ezlynx-data";
 
 /**
  * Maps item details type to workflow stage.
