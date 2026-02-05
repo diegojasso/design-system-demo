@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "yarn workspace @novo/portal build",
+  "outputDirectory": "apps/portal/.next",
+  "installCommand": "yarn install",
+  "framework": "nextjs"
+}
