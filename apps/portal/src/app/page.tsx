@@ -76,7 +76,6 @@ export default function Home() {
         {/* Main Content */}
         <div className="flex flex-1 flex-col overflow-auto bg-background pb-0 pt-14">
           <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-6 pt-10">
-
             {/* Page Header */}
             <QuoteHeader />
 

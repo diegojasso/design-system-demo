@@ -20,7 +20,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Design System Demo",
-  description: "A modern design system demo showcasing Next.js, React, Tailwind CSS, and Radix UI components",
+  description:
+    "A modern design system demo showcasing Next.js, React, Tailwind CSS, and Radix UI components",
 };
 
 export default function RootLayout({
@@ -30,9 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
