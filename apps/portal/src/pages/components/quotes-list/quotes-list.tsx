@@ -89,7 +89,7 @@ export function QuotesList({
 
   // Update URL params when filters/search/pagination change
   React.useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams?.toString() ?? "")
 
     // Update search
     if (searchQuery) {

@@ -216,7 +216,7 @@ export function ImportSummaryItemCard({
                 <span className="flex items-center gap-1">
                   <ArrowRight className="h-3 w-3" />
                   {t("import-summary.item.navigate-to", {
-                    section: item.relatedSection,
+                    section: item.relatedSection ?? "",
                   })}
                 </span>
               )}

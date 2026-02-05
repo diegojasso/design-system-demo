@@ -17,7 +17,7 @@ export function TopBar({ className }: TopBarProps) {
   const [feedbackOpen, setFeedbackOpen] = React.useState(false)
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const quoteId = searchParams.get("quote")
+  const quoteId = searchParams?.get("quote")
   const showQuoteId = pathname === "/" && !!quoteId
 
   return (

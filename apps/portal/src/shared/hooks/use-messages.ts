@@ -7,7 +7,7 @@ export function useMessages() {
       return key;
     }
     if (!params) return template;
-    return template.replace(/\{(\w+)\}/g, (_, token) => {
+    return template.replace(/\{(\w+)\}/g, (_: string, token: string) => {
       const value = params[token];
       return value === undefined ? "" : String(value);
     });

@@ -29,10 +29,10 @@ export function useBreadcrumbs(): BreadcrumbItem[] {
   const searchParams = useSearchParams()
   
   // Get quote ID from URL params if present
-  const quoteId = searchParams.get("quote")
-  
+  const quoteId = searchParams?.get("quote")
+
   // Split pathname into segments
-  const segments = pathname.split("/").filter(Boolean)
+  const segments = pathname?.split("/").filter(Boolean) ?? []
   
   // Build breadcrumbs
   const breadcrumbs: BreadcrumbItem[] = []

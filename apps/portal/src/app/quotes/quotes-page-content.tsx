@@ -11,12 +11,12 @@ export function QuotesPageContent() {
   const router = useRouter()
 
   // Get initial values from URL params
-  const initialSearch = searchParams.get("search") || ""
-  const initialStatus = searchParams.get("status") || "all"
-  const initialDate = searchParams.get("date") || "last-7-days"
-  const initialAgency = searchParams.get("agency") || "all"
-  const initialAgent = searchParams.get("agent") || "all"
-  const initialPage = parseInt(searchParams.get("page") || "1", 10)
+  const initialSearch = searchParams?.get("search") || ""
+  const initialStatus = searchParams?.get("status") || "all"
+  const initialDate = searchParams?.get("date") || "last-7-days"
+  const initialAgency = searchParams?.get("agency") || "all"
+  const initialAgent = searchParams?.get("agent") || "all"
+  const initialPage = parseInt(searchParams?.get("page") || "1", 10)
 
   // Command palette handlers
   const handleStartQuote = () => {
@@ -29,7 +29,7 @@ export function QuotesPageContent() {
 
   const handleFilterStatus = (status: string) => {
     // Update URL params
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams?.toString() ?? "")
     if (status === "all") {
       params.delete("status")
     } else {

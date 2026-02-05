@@ -182,7 +182,7 @@ export function WorkflowStageGroup({
                   onQuickResolve={() => onQuickResolve?.(item.id)}
                   onQuickDismiss={() => onQuickDismiss?.(item.id)}
                   showQuickActions={showQuickActions}
-                  onVINSave={onVINSave ? (vin) => onVINSave(item, vin) : undefined}
+                  onVINSave={onVINSave}
                   isInWorkflowGroup={true}
                 />
               </div>
