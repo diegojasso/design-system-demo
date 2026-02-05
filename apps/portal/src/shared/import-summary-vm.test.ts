@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildImportSummaryVm } from "./import-summary-vm";
-import { MOCK_EZLYNX_QUOTE } from "../pages/components/import/mock-ezlynx-data";
+import { MOCK_EZLYNX_QUOTE } from "../features/components/import/mock-ezlynx-data";
 
 describe("buildImportSummaryVm", () => {
   it("builds grouped items and header data", () => {

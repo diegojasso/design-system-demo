@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
-import { ThemeProvider } from "@/pages/components/theme-provider";
+import { ThemeProvider } from "@/features/components/theme-provider";
 import { QuoteProvider } from "@/app/quote-context";
-import { CommandPaletteProvider } from "@/pages/components/command-palette-context";
+import { CommandPaletteProvider } from "@/features/components/command-palette-context";
 import { Toaster } from "@novo/ui";
-import { TopBar } from "@/pages/components/top-bar/top-bar";
+import { TopBar } from "@/features/components/top-bar/top-bar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

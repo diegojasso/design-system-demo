@@ -1,4 +1,4 @@
-import type { QuoteStatus } from "@/pages/components/command-palette/quote-types"
+import type { QuoteStatus } from "@/features/components/command-palette/quote-types"
 import type { VariantProps } from "class-variance-authority"
 import type { badgeVariants } from "@novo/ui"
 

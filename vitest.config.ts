@@ -14,7 +14,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.join(dirname, 'apps/portal/src'),
-      '@/screens': path.join(dirname, 'apps/portal/src/screens'),
+      '@/features': path.join(dirname, 'apps/portal/src/features'),
     },
   },
   test: {

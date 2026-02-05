@@ -1,4 +1,4 @@
-import type { QuoteStatus } from "@/pages/components/command-palette/quote-types"
+import type { QuoteStatus } from "@/features/components/command-palette/quote-types"
 
 /**
  * Quote list item interface

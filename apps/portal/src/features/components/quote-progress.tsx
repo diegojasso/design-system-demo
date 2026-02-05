@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@/shared/utils"
 import { useQuote, StepId } from "@/app/quote-context"
 import { AlertTriangle } from "lucide-react"
-import { findActiveGroup, getQuoteNavigation } from "@/pages/components/quote-steps"
+import { findActiveGroup, getQuoteNavigation } from "@/features/components/quote-steps"
 
 interface QuoteProgressProps {
   currentStep?: StepId

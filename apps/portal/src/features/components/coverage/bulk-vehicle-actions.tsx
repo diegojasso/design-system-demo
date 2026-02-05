@@ -13,7 +13,7 @@ import {
 import { Checkbox } from "@novo/ui"
 import { Label } from "@novo/ui"
 import { MoreVertical, CheckSquare, Square } from "lucide-react"
-import { Vehicle } from "@/pages/components/vehicles-table/types"
+import { Vehicle } from "@/features/components/vehicles-table/types"
 import { VehicleCoverage, COMPREHENSIVE_DEDUCTIBLE_OPTIONS } from "./types"
 import { cn } from "@/shared/utils"
 

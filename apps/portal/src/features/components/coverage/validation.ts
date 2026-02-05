@@ -1,6 +1,6 @@
 // Coverage validation and warnings
 import { CoverageData, VehicleCoverage } from "./types"
-import { Vehicle } from "@/pages/components/vehicles-table/types"
+import { Vehicle } from "@/features/components/vehicles-table/types"
 
 export interface CoverageWarning {
   id: string

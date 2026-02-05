@@ -1,5 +1,5 @@
-import type { ImportSummaryVm } from "../pages/components/import/import-summary-types";
-import type { ImportSummaryData } from "../pages/components/import/mock-ezlynx-data";
+import type { ImportSummaryVm } from "../features/components/import/import-summary-types";
+import type { ImportSummaryData } from "../features/components/import/mock-ezlynx-data";
 import { getWorkflowStage } from "./import-summary-utils";
 
 type BuildImportSummaryVmInput = {

@@ -11,7 +11,7 @@ import {
 import { AlertTriangle, Info, X, ChevronDown, ChevronUp } from "lucide-react"
 import { validateCoverage, CoverageWarning } from "./validation"
 import { CoverageData } from "./types"
-import { Vehicle } from "@/pages/components/vehicles-table/types"
+import { Vehicle } from "@/features/components/vehicles-table/types"
 import { cn } from "@/shared/utils"
 
 interface CoverageWarningsProps {
