@@ -1,0 +1,29 @@
+# novo-quote-website Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-02-10
+
+## Active Technologies
+
+- TypeScript (workspace uses TypeScript ^5) + Next.js App Router (`next` ^16), React (^19), Zod (^3) (NDAI-27696-backend-endpoint-config)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+npm test && npm run lint
+
+## Code Style
+
+TypeScript (workspace uses TypeScript ^5): Follow standard conventions
+
+## Recent Changes
+
+- NDAI-27696-backend-endpoint-config: Added TypeScript (workspace uses TypeScript ^5) + Next.js App Router (`next` ^16), React (^19), Zod (^3)
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

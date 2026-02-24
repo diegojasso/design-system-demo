@@ -1,6 +1,6 @@
 import type { Preview } from '@storybook/nextjs-vite'
 
-import '../../../apps/portal/src/app/globals.css';
+import '../../../apps/agent-portal/src/app/globals.css';
 
 const preview: Preview = {
   parameters: {

@@ -1,8 +1,8 @@
-# Agent Portal — Constitution
+# Quote Website — Constitution
 
 Constitution Version: 0.2.0
 
-This document defines the non-negotiable engineering standards for the **Agent Portal** web application.
+This document defines the non-negotiable engineering standards for the **Quote Website** web application.
 
 ## Core principles
 
@@ -91,7 +91,7 @@ These goals drive architecture decisions. If an implementation conflicts with th
 
 - Owner: PM (Jane Doe) + Engineer (John Smith)
 
-**Step 2: UX creates variant components** in `apps/portal/src/pages/quotes/**`:
+**Step 2: UX creates variant components** in `apps/agent-portal/src/pages/quotes/**`:
 
 ```tsx
 // QuoteSummaryControl.tsx
@@ -118,7 +118,7 @@ export function QuoteSummaryVariantB(props: { vm: QuoteVm; actions: QuoteActions
 }
 ```
 
-**Step 3: Engineering wires up variant selection** in `apps/portal/app/quotes/[id]/page.tsx`:
+**Step 3: Engineering wires up variant selection** in `apps/agent-portal/app/quotes/[id]/page.tsx`:
 
 ```tsx
 import { getExperimentVariant } from "@/server/experiments";
@@ -140,7 +140,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 }
 ```
 
-**Step 4: Engineering adds analytics tracking** in `apps/portal/src/server/experiments/index.ts`:
+**Step 4: Engineering adds analytics tracking** in `apps/agent-portal/src/server/experiments/index.ts`:
 
 ```tsx
 import { track } from "@novo/analytics";
@@ -220,7 +220,7 @@ This constitution is a living contract. Changes must be intentional, reviewed, a
 
 - **Language**: TypeScript.
 
-- **Host app**: Next.js (App Router) with React Server Components (RSC) in `apps/portal`.
+- **Host app**: Next.js (App Router) with React Server Components (RSC) in `apps/agent-portal`.
 
 - **UI library**: React + Tailwind + Vite in `packages/ui`.
 
@@ -229,7 +229,7 @@ This constitution is a living contract. Changes must be intentional, reviewed, a
 
   - Any adoption of new shadcn components must keep `packages/ui` as "primitives only" (no business rules, no API calls).
 
-- **Routing**: Next.js App Router (`apps/portal/app/*`).
+- **Routing**: Next.js App Router (`apps/agent-portal/app/*`).
 
 - **Data fetching & caching**: Next.js `fetch` caching + revalidation by default; TanStack Query only for truly client-owned client-side caching needs.
 
@@ -239,7 +239,7 @@ This constitution is a living contract. Changes must be intentional, reviewed, a
 
 - **Lint/format**: ESLint + Prettier.
 
-- **Containerization**: Docker for `apps/portal` deploys.
+- **Containerization**: Docker for `apps/agent-portal` deploys.
 
 If the codebase uses a different stack, update this constitution in the same PR that introduces the change.
 
@@ -274,7 +274,7 @@ Rules:
 
 - Each feature/package exports a small public surface from `index.ts` / package exports.
 
-- Keep build/tooling config at repo root; keep runtime config under `apps/portal/src/app`.
+- Keep build/tooling config at repo root; keep runtime config under `apps/agent-portal/src/app`.
 
 - Enforce server/client separation:
   - `*.server.ts` (or `server/` folders): server-only code.
@@ -298,17 +298,17 @@ The collaboration contract is: **screens render view-models; server builds view-
 - **UX / Design (primary)**:
   - `packages/ui/**`: design system primitives + Storybook (shadcn/ui components).
 
-  - `apps/portal/src/pages/**`: route-level screens/layout components that compose `@novo/ui`.
+  - `apps/agent-portal/src/pages/**`: route-level screens/layout components that compose `@novo/ui`.
     - **Important**: Designers create **Client Components only** in `src/pages/**`.
 
     - Designers implement UI behavior (e.g., `await actions.submitQuote({ quoteId })`), but do NOT fetch data or implement business logic.
 
-    - Designers do NOT touch Server Components in `apps/portal/app/**`.
+    - Designers do NOT touch Server Components in `apps/agent-portal/app/**`.
 
 - **Engineering (primary)**:
-  - `apps/portal/app/**`: route binding (`page.tsx`, `layout.tsx`, `loading.tsx`, route handlers) — **Server Components only**.
+  - `apps/agent-portal/app/**`: route binding (`page.tsx`, `layout.tsx`, `loading.tsx`, route handlers) — **Server Components only**.
 
-  - `apps/portal/src/server/**`: API wrappers, domain rules, adapters, loaders, Server Actions.
+  - `apps/agent-portal/src/server/**`: API wrappers, domain rules, adapters, loaders, Server Actions.
 
   - `packages/api-client/**`: generated contracts/types + low-level service clients.
 
@@ -319,16 +319,16 @@ The collaboration contract is: **screens render view-models; server builds view-
 - `packages/ui/**` must not:
   - fetch data, call backend APIs, or contain domain rules
 
-  - import from `apps/portal/src/server/**`
+  - import from `apps/agent-portal/src/server/**`
 
-- `apps/portal/src/pages/**` must not:
+- `apps/agent-portal/src/pages/**` must not:
   - call backend APIs directly or implement domain rules/policy
 
-  - import from `apps/portal/src/server/**` (pages/screens are render-focused; route binding happens in `app/**`)
+  - import from `apps/agent-portal/src/server/**` (pages/screens are render-focused; route binding happens in `app/**`)
 
   - be Server Components (designers only create Client Components)
 
-- `apps/portal/app/**` is the binding layer:
+- `apps/agent-portal/app/**` is the binding layer:
   - it may import from `src/server/**` and from `src/pages/**`
 
   - it is **engineer-owned** (designers do not modify route binding)
@@ -345,10 +345,10 @@ The collaboration contract is: **screens render view-models; server builds view-
 
 This example shows exactly how **UX output** (a screen component) binds to **engineering output** (loader + Server Action) without designers touching route binding or server code.
 
-**UX creates** the screen in `apps/portal/src/pages/**` (render-focused, no server imports):
+**UX creates** the screen in `apps/agent-portal/src/pages/**` (render-focused, no server imports):
 
 ```tsx
-// apps/portal/src/pages/quotes/QuoteScreen.tsx
+// apps/agent-portal/src/pages/quotes/QuoteScreen.tsx
 "use client";
 
 import { Button } from "@novo/ui";
@@ -385,10 +385,10 @@ export function QuoteScreen(props: { vm: QuoteVm; actions: QuoteActions }) {
 }
 ```
 
-**Engineering creates** the loader and Server Action in `apps/portal/src/server/**`:
+**Engineering creates** the loader and Server Action in `apps/agent-portal/src/server/**`:
 
 ```ts
-// apps/portal/src/server/loaders/quote-page.server.ts
+// apps/agent-portal/src/server/loaders/quote-page.server.ts
 import type { QuoteVm } from "@/pages/quotes/QuoteScreen";
 
 export async function getQuoteVm(input: { quoteId: string }): Promise<QuoteVm> {
@@ -400,7 +400,7 @@ export async function getQuoteVm(input: { quoteId: string }): Promise<QuoteVm> {
 ```
 
 ```ts
-// apps/portal/src/server/actions/submit-quote.server.ts
+// apps/agent-portal/src/server/actions/submit-quote.server.ts
 "use server";
 
 export async function submitQuoteAction(input: { quoteId: string }): Promise<{ ok: boolean }> {
@@ -411,10 +411,10 @@ export async function submitQuoteAction(input: { quoteId: string }): Promise<{ o
 }
 ```
 
-**Engineering binds** them together in the route file `apps/portal/app/**/page.tsx`:
+**Engineering binds** them together in the route file `apps/agent-portal/app/**/page.tsx`:
 
 ```tsx
-// apps/portal/app/quotes/[quoteId]/page.tsx
+// apps/agent-portal/app/quotes/[quoteId]/page.tsx
 import { QuoteScreen } from "@/pages/quotes/QuoteScreen";
 import { submitQuoteAction } from "@/server/actions/submit-quote.server";
 import { getQuoteVm } from "@/server/loaders/quote-page.server";
@@ -486,7 +486,7 @@ export default async function Page(props: { params: Promise<{ quoteId: string }>
 
 - Add basic component tests for non-trivial behavior
 
-**Build Screen Layouts in `apps/portal/src/pages/**`**:
+**Build Screen Layouts in `apps/agent-portal/src/pages/**`**:
 
 - Compose `@novo/ui` primitives into screens (Client Components only)
 
@@ -515,14 +515,14 @@ export default async function Page(props: { params: Promise<{ quoteId: string }>
 
   - Add a basic component test when behavior is non-trivial (keyboard, disabled, dialog open/close).
 
-- \[ \] **Build screens/layout in `apps/portal/src/pages/**`**:
+- \[ \] **Build screens/layout in `apps/agent-portal/src/pages/**`**:
   - Compose `@novo/ui` primitives into a screen (layout + UX).
 
   - Use mock data and/or a placeholder view-model type during design iteration.
 
   - Fire analytics for UI interactions at the **screen/composition** layer if needed.
 
-- \[ \] **Do not touch**: `apps/portal/app/**`, `apps/portal/src/server/**`, `packages/api-client/**` (engineer-owned binding/business logic).
+- \[ \] **Do not touch**: `apps/agent-portal/app/**`, `apps/agent-portal/src/server/**`, `packages/api-client/**` (engineer-owned binding/business logic).
 
 - \[ \] **Handoff**: document required view-model fields + actions as component props (what data you need, what callbacks you need).
 
@@ -551,19 +551,19 @@ export default async function Page(props: { params: Promise<{ quoteId: string }>
 
 - **Reference this constitution in Cursor prompts** to ensure compliance
 
-- Example prompt: "Generate a quote loader following the Agent Portal constitution. The loader should fetch quote data from the API client, apply eligibility rules, and return a QuoteVm view-model."
+- Example prompt: "Generate a quote loader following the Quote Website constitution. The loader should fetch quote data from the API client, apply eligibility rules, and return a QuoteVm view-model."
 
 **Generated Code Locations**:
 
-- Loaders: `apps/portal/src/server/loaders/**`
+- Loaders: `apps/agent-portal/src/server/loaders/**`
 
-- Actions: `apps/portal/src/server/actions/**`
+- Actions: `apps/agent-portal/src/server/actions/**`
 
-- Adapters: `apps/portal/src/server/adapters/**`
+- Adapters: `apps/agent-portal/src/server/adapters/**`
 
-- Domain rules: `apps/portal/src/server/domain/**`
+- Domain rules: `apps/agent-portal/src/server/domain/**`
 
-- Clients: `apps/portal/src/server/clients/**`
+- Clients: `apps/agent-portal/src/server/clients/**`
 
 **Review Generated Code Checklist**:
 
@@ -581,7 +581,7 @@ export default async function Page(props: { params: Promise<{ quoteId: string }>
 
 - \[ \] Tests added for loaders, actions, and adapters
 
-**Bind Routes in `apps/portal/app/**`**:
+**Bind Routes in `apps/agent-portal/app/**`**:
 
 - Create/update `page.tsx` (Server Component)
 
@@ -593,7 +593,7 @@ export default async function Page(props: { params: Promise<{ quoteId: string }>
 
 - Pass view-model + actions as props to screen
 
-**Implement Business Logic in `apps/portal/src/server/**`**:
+**Implement Business Logic in `apps/agent-portal/src/server/**`**:
 
 - `loaders/**`: assemble view-models (fetch + domain rules + adapters)
 
@@ -629,14 +629,14 @@ export default async function Page(props: { params: Promise<{ quoteId: string }>
 
 ##### Engineer Checklist
 
-- \[ \] **Bind routes in `apps/portal/app/**`** (Server Components):
-  - Load data via `apps/portal/src/server/loaders/**`.
+- \[ \] **Bind routes in `apps/agent-portal/app/**`** (Server Components):
+  - Load data via `apps/agent-portal/src/server/loaders/**`.
 
-  - Render the screen from `apps/portal/src/pages/**`.
+  - Render the screen from `apps/agent-portal/src/pages/**`.
 
   - Pass view-model + action props (Server Actions) into the screen.
 
-- \[ \] **Implement business logic in `apps/portal/src/server/**`**:
+- \[ \] **Implement business logic in `apps/agent-portal/src/server/**`**:
   - `loaders/**`: assemble view-models (fetch + domain rules + adapters).
 
   - `actions/**`: mutations via Server Actions.
@@ -690,7 +690,7 @@ partition "UX / Designer" {
     :Reuse existing @novo/ui primitives;
   endif
 
-  :Implement/adjust screen layout in apps/portal/src/pages;
+  :Implement/adjust screen layout in apps/agent-portal/src/pages;
   note right
     - Client Components only
     - Compose @novo/ui primitives
@@ -728,13 +728,13 @@ partition "Engineering" {
     - Generate loaders, actions, adapters, domain rules
   end note
 
-  :Implement loader in apps/portal/src/server/loaders;
+  :Implement loader in apps/agent-portal/src/server/loaders;
   :Use packages/api-client in src/server/clients wrappers;
   :Apply domain rules in src/server/domain;
   :Map API → view-model in src/server/adapters;
   :Implement Server Actions in src/server/actions;
 
-  :Create/Update route binding in apps/portal/app/**/page.tsx;
+  :Create/Update route binding in apps/agent-portal/app/**/page.tsx;
   note right
     - Import loader, screen, actions
     - Pass view-model + actions to screen
@@ -770,7 +770,7 @@ stop
 
 - `packages/api-client`: **shared contract layer** (generated types, low-level request helpers, serialization).
 
-- `apps/portal/src/server`: **portal orchestration layer** (auth/session, caching policy, error mapping, domain rules, adapters, view-model loaders).
+- `apps/agent-portal/src/server`: **portal orchestration layer** (auth/session, caching policy, error mapping, domain rules, adapters, view-model loaders).
 
 - Rule: do **not** duplicate generated types or raw endpoint definitions in `src/server`; wrap and compose them.
 
@@ -785,7 +785,7 @@ When in doubt, use the smallest-scope place that can own the responsibility long
 
   - serialization/deserialization helpers used by multiple apps
 
-- **Put it in `apps/portal/src/server` when** it is **portal-specific orchestration**:
+- **Put it in `apps/agent-portal/src/server` when** it is **portal-specific orchestration**:
   - auth/session injection, headers, cookies
 
   - Next.js caching (`revalidate`, tags) and request policy (timeouts/retries)
@@ -796,7 +796,7 @@ When in doubt, use the smallest-scope place that can own the responsibility long
 
   - page/screen loaders and Server Actions
 
-- **Put it in `apps/portal/src/shared` when** it is a **small, cross-layer utility used by both pages and server** and is not already a package:
+- **Put it in `apps/agent-portal/src/shared` when** it is a **small, cross-layer utility used by both pages and server** and is not already a package:
   - pure helpers (formatters, small type utilities, constants)
 
   - browser-safe and server-safe code only (no secrets, no network)
@@ -831,7 +831,7 @@ Use folders to scale without forcing "feature" boundaries:
 
 ### Package responsibilities (strict)
 
-- `apps/portal` (**Host**):
+- `apps/agent-portal` (**Host**):
   - Owns routing (`app/`) and layout composition.
 
   - Coordinates RSC and Client Components.
@@ -864,12 +864,12 @@ Use folders to scale without forcing "feature" boundaries:
 - **UI branches**: `ui/<feature-name>` (designers)
   - Example: `ui/quote-summary-redesign`
 
-  - Contains changes to `packages/ui/**` and `apps/portal/src/pages/**`
+  - Contains changes to `packages/ui/**` and `apps/agent-portal/src/pages/**`
 
 - **Server branches**: `server/<feature-name>` (engineers)
   - Example: `server/quote-summary-loader`
 
-  - Contains changes to `apps/portal/src/server/**` and `apps/portal/app/**`
+  - Contains changes to `apps/agent-portal/src/server/**` and `apps/agent-portal/app/**`
 
 - **Integration branches**: `feature/<feature-name>` (merge UI + server)
   - Example: `feature/quote-summary`
@@ -880,7 +880,7 @@ Use folders to scale without forcing "feature" boundaries:
 
 ### PR Review Rules
 
-#### UI PRs (`packages/ui/**`, `apps/portal/src/pages/**`)
+#### UI PRs (`packages/ui/**`, `apps/agent-portal/src/pages/**`)
 
 **Reviewers**: UX lead + 1 engineer
 
@@ -917,7 +917,7 @@ Use folders to scale without forcing "feature" boundaries:
 
 - Example: `[UI] Add QuoteSummary screen with variant support`
 
-#### Server PRs (`apps/portal/src/server/**`, `apps/portal/app/**`)
+#### Server PRs (`apps/agent-portal/src/server/**`, `apps/agent-portal/app/**`)
 
 **Reviewers**: Tech lead only
 
@@ -956,18 +956,18 @@ Use folders to scale without forcing "feature" boundaries:
 ### Avoiding Conflicts
 
 - **Designers must NOT**:
-  - Modify route binding (`apps/portal/app/**/page.tsx`)
+  - Modify route binding (`apps/agent-portal/app/**/page.tsx`)
 
-  - Touch server code (`apps/portal/src/server/**`)
+  - Touch server code (`apps/agent-portal/src/server/**`)
 
   - Create Server Components
 
 - **Engineers must NOT**:
   - Modify UI primitives (`packages/ui/**`) without designer approval
 
-  - Change screen layouts (`apps/portal/src/pages/**`) without designer coordination
+  - Change screen layouts (`apps/agent-portal/src/pages/**`) without designer coordination
 
-- **If both need to touch `apps/portal/src/pages/**`**:
+- **If both need to touch `apps/agent-portal/src/pages/**`**:
   - Coordinate via Slack/standup before starting work
 
   - Designer owns layout/styling, engineer owns view-model types
@@ -1130,9 +1130,9 @@ The rule is simple: **pages render view-models; server builds them**.
 
   - Pass Server Action references or URLs down to the page/screen as needed (keeping UI components render-focused).
 
-## Docker (apps/portal) rules
+## Docker (apps/agent-portal) rules
 
-- `apps/portal` must be buildable and runnable via Docker in CI/CD.
+- `apps/agent-portal` must be buildable and runnable via Docker in CI/CD.
 
 - Use a multi-stage build:
   - dependencies → build → runtime
@@ -1164,7 +1164,7 @@ The rule is simple: **pages render view-models; server builds them**.
 - **Design system location (non-negotiable)**:
   - All reusable UI components MUST live in `packages/ui`.
 
-  - Apps (e.g., `apps/portal`) MUST NOT create new reusable UI primitives (buttons, inputs, typography, cards, etc.). Apps may compose `packages/ui` components into feature-level composites when necessary.
+  - Apps (e.g., `apps/agent-portal`) MUST NOT create new reusable UI primitives (buttons, inputs, typography, cards, etc.). Apps may compose `packages/ui` components into feature-level composites when necessary.
 
 - **Component coverage (non-negotiable)**:
   - Any UI component created for the portal SHOULD be added to the shared set in `packages/ui` unless it is strictly feature-specific and not reusable.
@@ -1219,7 +1219,7 @@ The rule is simple: **pages render view-models; server builds them**.
 - **Ownership**:
   - `packages/ui` may define UI-library messages (e.g., generic labels) but must not define business copy.
 
-  - Business copy belongs to the portal app (prefer `apps/portal/src/pages/**` and route-adjacent modules), or a dedicated `packages/messages` if created later.
+  - Business copy belongs to the portal app (prefer `apps/agent-portal/src/pages/**` and route-adjacent modules), or a dedicated `packages/messages` if created later.
 
 ## Error handling, logging, observability
 
@@ -1304,7 +1304,7 @@ Rules:
 
 - Mock at the network boundary (MSW for UI/integration tests where helpful).
 
-- **No untested business logic** in `apps/portal` or shared packages:
+- **No untested business logic** in `apps/agent-portal` or shared packages:
   - `packages/api-client`: unit tests for adapters/serialization and generated client wrappers as applicable.
 
   - `packages/analytics`: unit tests for event names/properties allowlists and PII guards.
@@ -1335,7 +1335,7 @@ Monorepo expectations:
 
 - Root commands must target all relevant workspaces (or provide workspace-scoped equivalents).
 
-- `apps/portal` must have `build`, `start`, and `typecheck` scripts.
+- `apps/agent-portal` must have `build`, `start`, and `typecheck` scripts.
 
 - `packages/ui` must have `build` (Vite), `typecheck`, and component tests.
 
@@ -1374,7 +1374,7 @@ CI must block merges on:
 
 - ✅ Good: `<Button onClick={props.onSubmit}>`
 
-**Designers modifying `apps/portal/app/**`**
+**Designers modifying `apps/agent-portal/app/**`**
 
 - ❌ Bad: Designer updates `app/quotes/[id]/page.tsx` to change layout
 
@@ -1425,26 +1425,26 @@ Is it a UI primitive (button, input, card)?
 ├─ Yes → packages/ui
 └─ No
    ├─ Is it a screen layout/composition?
-   │  └─ Yes → apps/portal/src/pages
+   │  └─ Yes → apps/agent-portal/src/pages
    └─ No
       ├─ Is it business logic (domain rules, API calls)?
-      │  └─ Yes → apps/portal/src/server
+      │  └─ Yes → apps/agent-portal/src/server
       └─ No
          ├─ Is it a generated API type/client?
          │  └─ Yes → packages/api-client
          └─ No
             ├─ Is it analytics tracking?
             │  └─ Yes → packages/analytics
-            └─ No → apps/portal/src/shared (if truly shared utility)
+            └─ No → apps/agent-portal/src/shared (if truly shared utility)
 ```
 
 #### "Who should review this PR?"
 
 ```
 What changed?
-├─ packages/ui or apps/portal/src/pages
+├─ packages/ui or apps/agent-portal/src/pages
 │  └─ Reviewers: UX lead + 1 engineer (focus on component props)
-├─ apps/portal/src/server or apps/portal/app
+├─ apps/agent-portal/src/server or apps/agent-portal/app
 │  └─ Reviewers: Tech lead only
 ├─ Both UI and server
 │  └─ Reviewers: UX lead + Tech lead (integration PR)
@@ -1459,15 +1459,15 @@ File: packages/ui/**
 ├─ Designer: Yes (with backward compatibility check)
 └─ Engineer: Only with designer approval
 
-File: apps/portal/src/pages/**
+File: apps/agent-portal/src/pages/**
 ├─ Designer: Yes (Client Components only)
 └─ Engineer: Only for view-model types or with designer coordination
 
-File: apps/portal/app/**
+File: apps/agent-portal/app/**
 ├─ Designer: No
 └─ Engineer: Yes
 
-File: apps/portal/src/server/**
+File: apps/agent-portal/src/server/**
 ├─ Designer: No
 └─ Engineer: Yes
 

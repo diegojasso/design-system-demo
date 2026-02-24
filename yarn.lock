@@ -1088,9 +1088,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@novo/portal@workspace:apps/portal":
+"@novo/portal@workspace:apps/agent-portal":
   version: 0.0.0-use.local
-  resolution: "@novo/portal@workspace:apps/portal"
+  resolution: "@novo/portal@workspace:apps/agent-portal"
   dependencies:
     "@hookform/resolvers": "npm:^5.2.2"
     "@novo/ui": "workspace:*"
@@ -3416,9 +3416,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"agent-portal-demo@workspace:.":
+"agent-portal@workspace:.":
   version: 0.0.0-use.local
-  resolution: "agent-portal-demo@workspace:."
+  resolution: "agent-portal@workspace:."
   dependencies:
     "@chromatic-com/storybook": "npm:^4.1.3"
     "@storybook/addon-a11y": "npm:^10.0.8"

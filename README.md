@@ -31,12 +31,29 @@ A modern Agent Portal demo built with Next.js, React, Tailwind CSS, and Radix UI
 - Node.js 20.x or higher
 - Yarn 4.x (workspaces enabled)
 
+### Yarn 4.6.0 (Corepack)
+
+This repo pins Yarn via the `packageManager` field in `package.json` (currently `yarn@4.6.0`). If your terminal is using Yarn 1.x, enable Corepack so the correct Yarn version is used.
+
+```bash
+corepack enable
+corepack prepare yarn@4.6.0 --activate
+yarn -v  # should print 4.6.0
+```
+
+If `yarn -v` still prints 1.x (shadowed by a global install), run Yarn through Corepack:
+
+```bash
+corepack yarn -v
+corepack yarn install
+```
+
 ### Installation
 
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd design-system-demo
+cd novo-quote-website
 ```
 
 2. Install dependencies:
