@@ -23,7 +23,9 @@
       "@/*": ["./src/*", "./app/*"],
       "@/features/*": ["./src/features/*"],
       "@novo/ui": ["../../packages/ui/src/index.ts"],
-      "@novo/ui/*": ["../../packages/ui/src/components/*"]
+      "@novo/ui/*": ["../../packages/ui/src/components/*"],
+      "@novo/analytics": ["../../packages/analytics/src/index.ts"],
+      "@novo/analytics/*": ["../../packages/analytics/src/*"]
     }
   },
   "include": [
