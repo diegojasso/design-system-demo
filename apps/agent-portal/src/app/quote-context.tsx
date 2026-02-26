@@ -101,6 +101,10 @@ interface QuoteContextValue {
   loadQuote: (quoteId: string) => Promise<void>
   createNewQuote: () => void
   importQuote: (data: any) => Promise<void>
+  prefillFromApplication: (data: {
+    quoteId: string
+    viewModels: { basicInfo: ClientInfoFormValues; drivers: Driver[]; vehicles: Vehicle[] }
+  }) => Promise<void>
   updateImportSummaryItem: (itemId: string, checked: boolean) => void
   isSaving: boolean
   lastSaved: Date | null
@@ -269,13 +273,11 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
         // Quote ID in URL but not found in storage, create new
         const newId = generateQuoteId()
         setQuoteId(newId)
-        updateUrl(newId)
       }
     } else {
       // No quote ID in URL, create new
       const newId = generateQuoteId()
       setQuoteId(newId)
-      updateUrl(newId)
     }
   }, [])
 
@@ -624,6 +626,59 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     }
   }, [updateUrl])
 
+  const prefillFromApplication = React.useCallback(async (input: {
+    quoteId: string
+    viewModels: { basicInfo: ClientInfoFormValues; drivers: Driver[]; vehicles: Vehicle[] }
+  }) => {
+    setQuoteId(input.quoteId)
+    updateUrl(input.quoteId)
+
+    const prefilledQuoteData: QuoteData = {
+      id: input.quoteId,
+      clientInfo: input.viewModels.basicInfo,
+      drivers: input.viewModels.drivers,
+      vehicles: input.viewModels.vehicles,
+      currentStep: "client-info",
+      isDirty: true,
+    }
+
+    setQuoteData(prefilledQuoteData)
+
+    setIsSaving(true)
+    setSaveError(null)
+    try {
+      const serializedClientInfo = prefilledQuoteData.clientInfo ? {
+        ...prefilledQuoteData.clientInfo,
+        dateOfBirth: prefilledQuoteData.clientInfo.dateOfBirth instanceof Date
+          ? prefilledQuoteData.clientInfo.dateOfBirth.toISOString()
+          : prefilledQuoteData.clientInfo.dateOfBirth,
+      } : undefined
+
+      const storedQuote: StoredQuote = {
+        id: input.quoteId,
+        version: STORAGE_VERSION,
+        createdAt: new Date().toISOString(),
+        lastSaved: new Date().toISOString(),
+        currentStep: prefilledQuoteData.currentStep || "client-info",
+        data: {
+          clientInfo: serializedClientInfo as any,
+          drivers: prefilledQuoteData.drivers,
+          vehicles: prefilledQuoteData.vehicles,
+        },
+      }
+
+      saveQuoteToStorage(storedQuote)
+      setLastSaved(new Date())
+      setQuoteData((prev) => ({ ...prev, isDirty: false }))
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error("Failed to save prefilled quote")
+      setSaveError(err)
+      console.error("Failed to save prefilled quote:", error)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [updateUrl])
+
   // Update import summary item (check/uncheck)
   const updateImportSummaryItem = React.useCallback((itemId: string, checked: boolean) => {
     setQuoteData((prev) => {
@@ -686,6 +741,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     loadQuote,
     createNewQuote,
     importQuote,
+    prefillFromApplication,
     updateImportSummaryItem,
     isSaving,
     lastSaved,
