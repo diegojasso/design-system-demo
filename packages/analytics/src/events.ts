@@ -12,3 +12,13 @@ export const portalConfigEvents = {
 export type PortalConfigEventName =
   (typeof portalConfigEvents)[keyof typeof portalConfigEvents];
 
+export const portalPrefillEvents = {
+  initialLoadStarted: "portal.prefill.initial_load.started",
+  initialLoadSucceeded: "portal.prefill.initial_load.succeeded",
+  initialLoadFailed: "portal.prefill.initial_load.failed",
+  initialLoadAccessDenied: "portal.prefill.initial_load.access_denied",
+} as const;
+
+export type PortalPrefillEventName =
+  (typeof portalPrefillEvents)[keyof typeof portalPrefillEvents];
+
