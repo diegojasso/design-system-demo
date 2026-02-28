@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import { Driver } from "@/features/components/drivers-table/types"
 import { Vehicle } from "@/features/components/vehicles-table/types"
 import { Incident } from "@/features/components/incidents/types"
+import { ThirdPartyReportsSummary } from "@/shared/third-party-reports"
 import { CoverageData, PricingSummary } from "@/features/components/coverage/types"
 import { PaymentData } from "@/features/components/payment/types"
 import type { ImportSummaryData } from "@/features/components/import/mock-ezlynx-data"
@@ -40,8 +41,17 @@ export interface QuoteData {
   drivers?: Driver[]
   vehicles?: Vehicle[]
   incidents?: Incident[]
+  reports?: ThirdPartyReportsSummary
   coverage?: CoverageData
   pricing?: PricingSummary
+  pricingMode?: "mock" | "upstream"
+  pricingStale?: boolean
+  pricingByPlanId?: Partial<Record<"novo-next" | "novo-flex" | "novo-classic", PricingSummary>>
+  upstreamContext?: {
+    partner: string
+    source: "agent" | "consumer"
+    participationOption: string[]
+  }
   payment?: PaymentData
   eSignature?: ESignatureData
   currentStep?: StepId
@@ -65,8 +75,17 @@ interface StoredQuote {
     drivers?: Driver[]
     vehicles?: Vehicle[]
     incidents?: Incident[]
+    reports?: ThirdPartyReportsSummary
     coverage?: CoverageData
     pricing?: PricingSummary
+    pricingMode?: "mock" | "upstream"
+    pricingStale?: boolean
+    pricingByPlanId?: Partial<Record<"novo-next" | "novo-flex" | "novo-classic", PricingSummary>>
+    upstreamContext?: {
+      partner: string
+      source: "agent" | "consumer"
+      participationOption: string[]
+    }
     payment?: PaymentData
     eSignature?: Omit<ESignatureData, 'sentDate' | 'lastReminderSent'> & {
       sentDate: string | null
@@ -103,7 +122,22 @@ interface QuoteContextValue {
   importQuote: (data: any) => Promise<void>
   prefillFromApplication: (data: {
     quoteId: string
-    viewModels: { basicInfo: ClientInfoFormValues; drivers: Driver[]; vehicles: Vehicle[] }
+    viewModels: {
+      basicInfo: ClientInfoFormValues
+      drivers: Driver[]
+      vehicles: Vehicle[]
+      incidents?: Incident[]
+      reports?: ThirdPartyReportsSummary
+      coverage?: CoverageData
+      pricing?: PricingSummary
+      pricingMode?: "mock" | "upstream"
+      pricingByPlanId?: Partial<Record<"novo-next" | "novo-flex" | "novo-classic", PricingSummary>>
+      upstreamContext?: {
+        partner: string
+        source: "agent" | "consumer"
+        participationOption: string[]
+      }
+    }
   }) => Promise<void>
   updateImportSummaryItem: (itemId: string, checked: boolean) => void
   isSaving: boolean
@@ -114,7 +148,6 @@ interface QuoteContextValue {
 
 const QuoteContext = React.createContext<QuoteContextValue | undefined>(undefined)
 
-const STORAGE_PREFIX = "quote-"
 const STORAGE_VERSION = 1
 
 // Generate a unique quote ID
@@ -122,91 +155,14 @@ function generateQuoteId(): string {
   return `quote-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 }
 
-// Load quote from localStorage
-function loadQuoteFromStorage(quoteId: string): StoredQuote | null {
-  try {
-    const stored = localStorage.getItem(`${STORAGE_PREFIX}${quoteId}`)
-    if (!stored) return null
-    
-    const parsed = JSON.parse(stored) as StoredQuote
-    
-    // Convert dateOfBirth string back to Date object if it exists
-    if (parsed.data.clientInfo?.dateOfBirth) {
-      parsed.data.clientInfo.dateOfBirth = new Date(parsed.data.clientInfo.dateOfBirth as any)
-    }
-    
-    // eSignature dates are stored as strings in StoredQuote and will be converted
-    // to Date objects when creating the QuoteData object (see loadQuote function)
-    
-    return parsed
-  } catch (error) {
-    console.error("Failed to load quote from storage:", error)
-    return null
-  }
+// Local draft persistence is intentionally disabled for now.
+// Source of truth is upstream application data; this avoids stale drafts when backend data is corrected.
+function loadQuoteFromStorage(_quoteId: string): StoredQuote | null {
+  return null
 }
 
-// Save quote to localStorage with error handling
-function saveQuoteToStorage(quote: StoredQuote): void {
-  try {
-    const key = `${STORAGE_PREFIX}${quote.id}`
-    const serialized = JSON.stringify(quote)
-    localStorage.setItem(key, serialized)
-  } catch (error: any) {
-    // Handle storage quota exceeded error
-    if (error?.name === 'QuotaExceededError' || error?.code === 22) {
-      // Try to free up space by removing old quotes
-      try {
-        clearOldQuotes()
-        // Retry saving
-        const key = `${STORAGE_PREFIX}${quote.id}`
-        localStorage.setItem(key, JSON.stringify(quote))
-        return
-      } catch (retryError) {
-        const quotaError = new Error("Storage quota exceeded. Please clear some space or remove old drafts.")
-        quotaError.name = "QuotaExceededError"
-        throw quotaError
-      }
-    }
-    // Re-throw other errors
-    console.error("Failed to save quote to storage:", error)
-    throw error
-  }
-}
-
-// Clear old quotes to free up storage space
-function clearOldQuotes(): void {
-  try {
-    const keys: string[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key?.startsWith(STORAGE_PREFIX)) {
-        keys.push(key)
-      }
-    }
-    
-    // Sort by last saved date (oldest first)
-    const quotes = keys.map(key => {
-      try {
-        const stored = localStorage.getItem(key)
-        if (!stored) return null
-        const parsed = JSON.parse(stored) as StoredQuote
-        return { key, lastSaved: parsed.lastSaved }
-      } catch {
-        return null
-      }
-    }).filter(Boolean) as Array<{ key: string; lastSaved: string }>
-    
-    quotes.sort((a, b) => new Date(a.lastSaved).getTime() - new Date(b.lastSaved).getTime())
-    
-    // Remove oldest 50% of quotes (keep recent ones)
-    const toRemove = Math.floor(quotes.length / 2)
-    for (let i = 0; i < toRemove; i++) {
-      localStorage.removeItem(quotes[i].key)
-    }
-  } catch (error) {
-    console.error("Failed to clear old quotes:", error)
-    // Don't throw - this is a best-effort cleanup
-  }
+function saveQuoteToStorage(_quote: StoredQuote): void {
+  // no-op
 }
 
 export function QuoteProvider({ children }: { children: React.ReactNode }) {
@@ -225,55 +181,37 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     const urlQuoteId = params.get("quote")
     
     if (urlQuoteId) {
-      // Try to load existing quote
-      const stored = loadQuoteFromStorage(urlQuoteId)
-      if (stored) {
-        setQuoteId(urlQuoteId)
-        // Convert dateOfBirth string back to Date object if needed
-        const clientInfo = stored.data.clientInfo ? {
-          ...stored.data.clientInfo,
-          dateOfBirth: stored.data.clientInfo.dateOfBirth instanceof Date
-            ? stored.data.clientInfo.dateOfBirth
-            : new Date(stored.data.clientInfo.dateOfBirth as string),
-        } : undefined
-        
-        // Convert e-signature dates back to Date objects if needed
-        const eSignature = stored.data.eSignature ? {
-          ...stored.data.eSignature,
-          sentDate: stored.data.eSignature.sentDate ? new Date(stored.data.eSignature.sentDate) : null,
-          lastReminderSent: stored.data.eSignature.lastReminderSent ? new Date(stored.data.eSignature.lastReminderSent) : null,
-          documents: stored.data.eSignature.documents.map((doc: any) => ({
-            ...doc,
-            sentDate: doc.sentDate ? (doc.sentDate instanceof Date ? doc.sentDate : new Date(doc.sentDate)) : undefined,
-            signedDate: doc.signedDate ? (doc.signedDate instanceof Date ? doc.signedDate : new Date(doc.signedDate)) : undefined,
-            expiresAt: doc.expiresAt ? (doc.expiresAt instanceof Date ? doc.expiresAt : new Date(doc.expiresAt)) : undefined,
-          })),
-        } : undefined
-        
-        setQuoteData({
-          id: stored.id,
-          clientInfo: clientInfo as ClientInfoFormValues | undefined,
-          drivers: stored.data.drivers,
-          vehicles: stored.data.vehicles,
-          incidents: stored.data.incidents,
-          coverage: stored.data.coverage,
-          pricing: stored.data.pricing,
-          payment: stored.data.payment,
-          eSignature: eSignature as ESignatureData | undefined,
-          currentStep: stored.currentStep,
-          lastSaved: new Date(stored.lastSaved),
-          isImported: stored.data.isImported,
-          importSource: stored.data.importSource,
-          importSummary: stored.data.importSummary,
-          importedAt: stored.data.importedAt ? new Date(stored.data.importedAt) : undefined,
-          ezlynxQuoteNumber: stored.data.ezlynxQuoteNumber,
-        })
-        setLastSaved(new Date(stored.lastSaved))
-      } else {
-        // Quote ID in URL but not found in storage, create new
-        const newId = generateQuoteId()
-        setQuoteId(newId)
-      }
+      // Upstream is the source of truth: fetch latest prefill data by quoteId.
+      setQuoteId(urlQuoteId)
+      ;(async () => {
+        try {
+          const res = await fetch("/api/application-prefill-by-quote", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ quoteId: urlQuoteId }),
+          })
+          if (!res.ok) return
+          const data = (await res.json()) as any
+          setQuoteData((prev) => ({
+            ...prev,
+            id: data.quoteId,
+            clientInfo: data.viewModels?.basicInfo,
+            drivers: data.viewModels?.drivers,
+            vehicles: data.viewModels?.vehicles,
+            incidents: data.viewModels?.incidents,
+            reports: data.viewModels?.reports,
+            coverage: data.viewModels?.coverage,
+            pricing: data.viewModels?.pricing,
+            pricingMode: data.viewModels?.pricingMode,
+            pricingByPlanId: data.viewModels?.pricingByPlanId,
+            upstreamContext: data.viewModels?.upstreamContext,
+            currentStep: prev.currentStep,
+            isDirty: false,
+          }))
+        } catch {
+          // ignore
+        }
+      })()
     } else {
       // No quote ID in URL, create new
       const newId = generateQuoteId()
@@ -334,8 +272,13 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           drivers: quoteData.drivers,
           vehicles: quoteData.vehicles,
           incidents: quoteData.incidents,
+          reports: quoteData.reports,
           coverage: quoteData.coverage,
           pricing: quoteData.pricing,
+          pricingMode: quoteData.pricingMode,
+          pricingStale: quoteData.pricingStale,
+          pricingByPlanId: quoteData.pricingByPlanId,
+          upstreamContext: quoteData.upstreamContext,
           payment: quoteData.payment,
           eSignature: serializedESignature as any,
           isImported: quoteData.isImported,
@@ -362,13 +305,8 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
       const err = error instanceof Error ? error : new Error("Failed to save quote")
       setSaveError(err)
       
-      // Show error toast (retry button will be added by retrySave if needed)
-      const errorMessage = err.name === "QuotaExceededError" 
-        ? "Storage quota exceeded. Please clear some space."
-        : "Failed to save quote. Click retry to try again."
-      
       toast.error("Save failed", {
-        description: errorMessage,
+        description: "Failed to save quote. Click retry to try again.",
         duration: 5000,
       })
       
@@ -417,56 +355,38 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     }
   }, [quoteId, isSaving, retryCount, saveQuote])
 
-  // Load quote from storage
+  // Load quote from upstream (source of truth)
   const loadQuote = React.useCallback(async (id: string) => {
-    const stored = loadQuoteFromStorage(id)
-    if (!stored) {
-      throw new Error(`Quote ${id} not found`)
-    }
-
     setQuoteId(id)
     updateUrl(id)
-    
-    // Convert dateOfBirth string back to Date object if needed
-    const clientInfo = stored.data.clientInfo ? {
-      ...stored.data.clientInfo,
-      dateOfBirth: stored.data.clientInfo.dateOfBirth instanceof Date
-        ? stored.data.clientInfo.dateOfBirth
-        : new Date(stored.data.clientInfo.dateOfBirth as string),
-    } : undefined
-    
-    // Convert e-signature dates back to Date objects if needed
-    const eSignature = stored.data.eSignature ? {
-      ...stored.data.eSignature,
-      sentDate: stored.data.eSignature.sentDate ? new Date(stored.data.eSignature.sentDate) : null,
-      lastReminderSent: stored.data.eSignature.lastReminderSent ? new Date(stored.data.eSignature.lastReminderSent) : null,
-      documents: stored.data.eSignature.documents.map((doc: any) => ({
-        ...doc,
-        sentDate: doc.sentDate ? (doc.sentDate instanceof Date ? doc.sentDate : new Date(doc.sentDate)) : undefined,
-        signedDate: doc.signedDate ? (doc.signedDate instanceof Date ? doc.signedDate : new Date(doc.signedDate)) : undefined,
-        expiresAt: doc.expiresAt ? (doc.expiresAt instanceof Date ? doc.expiresAt : new Date(doc.expiresAt)) : undefined,
-      })),
-    } : undefined
-    
-    setQuoteData({
-      id: stored.id,
-      clientInfo: clientInfo as ClientInfoFormValues | undefined,
-      drivers: stored.data.drivers,
-      vehicles: stored.data.vehicles,
-      incidents: stored.data.incidents,
-      coverage: stored.data.coverage,
-      pricing: stored.data.pricing,
-      payment: stored.data.payment,
-      eSignature: eSignature as ESignatureData | undefined,
-      currentStep: stored.currentStep,
-      lastSaved: new Date(stored.lastSaved),
-      isImported: stored.data.isImported,
-      importSource: stored.data.importSource,
-      importSummary: stored.data.importSummary,
-      importedAt: stored.data.importedAt ? new Date(stored.data.importedAt) : undefined,
-      ezlynxQuoteNumber: stored.data.ezlynxQuoteNumber,
+
+    const res = await fetch("/api/application-prefill-by-quote", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ quoteId: id }),
     })
-    setLastSaved(new Date(stored.lastSaved))
+
+    if (!res.ok) {
+      throw new Error(`Failed to load quote ${id}`)
+    }
+
+    const data = (await res.json()) as any
+    setQuoteData((prev) => ({
+      ...prev,
+      id: data.quoteId,
+      clientInfo: data.viewModels?.basicInfo,
+      drivers: data.viewModels?.drivers,
+      vehicles: data.viewModels?.vehicles,
+      incidents: data.viewModels?.incidents,
+      reports: data.viewModels?.reports,
+      coverage: data.viewModels?.coverage,
+      pricing: data.viewModels?.pricing,
+      pricingMode: data.viewModels?.pricingMode,
+      pricingByPlanId: data.viewModels?.pricingByPlanId,
+      upstreamContext: data.viewModels?.upstreamContext,
+      isDirty: false,
+    }))
+    setLastSaved(null)
   }, [updateUrl])
 
   // Create new quote
@@ -520,6 +440,7 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     setQuoteData((prev) => ({
       ...prev,
       coverage,
+      pricingStale: prev.pricingMode === "upstream" ? true : prev.pricingStale,
       isDirty: true,
     }))
   }, [])
@@ -529,6 +450,8 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
     setQuoteData((prev) => ({
       ...prev,
       pricing,
+      pricingMode: prev.upstreamContext ? "upstream" : prev.pricingMode,
+      pricingStale: false,
       isDirty: true,
     }))
   }, [])
@@ -563,8 +486,13 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
       drivers: importData.drivers,
       vehicles: importData.vehicles,
       incidents: importData.incidents,
+      reports: importData.reports,
       coverage: importData.coverage,
       pricing: importData.pricing,
+      pricingMode: importData.pricingMode,
+      pricingStale: importData.pricingStale,
+      pricingByPlanId: importData.pricingByPlanId,
+      upstreamContext: importData.upstreamContext,
       payment: importData.payment,
       currentStep: "import-summary",
       isImported: true,
@@ -599,8 +527,13 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
           drivers: importedQuoteData.drivers,
           vehicles: importedQuoteData.vehicles,
           incidents: importedQuoteData.incidents,
+          reports: importedQuoteData.reports,
           coverage: importedQuoteData.coverage,
           pricing: importedQuoteData.pricing,
+          pricingMode: importedQuoteData.pricingMode,
+          pricingStale: importedQuoteData.pricingStale,
+          pricingByPlanId: importedQuoteData.pricingByPlanId,
+          upstreamContext: importedQuoteData.upstreamContext,
           payment: importedQuoteData.payment,
           isImported: true,
           importSource: importedQuoteData.importSource,
@@ -628,7 +561,22 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
 
   const prefillFromApplication = React.useCallback(async (input: {
     quoteId: string
-    viewModels: { basicInfo: ClientInfoFormValues; drivers: Driver[]; vehicles: Vehicle[] }
+    viewModels: {
+      basicInfo: ClientInfoFormValues
+      drivers: Driver[]
+      vehicles: Vehicle[]
+      incidents?: Incident[]
+      reports?: ThirdPartyReportsSummary
+      coverage?: CoverageData
+      pricing?: PricingSummary
+      pricingMode?: "mock" | "upstream"
+      pricingByPlanId?: Partial<Record<"novo-next" | "novo-flex" | "novo-classic", PricingSummary>>
+      upstreamContext?: {
+        partner: string
+        source: "agent" | "consumer"
+        participationOption: string[]
+      }
+    }
   }) => {
     setQuoteId(input.quoteId)
     updateUrl(input.quoteId)
@@ -638,46 +586,22 @@ export function QuoteProvider({ children }: { children: React.ReactNode }) {
       clientInfo: input.viewModels.basicInfo,
       drivers: input.viewModels.drivers,
       vehicles: input.viewModels.vehicles,
+      incidents: input.viewModels.incidents,
+      reports: input.viewModels.reports,
+      coverage: input.viewModels.coverage,
+      pricing: input.viewModels.pricing,
+      pricingMode: input.viewModels.pricingMode,
+      pricingStale: false,
+      pricingByPlanId: input.viewModels.pricingByPlanId,
+      upstreamContext: input.viewModels.upstreamContext,
       currentStep: "client-info",
-      isDirty: true,
+      isDirty: false,
     }
 
     setQuoteData(prefilledQuoteData)
-
-    setIsSaving(true)
+    setLastSaved(null)
     setSaveError(null)
-    try {
-      const serializedClientInfo = prefilledQuoteData.clientInfo ? {
-        ...prefilledQuoteData.clientInfo,
-        dateOfBirth: prefilledQuoteData.clientInfo.dateOfBirth instanceof Date
-          ? prefilledQuoteData.clientInfo.dateOfBirth.toISOString()
-          : prefilledQuoteData.clientInfo.dateOfBirth,
-      } : undefined
-
-      const storedQuote: StoredQuote = {
-        id: input.quoteId,
-        version: STORAGE_VERSION,
-        createdAt: new Date().toISOString(),
-        lastSaved: new Date().toISOString(),
-        currentStep: prefilledQuoteData.currentStep || "client-info",
-        data: {
-          clientInfo: serializedClientInfo as any,
-          drivers: prefilledQuoteData.drivers,
-          vehicles: prefilledQuoteData.vehicles,
-        },
-      }
-
-      saveQuoteToStorage(storedQuote)
-      setLastSaved(new Date())
-      setQuoteData((prev) => ({ ...prev, isDirty: false }))
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error("Failed to save prefilled quote")
-      setSaveError(err)
-      console.error("Failed to save prefilled quote:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }, [updateUrl])
+  }, [loadQuote, updateUrl])
 
   // Update import summary item (check/uncheck)
   const updateImportSummaryItem = React.useCallback((itemId: string, checked: boolean) => {

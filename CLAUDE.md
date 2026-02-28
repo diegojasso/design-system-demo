@@ -33,24 +33,24 @@ npx vitest               # Run Vitest tests (Storybook integration tests)
 
 The application uses React Context for global state management with three main providers:
 
-1. **QuoteProvider** (`app/contexts/quote-context.tsx`) - Central state management for quote data
+1. **QuoteProvider** (`apps/agent-portal/src/app/quote-context.tsx`) - Central state management for quote data
    - Manages all quote-related data: client info, drivers, vehicles, coverage, payment, e-signature
    - Handles localStorage persistence with automatic serialization/deserialization of dates
    - Provides auto-save functionality via the `useAutoSave` hook (2s debounce)
    - Manages step progression through the quote workflow
    - Supports quote import from external systems (EZLynx)
 
-2. **CommandPaletteProvider** (`app/components/command-palette-context.tsx`) - Keyboard shortcut handler
+2. **CommandPaletteProvider** (`apps/agent-portal/src/features/components/command-palette-context.tsx`) - Keyboard shortcut handler
    - Manages command palette visibility (Cmd/Ctrl+K)
    - Provides navigation and action shortcuts
 
-3. **ThemeProvider** (`app/components/theme-provider.tsx`) - Dark/light mode management
+3. **ThemeProvider** (`apps/agent-portal/src/features/components/theme-provider.tsx`) - Dark/light mode management
    - Uses next-themes for system preference detection
    - Provides theme toggle functionality accessible via command palette
 
 ### Multi-Step Quote Workflow
 
-The application follows a linear multi-step form pattern defined in `quote-context.tsx`:
+The application follows a linear multi-step form pattern defined in `apps/agent-portal/src/app/quote-context.tsx`:
 
 **Step Flow:**
 1. `import-summary` - Review imported data (optional, only if quote was imported)
@@ -63,8 +63,8 @@ The application follows a linear multi-step form pattern defined in `quote-conte
 8. `review` - Final review (coming soon)
 
 Each step:
-- Is rendered conditionally in `app/page.tsx` based on `currentStep`
-- Has its own component in `app/components/`
+- Is rendered conditionally in `apps/agent-portal/src/app/page.tsx` based on `currentStep`
+- Has its own component under `apps/agent-portal/src/features/components/`
 - Updates state through QuoteProvider methods (e.g., `updateClientInfo`, `updateDrivers`)
 - Auto-saves changes via `useAutoSave` hook
 
@@ -75,21 +75,21 @@ components/ui/           # 54 shadcn/ui-style Radix UI components
                         # Built with class-variance-authority for variants
                         # Use cn() utility for className merging
 
-app/components/         # Application-specific components
-  ├── client-info-form.tsx       # Form with React Hook Form + Zod
-  ├── drivers-table/             # CRUD table for drivers
-  ├── vehicles-table/            # CRUD table for vehicles
-  ├── coverage/                  # Coverage selection with pricing
-  ├── payment/                   # Payment form with credit card
-  ├── e-signature/               # E-signature document workflow
-  ├── import/                    # Import summary from EZLynx
-  ├── command-palette/           # Cmd+K command palette
-  └── quotes-list/               # Quote management list
+apps/agent-portal/src/features/components/  # Application-specific components
+  ├── client-info-form.tsx                  # Form with React Hook Form + Zod
+  ├── drivers-table/                        # CRUD table for drivers
+  ├── vehicles-table/                       # CRUD table for vehicles
+  ├── coverage/                             # Coverage selection
+  ├── payment/                              # Payment form
+  ├── e-signature/                          # E-signature document workflow
+  ├── import/                               # Import summary from EZLynx
+  ├── command-palette/                      # Cmd+K command palette
+  └── quotes-list/                          # Quote management list
 
-hooks/                  # Custom React hooks
-  ├── use-auto-save.ts           # Debounced auto-save (2s default)
-  ├── use-mobile.ts              # Mobile breakpoint detection
-  └── use-theme.ts               # Theme management wrapper
+apps/agent-portal/src/shared/hooks/         # Custom React hooks
+  ├── use-auto-save.ts                      # Debounced auto-save (2s default)
+  ├── use-mobile.ts                         # Mobile breakpoint detection
+  └── use-theme.ts                          # Theme management wrapper
 ```
 
 ### Path Aliases

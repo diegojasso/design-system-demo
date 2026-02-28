@@ -44,20 +44,26 @@ Given that feature description, do this:
       git fetch --all --prune
       ```
 
-   b. Find the highest feature number across all sources for the short-name:
-      - Remote branches: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
-      - Local branches: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
-      - Specs directories: Check for directories matching `specs/[0-9]+-<short-name>`
+   b. Determine branch prefixing strategy:
+      - If the feature description includes a Jira key (e.g., starts with `NDAI-27921 ...`), prefer Jira-key branch naming.
+      - Otherwise, use the numeric `###-<short-name>` branch naming.
 
-   c. Determine the next available number:
-      - Extract all numbers from all three sources
-      - Find the highest number N
-      - Use N+1 for the new branch number
+   c. **If Jira key is present**:
+      - Extract Jira key from the user input (e.g., `NDAI-27921`)
+      - Run the script once using Jira key prefixing (do NOT pass `--number`):
+        - Bash example: `.specify/scripts/bash/create-new-feature.sh --json --app agent-portal --jira-key "NDAI-27921" --short-name "more-vm-bind" "$ARGUMENTS"`
 
-   d. Run the script `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS"` with the calculated number and short-name:
-      - Pass `--number N+1` and `--short-name "your-short-name"` along with the feature description
-      - Bash example: `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS" --json --number 5 --short-name "user-auth" "Add user authentication"`
-      - PowerShell example: `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS" -Json -Number 5 -ShortName "user-auth" "Add user authentication"`
+   d. **If Jira key is NOT present**:
+      - Find the highest feature number across all sources for the short-name:
+        - Remote branches: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
+        - Local branches: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
+        - Specs directories: Check for directories matching `specs/[0-9]+-<short-name>`
+      - Determine the next available number:
+        - Extract all numbers from all three sources
+        - Find the highest number N
+        - Use N+1 for the new branch number
+      - Run the script once with the calculated number and short-name:
+        - Bash example: `.specify/scripts/bash/create-new-feature.sh --json --app agent-portal --number 5 --short-name "user-auth" "$ARGUMENTS"`
 
    **IMPORTANT**:
    - Check all three sources (remote branches, local branches, specs directories) to find the highest number

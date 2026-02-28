@@ -48,8 +48,14 @@ const paymentSchema = z.object({
   email: z.string().optional(),
   creditCard: z.object({
     nameOnCard: z.string().min(1, "Name on card is required"),
-    cardNumber: z.string().regex(/^\d{4}\s\d{4}\s\d{4}\s\d{4}$/, "Invalid card number (format: XXXX XXXX XXXX XXXX)"),
-    expirationDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Invalid expiration date (MM/YY)"),
+    cardNumber: z
+      .string()
+      .min(1, "Card number is required")
+      .refine((value) => /^\d{16}$/.test(value.replace(/\s/g, "")), "Invalid card number"),
+    expirationDate: z
+      .string()
+      .min(1, "Expiration date is required")
+      .refine((value) => /^(0[1-9]|1[0-2])\/\d{2}$/.test(value) || /^(0[1-9]|1[0-2])\d{2}$/.test(value), "Invalid expiration date"),
     cvv: z.string().regex(/^\d{3,4}$/, "Invalid CVV"),
     billingAddressSameAsHome: z.boolean(),
   }).optional(),
@@ -95,22 +101,6 @@ const paymentSchema = z.object({
 })
 
 type PaymentFormValues = z.infer<typeof paymentSchema>
-
-// Format card number with spaces
-function formatCardNumber(value: string): string {
-  const digits = value.replace(/\D/g, "")
-  const formatted = digits.match(/.{1,4}/g)?.join(" ") || digits
-  return formatted.slice(0, 19) // Max 16 digits + 3 spaces
-}
-
-// Format expiration date as MM/YY
-function formatExpirationDate(value: string): string {
-  const digits = value.replace(/\D/g, "")
-  if (digits.length <= 2) {
-    return digits
-  }
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}`
-}
 
 export function PaymentForm() {
   const { quoteData, updatePayment, saveQuote } = useQuote()
@@ -384,10 +374,6 @@ export function PaymentForm() {
                                               className="h-10 text-base leading-[1.5]"
                                               style={{ fontFamily: "Inter, sans-serif" }}
                                               maxLength={19}
-                                              onChange={(e) => {
-                                                const formatted = formatCardNumber(e.target.value)
-                                                field.onChange(formatted)
-                                              }}
                                             />
                                           </FormControl>
                                           <FormDescription className="text-sm text-muted-foreground mt-1">
@@ -419,10 +405,6 @@ export function PaymentForm() {
                                                 className="h-10 text-base leading-[1.5]"
                                                 style={{ fontFamily: "Inter, sans-serif" }}
                                                 maxLength={5}
-                                                onChange={(e) => {
-                                                  const formatted = formatExpirationDate(e.target.value)
-                                                  field.onChange(formatted)
-                                                }}
                                               />
                                             </FormControl>
                                             <FormMessage />

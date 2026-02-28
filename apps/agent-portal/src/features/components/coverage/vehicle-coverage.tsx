@@ -214,18 +214,6 @@ export function VehicleCoverageSection({
     }
   }
 
-  // Format currency input
-  const formatCurrency = (value: number | undefined): string => {
-    if (value === undefined || value === null) return "$0"
-    return `$${value.toLocaleString()}`
-  }
-
-  // Parse currency input
-  const parseCurrency = (value: string): number => {
-    const cleaned = value.replace(/[^0-9]/g, "")
-    return cleaned ? parseInt(cleaned, 10) : 0
-  }
-
   return (
     <div className="space-y-6">
       {vehicles.length === 0 ? (
@@ -491,10 +479,9 @@ export function VehicleCoverageSection({
                     <Input
                       id={`custom-parts-amount-${vehicle.id}`}
                       type="text"
-                      value={formatCurrency(coverage.customPartsAmount)}
+                      value={coverage.customPartsAmount ?? ""}
                       onChange={(e) => {
-                        const value = parseCurrency(e.target.value)
-                        onVehicleCoverageChange(vehicle.id, "customPartsAmount", value)
+                        onVehicleCoverageChange(vehicle.id, "customPartsAmount", e.target.value)
                       }}
                       placeholder="$0"
                       className="w-full border-0 bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"

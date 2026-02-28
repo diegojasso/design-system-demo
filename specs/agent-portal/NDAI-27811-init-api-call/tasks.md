@@ -44,7 +44,7 @@
 - [x] T016 [P] Add Application API types in `packages/api-client/src/application/types.ts` (minimal shapes needed for mapping)
 - [x] T017 Implement Application API client in `packages/api-client/src/application/application-api.client.ts` (methods for endpoints used by flow)
 - [x] T018 Export client + types from `packages/api-client/src/index.ts`
-- [x] T019 Implement portal internal prefill route in `apps/agent-portal/src/app/api/application-prefill/route.ts` (matches `contracts/portal-application-prefill.openapi.yaml`)
+- [x] T019 Implement portal internal prefill route in `apps/agent-portal/src/app/api/application-prefill/route.ts` (matches `contracts/openapi/agent-portal/application-prefill.openapi.yaml`)
 - [x] T020 In `apps/agent-portal/src/app/api/application-prefill/route.ts`, validate request with Zod and ensure responses never include secrets/PII
 - [x] T021 Implement server loader orchestration in `apps/agent-portal/src/server/loaders/application-prefill-loader.server.ts` (payload → quoteId → Application API calls → VM)
 - [x] T022 Implement `initial-info` route page in `apps/agent-portal/src/app/initial-info/page.tsx` (client page with loading screen + triggers prefill)
@@ -95,7 +95,7 @@
 **Purpose**: Documentation, safety checks, consistency with constitution.
 
 - [x] T038 Update `specs/agent-portal/NDAI-27811-init-api-call/quickstart.md` if any env names/paths change during implementation
-- [x] T039 Confirm contract alignment: update `specs/agent-portal/NDAI-27811-init-api-call/contracts/portal-application-prefill.openapi.yaml` if response shape changes
+- [x] T039 Confirm contract alignment: update `contracts/openapi/agent-portal/application-prefill.openapi.yaml` if response shape changes
 - [x] T040 Ensure no secrets/PII are logged or tracked (review `apps/agent-portal/src/app/initial-info/page.tsx` + route handler)
 - [x] T041 [P] Add minimal inline docs to `packages/api-client/src/application/application-api.client.ts` for intended server-only usage
 - [x] T042 Run through `specs/agent-portal/NDAI-27811-init-api-call/quickstart.md` manually and confirm it matches behavior

@@ -29,11 +29,11 @@ export function ImportSummaryHeader({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(quoteNumber)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error("Failed to copy:", err)
+    } catch {
+      return
     }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   const formatPremium = () => {
