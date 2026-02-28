@@ -1,0 +1,61 @@
+openapi: 3.0.3
+info:
+  title: Agent Portal - Quote Pricing Recalculation API
+  version: 1.0.0
+paths:
+  /api/quote-pricing-recalculate:
+    post:
+      summary: Recalculate quote pricing after coverage changes
+      description: >
+        Internal server route triggered by an explicit user action ("Recalculate/Update Price").
+        It calculates updated pricing for the current quote given the current coverage selections.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [quoteId, coverage, partner, source, participation_option]
+              properties:
+                quoteId:
+                  type: string
+                  minLength: 1
+                coverage:
+                  type: object
+                  description: Coverage selections (UI model)
+                partner:
+                  type: string
+                  minLength: 1
+                  description: Upstream partner identifier (e.g., "SafeStart")
+                source:
+                  type: string
+                  enum: ["agent", "consumer"]
+                  description: Upstream source identifier
+                participation_option:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    minLength: 1
+                  description: Upstream participation options
+      responses:
+        "200":
+          description: Updated pricing summary
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pricing]
+                properties:
+                  pricing:
+                    type: object
+                    description: Pricing summary (read-only UI model)
+        "400":
+          description: Invalid request body
+        "403":
+          description: Access denied
+        "429":
+          description: Rate limited
+        "500":
+          description: Upstream pricing service error

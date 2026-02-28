@@ -44,6 +44,7 @@ import {
   PopoverTrigger,
 } from "@novo/ui"
 import { cn } from "@/shared/utils"
+import { EMPTY_CLIENT_INFO_FORM_VALUES } from "@/shared/vm/client-info"
 
 // US States list
 const US_STATES = [
@@ -158,20 +159,14 @@ export function ClientInfoForm() {
     if (quoteData.clientInfo) {
       return {
         ...quoteData.clientInfo,
+        driversLicense: quoteData.clientInfo.driversLicense ?? "",
         // Ensure dateOfBirth is a Date object
         dateOfBirth: quoteData.clientInfo.dateOfBirth instanceof Date 
           ? quoteData.clientInfo.dateOfBirth 
           : new Date(quoteData.clientInfo.dateOfBirth),
       }
     }
-    return {
-      firstName: "Sally",
-      lastName: "Gomez",
-      dateOfBirth: new Date("1990-01-01"),
-      email: "sally.gomez@example.com",
-      phone: "(555) 123-4567",
-      address: "5211 S McQueen Rd, Chandler, AZ 85249",
-    }
+    return EMPTY_CLIENT_INFO_FORM_VALUES
   }, [quoteData.clientInfo])
 
   const form = useForm<ClientInfoFormValues>({

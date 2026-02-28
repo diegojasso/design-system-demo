@@ -85,23 +85,43 @@ Storybook will be available at [http://localhost:6006](http://localhost:6006).
 ## Project Structure
 
 ```
-design-system-demo/
+novo-quote-website/
 ├── apps/
-│   └── portal/             # Next.js App Router host app
-│       ├── app/            # Route binding (Server Components)
+│   └── agent-portal/       # Next.js App Router app
+│       ├── app/            # Next.js route entrypoints (mostly re-export shims)
 │       ├── src/
-│       │   ├── app/        # App shell and providers
-│       │   ├── pages/      # UX-owned screen components
-│       │   ├── server/     # Server loaders/actions/adapters
-│       │   └── shared/     # Shared utilities
+│       │   ├── app/        # App shell, providers, quote context, internal routes (source)
+│       │   ├── server/     # Server loaders/actions/adapters (source)
+│       │   ├── features/   # UX-owned screen/components (designer-owned)
+│       │   └── shared/     # Shared utilities + view model mapping
 │       └── public/         # Static assets
 ├── packages/
 │   ├── ui/                 # Design system primitives + Storybook
 │   ├── analytics/          # Analytics SDK wrapper (stub)
 │   └── api-client/         # API client contracts (stub)
-└── docs/
-    └── sdd/                # Software design docs
 ```
+
+### `apps/agent-portal/app` vs `apps/agent-portal/src/app`
+
+This repo uses a small **re-export shim** pattern:
+
+- `apps/agent-portal/app/**` is the **actual Next.js App Router directory**.
+- `apps/agent-portal/src/app/**` contains the **real implementation**.
+
+For example:
+
+```ts
+// apps/agent-portal/app/initial-info/page.tsx
+export { default } from "../../src/app/initial-info/page";
+```
+
+### Quote draft state (`quote-context`)
+
+`apps/agent-portal/src/app/quote-context.tsx` is the client-side quote draft store:
+
+- Holds `quoteData` in React Context for all steps
+- Persists drafts to `localStorage`
+- Implements one-time prefill (`prefillFromApplication`) and step navigation
 
 ## Development
 

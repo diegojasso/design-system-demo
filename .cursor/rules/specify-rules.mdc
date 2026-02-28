@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-10
 ## Active Technologies
 - TypeScript (Next.js 16 / React 19) + Next.js App Router, Zod, React Hook Form, `@novo/ui`, `@novo/analytics`, axios (via `@novo/api-client`) (NDAI-27811-init-api-call)
 - Browser localStorage for drafts (existing); no backend persistence in this repo (NDAI-27811-init-api-call)
+- TypeScript (TS 5.x), Node.js (via Next.js) + Next.js 16 (App Router), React 19, Zod (runtime validation), Axios (server-side HTTP via `@novo/api-client`), Tailwind CSS 4, Radix UI via `@novo/ui` (NDAI-27921-more-vm-bind)
+- Browser `localStorage` for quote drafts (`apps/agent-portal/src/app/quote-context.tsx`) (NDAI-27921-more-vm-bind)
 
 - TypeScript (workspace uses TypeScript ^5) + Next.js App Router (`next` ^16), React (^19), Zod (^3) (NDAI-27696-backend-endpoint-config)
 
@@ -24,6 +26,7 @@ npm test && npm run lint
 TypeScript (workspace uses TypeScript ^5): Follow standard conventions
 
 ## Recent Changes
+- NDAI-27921-more-vm-bind: Added TypeScript (TS 5.x), Node.js (via Next.js) + Next.js 16 (App Router), React 19, Zod (runtime validation), Axios (server-side HTTP via `@novo/api-client`), Tailwind CSS 4, Radix UI via `@novo/ui`
 - NDAI-27811-init-api-call: Added TypeScript (Next.js 16 / React 19) + Next.js App Router, Zod, React Hook Form, `@novo/ui`, `@novo/analytics`, axios (via `@novo/api-client`)
 
 - NDAI-27696-backend-endpoint-config: Added TypeScript (workspace uses TypeScript ^5) + Next.js App Router (`next` ^16), React (^19), Zod (^3)

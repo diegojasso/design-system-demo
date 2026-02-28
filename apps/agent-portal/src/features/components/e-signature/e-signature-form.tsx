@@ -10,46 +10,9 @@ import { Input } from "@novo/ui"
 import { toast } from "sonner"
 import { ESignatureData, DocumentStatus } from "./types"
 import { MOCK_DOCUMENTS } from "./mock-documents"
+import { formatLongDate, getStatusBadgeText, getStatusBadgeVariant } from "@/shared/vm/e-signature"
 
-// Format date as "December 13, 2025"
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(date)
-}
-
-// Get status badge variant based on status
-function getStatusBadgeVariant(status: DocumentStatus): "default" | "secondary" | "outline" {
-  switch (status) {
-    case "awaiting-signature":
-      return "secondary"
-    case "signed":
-      return "default"
-    case "expired":
-    case "cancelled":
-      return "outline"
-    default:
-      return "secondary"
-  }
-}
-
-// Get status badge text
-function getStatusBadgeText(status: DocumentStatus): string {
-  switch (status) {
-    case "awaiting-signature":
-      return "Awaiting signature"
-    case "signed":
-      return "Signed"
-    case "expired":
-      return "Expired"
-    case "cancelled":
-      return "Cancelled"
-    default:
-      return "Unknown"
-  }
-}
+const formatDate = formatLongDate
 
 export function ESignatureForm() {
   const { quoteData, updateESignature, saveQuote } = useQuote()

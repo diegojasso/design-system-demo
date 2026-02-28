@@ -105,7 +105,7 @@ export function IncidentsPage() {
           >
             <div className="px-4 py-3">
               <Select
-                value={incident.incidentType || undefined}
+                value={incident.incidentType}
                 onValueChange={(value) => updateIncident(incident.id, { incidentType: value })}
               >
                 <SelectTrigger className="w-full" size="sm">
@@ -133,7 +133,7 @@ export function IncidentsPage() {
 
             <div className="px-4 py-3">
               <Select
-                value={incident.source || undefined}
+                value={incident.source}
                 onValueChange={(value) => updateIncident(incident.id, { source: value })}
               >
                 <SelectTrigger className="w-full" size="sm">
@@ -151,7 +151,7 @@ export function IncidentsPage() {
 
             <div className="px-4 py-3">
               <Select
-                value={incident.driverId || undefined}
+                value={incident.driverId}
                 onValueChange={(value) => updateIncident(incident.id, { driverId: value })}
               >
                 <SelectTrigger className="w-full" size="sm">

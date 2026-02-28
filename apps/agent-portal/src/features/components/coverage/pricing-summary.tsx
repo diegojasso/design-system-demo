@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Button } from "@novo/ui"
 import { Label } from "@novo/ui"
+import { Input } from "@novo/ui"
 import {
   Select,
   SelectContent,
@@ -18,8 +19,7 @@ import {
 } from "@novo/ui"
 import { Download, Check, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
 import { CoverageData, PricingSummary } from "./types"
-import { PRICING_PLANS, calculatePlanPricing } from "./pricing-calculator"
-import { format } from "date-fns"
+import { PRICING_PLANS } from "./pricing-calculator"
 import { Alert, AlertDescription } from "@novo/ui"
 import { useQuote } from "@/app/quote-context"
 import { cn } from "@/shared/utils"
@@ -42,12 +42,10 @@ export function PricingSummarySection({
 }: PricingSummarySectionProps) {
   const { quoteData, setCurrentStep } = useQuote()
   const [isPlanDetailsExpanded, setIsPlanDetailsExpanded] = React.useState(false)
-  
-  const calculatedPricing = calculatePlanPricing(
-    pricing.selectedPlanId,
-    coverage,
-    pricing.paymentFrequency
-  )
+  const pricingByPlanId = quoteData.pricingByPlanId
+
+  // Pricing/coverage are always sourced from upstream for this app.
+  const displayPricing = pricing
 
   const selectedPlan = PRICING_PLANS.find((p) => p.id === pricing.selectedPlanId) || PRICING_PLANS[0]
 
@@ -65,27 +63,6 @@ export function PricingSummarySection({
     setCurrentStep("import-summary")
   }
 
-  // Generate start date options (next 30 days)
-  const startDateOptions = React.useMemo(() => {
-    const dates: string[] = []
-    const today = new Date()
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
-      dates.push(date.toISOString().split("T")[0])
-    }
-    return dates
-  }, [])
-
-  const formatDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString)
-      return format(date, "MM/dd/yyyy")
-    } catch {
-      return dateString
-    }
-  }
-
   return (
     <div className="space-y-4">
       {/* Plan Options */}
@@ -96,28 +73,46 @@ export function PricingSummarySection({
         <div className="flex flex-wrap items-center gap-1 rounded-lg border bg-muted/40 p-1">
           {PRICING_PLANS.map((plan) => {
             const isSelected = plan.id === pricing.selectedPlanId
-            const planPricing = calculatePlanPricing(plan.id, coverage, pricing.paymentFrequency)
+            const upstreamPlanPricing = pricingByPlanId
+              ? pricingByPlanId[plan.id as "novo-next" | "novo-flex" | "novo-classic"]
+              : undefined
 
             return (
               <button
                 key={plan.id}
-                onClick={() => onPricingChange("selectedPlanId", plan.id)}
+                onClick={() => {
+                  onPricingChange("selectedPlanId", plan.id)
+                  if (upstreamPlanPricing) {
+                    onPricingChange("monthlyPrice", upstreamPlanPricing.monthlyPrice)
+                    onPricingChange("totalForPeriod", upstreamPlanPricing.totalForPeriod)
+                    onPricingChange("downPayment", upstreamPlanPricing.downPayment)
+                  }
+                }}
+                disabled={!upstreamPlanPricing}
                 className={cn(
                   "flex flex-1 items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition",
                   isSelected
                     ? "bg-background text-foreground shadow-sm ring-1 ring-purple-500/50"
-                    : "text-muted-foreground hover:bg-muted"
+                    : "text-muted-foreground hover:bg-muted",
+                  !upstreamPlanPricing && "opacity-60 cursor-not-allowed hover:bg-transparent"
                 )}
               >
                 <span className="font-medium" style={{ fontFamily: "Inter, sans-serif" }}>
                   {plan.name}
                 </span>
                 <span className="text-xs" style={{ fontFamily: "Inter, sans-serif" }}>
-                  ${planPricing.monthlyPrice}/mo
+                  {isSelected
+                    ? `$${displayPricing.monthlyPrice}/mo`
+                    : upstreamPlanPricing
+                      ? `$${upstreamPlanPricing.monthlyPrice}/mo`
+                      : "—"}
                 </span>
               </button>
             )
           })}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          Pricing is sourced from upstream; plan premiums are available for Novo Next/Flex/Classic when returned.
         </div>
       </div>
 
@@ -132,7 +127,7 @@ export function PricingSummarySection({
                     className="text-3xl font-semibold text-foreground"
                     style={{ fontFamily: "Inter, sans-serif" }}
                   >
-                    ${calculatedPricing.monthlyPrice}
+                    ${displayPricing.monthlyPrice}
                   </span>
                   <span
                     className="text-base text-muted-foreground"
@@ -145,13 +140,13 @@ export function PricingSummarySection({
                   className="text-sm text-muted-foreground"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
-                  Total for {pricing.paymentFrequency === "Monthly" ? "6 months" : pricing.paymentFrequency === "Semi-Annual" ? "6 months" : "12 months"}: ${calculatedPricing.totalForPeriod}
+                  Total for {pricing.paymentFrequency === "Monthly" ? "6 months" : pricing.paymentFrequency === "Semi-Annual" ? "6 months" : "12 months"}: ${displayPricing.totalForPeriod}
                 </p>
                 <p
                   className="text-sm text-muted-foreground"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
-                  Down payment: ${calculatedPricing.downPayment}
+                  Down payment: ${displayPricing.downPayment}
                 </p>
               </div>
 
@@ -215,21 +210,7 @@ export function PricingSummarySection({
                 >
                   Start Date
                 </Label>
-                <Select
-                  value={pricing.startDate}
-                  onValueChange={(value) => onPricingChange("startDate", value)}
-                >
-                  <SelectTrigger id="start-date" className="w-full">
-                    <SelectValue placeholder="Select start date" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {startDateOptions.map((date) => (
-                      <SelectItem key={date} value={date}>
-                        {formatDate(date)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input id="start-date" value={pricing.startDate} disabled className="w-full" />
               </div>
 
               {/* Payment Frequency */}
@@ -241,21 +222,7 @@ export function PricingSummarySection({
                 >
                   Payment Frequency
                 </Label>
-                <Select
-                  value={pricing.paymentFrequency}
-                  onValueChange={(value: PricingSummary["paymentFrequency"]) =>
-                    onPricingChange("paymentFrequency", value)
-                  }
-                >
-                  <SelectTrigger id="payment-frequency" className="w-full">
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Monthly">Monthly</SelectItem>
-                    <SelectItem value="Semi-Annual">Semi-Annual</SelectItem>
-                    <SelectItem value="Annual">Annual</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input id="payment-frequency" value={pricing.paymentFrequency} disabled className="w-full" />
               </div>
 
               {/* Action Buttons */}

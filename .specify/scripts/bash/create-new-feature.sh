@@ -99,6 +99,29 @@ if [ -z "$FEATURE_DESCRIPTION" ]; then
     exit 1
 fi
 
+# Auto-detect Jira key from feature description when not explicitly provided.
+# This enables inputs like "NDAI-27921 ...", without requiring --jira-key.
+# If --number is provided, numeric prefixing is kept.
+if [ -z "$JIRA_KEY" ] && [ -z "$BRANCH_NUMBER" ]; then
+    DETECTED_JIRA_KEY=$(echo "$FEATURE_DESCRIPTION" | grep -oE '^[[:space:]]*[A-Za-z][A-Za-z0-9]+-[0-9]+' | head -n 1 | tr -d '[:space:]' || true)
+    if [ -n "$DETECTED_JIRA_KEY" ]; then
+        JIRA_KEY="$DETECTED_JIRA_KEY"
+
+        # Strip leading "<JIRA_KEY>[: -]*" from the description so auto-generated suffixes remain clean.
+        FEATURE_DESCRIPTION_STRIPPED="$FEATURE_DESCRIPTION"
+        # Trim leading whitespace
+        FEATURE_DESCRIPTION_STRIPPED="${FEATURE_DESCRIPTION_STRIPPED#"${FEATURE_DESCRIPTION_STRIPPED%%[![:space:]]*}"}"
+        if [[ "$FEATURE_DESCRIPTION_STRIPPED" == "$DETECTED_JIRA_KEY"* ]]; then
+            FEATURE_DESCRIPTION_STRIPPED="${FEATURE_DESCRIPTION_STRIPPED#"$DETECTED_JIRA_KEY"}"
+            # Strip any separators/spaces after the key
+            while [[ "$FEATURE_DESCRIPTION_STRIPPED" =~ ^[[:space:]:-] ]]; do
+                FEATURE_DESCRIPTION_STRIPPED="${FEATURE_DESCRIPTION_STRIPPED:1}"
+            done
+        fi
+        FEATURE_DESCRIPTION="$FEATURE_DESCRIPTION_STRIPPED"
+    fi
+fi
+
 # Function to find the repository root by searching for existing project markers
 find_repo_root() {
     local dir="$1"

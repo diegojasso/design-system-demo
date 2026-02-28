@@ -5,17 +5,14 @@ import { useRouter } from "next/navigation"
 import { track, events } from "@novo/analytics"
 
 import { useQuote } from "@/app/quote-context"
+import type { ApplicationPrefillViewModels } from "@/shared/application-prefill-vm"
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@novo/ui"
 
 type PrefillApiResponse = {
   quoteId: string
   applicationId: string
   replaceLocalDraft: boolean
-  viewModels: {
-    basicInfo: any
-    drivers: any[]
-    vehicles: any[]
-  }
+  viewModels: ApplicationPrefillViewModels
 }
 
 function getEncodedPayloadFromLocation(): string {
@@ -32,6 +29,7 @@ export default function InitialInfoPage() {
   const { prefillFromApplication, quoteId: currentDraftId } = useQuote()
   const [error, setError] = React.useState<{ message: string; canRetry: boolean } | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
+  const hasAutoRun = React.useRef(false)
 
   const run = React.useCallback(async () => {
     setIsLoading(true)
@@ -82,11 +80,7 @@ export default function InitialInfoPage() {
       const data = (await res.json()) as PrefillApiResponse
       await prefillFromApplication({
         quoteId: data.quoteId,
-        viewModels: {
-          basicInfo: data.viewModels.basicInfo,
-          drivers: data.viewModels.drivers,
-          vehicles: data.viewModels.vehicles,
-        },
+        viewModels: data.viewModels,
       })
 
       track(events.portalPrefillEvents.initialLoadSucceeded, {})
@@ -99,6 +93,8 @@ export default function InitialInfoPage() {
   }, [currentDraftId, prefillFromApplication, router])
 
   React.useEffect(() => {
+    if (hasAutoRun.current) return
+    hasAutoRun.current = true
     run()
   }, [run])
 

@@ -2,7 +2,7 @@ import type { AxiosInstance } from "axios";
 
 import { createAxios } from "../http/create-axios";
 import { retry } from "../http/retry";
-import type { ApplicationV2Response } from "./types";
+import type { ApplicationQuoteResponse, ApplicationV2Response } from "./types";
 
 export type ApplicationApiClientConfig = {
   baseUrl: string;
@@ -18,6 +18,18 @@ export type ApplicationApiClientConfig = {
 export type ApplicationApiClient = {
   getApplicationV2: (input: { quoteId: string }) => Promise<ApplicationV2Response>;
   getApplicationById: (input: { applicationId: string }) => Promise<ApplicationV2Response>;
+  /**
+   * Calculate (or re-calculate) quote plans/pricing for an application.
+   *
+   * Observed in UAT:
+   * - POST /application/v2/{application_uuid}/quote
+   */
+  calculateQuote: (input: {
+    applicationId: string;
+    partner: string;
+    source: "agent" | "consumer";
+    participationOption: string[];
+  }) => Promise<ApplicationQuoteResponse>;
 };
 
 /**
@@ -63,6 +75,22 @@ export function createApplicationApiClient(config: ApplicationApiClientConfig): 
       return retry(
         async () => {
           const response = await http.get<ApplicationV2Response>(`/application/v2/${applicationId}`);
+          return response.data;
+        },
+        { maxRetries: 2, shouldRetry },
+      );
+    },
+    async calculateQuote({ applicationId, partner, source, participationOption }) {
+      return retry(
+        async () => {
+          const response = await http.post<ApplicationQuoteResponse>(
+            `/application/v2/${applicationId}/quote`,
+            {
+              participation_option: participationOption,
+              partner,
+              source,
+            },
+          );
           return response.data;
         },
         { maxRetries: 2, shouldRetry },

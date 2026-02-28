@@ -1,0 +1,78 @@
+openapi: 3.0.3
+info:
+  title: Agent Portal - Application Prefill API
+  version: 1.0.0
+paths:
+  /api/application-prefill:
+    post:
+      summary: Prefill quote view models from upstream application
+      description: >
+        Server-side route that decodes an inbound payload, fetches the upstream application,
+        normalizes it, and returns UI-ready view models used to initialize a quote draft.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [encodedPayload]
+              properties:
+                encodedPayload:
+                  type: string
+                  minLength: 1
+                currentDraftId:
+                  type: string
+                  minLength: 1
+      responses:
+        "200":
+          description: Prefill view models
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [quoteId, applicationId, replaceLocalDraft, viewModels]
+                properties:
+                  quoteId:
+                    type: string
+                  applicationId:
+                    type: string
+                  replaceLocalDraft:
+                    type: boolean
+                  viewModels:
+                    type: object
+                    required: [basicInfo, drivers, vehicles]
+                    properties:
+                      basicInfo:
+                        type: object
+                        description: Client info form values (UI model)
+                      drivers:
+                        type: array
+                        items:
+                          type: object
+                      vehicles:
+                        type: array
+                        items:
+                          type: object
+                      incidents:
+                        type: array
+                        description: Optional incident records to prefill Incidents step
+                        items:
+                          type: object
+                      reports:
+                        type: object
+                        description: Optional report summaries to display in Reports step (view-only)
+                      coverage:
+                        type: object
+                        description: Optional coverage selections to prefill Coverage step
+                      pricing:
+                        type: object
+                        description: Optional pricing summary to display in Coverage step (read-only)
+        "400":
+          description: Bad request / malformed payload
+        "403":
+          description: Access denied
+        "429":
+          description: Rate limited
+        "500":
+          description: Server or upstream error

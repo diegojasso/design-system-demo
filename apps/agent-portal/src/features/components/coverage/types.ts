@@ -20,7 +20,7 @@ export interface VehicleCoverage {
   glassDeductible: boolean // Glass Damage Deductible $0
   loanLeasePayoff: boolean // Covers gap between value and loan
   customPartsEquipment: boolean
-  customPartsAmount?: number // Coverage amount in dollars
+  customPartsAmount?: string // Currency string (e.g. "$1,000")
   rentalReimbursement?: boolean
 }
 
@@ -43,9 +43,9 @@ export interface PricingSummary {
   selectedPlanId: string
   startDate: string // ISO date string
   paymentFrequency: "Monthly" | "Semi-Annual" | "Annual"
-  monthlyPrice: number
-  totalForPeriod: number
-  downPayment: number
+  monthlyPrice: string
+  totalForPeriod: string
+  downPayment: string
 }
 
 // Industry standard coverage options

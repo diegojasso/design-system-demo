@@ -22,3 +22,12 @@ export const portalPrefillEvents = {
 export type PortalPrefillEventName =
   (typeof portalPrefillEvents)[keyof typeof portalPrefillEvents];
 
+export const portalPricingEvents = {
+  recalcClicked: "portal.pricing.recalc.clicked",
+  recalcSucceeded: "portal.pricing.recalc.succeeded",
+  recalcFailed: "portal.pricing.recalc.failed",
+} as const;
+
+export type PortalPricingEventName =
+  (typeof portalPricingEvents)[keyof typeof portalPricingEvents];
+

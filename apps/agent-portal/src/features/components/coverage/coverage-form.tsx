@@ -35,9 +35,9 @@ const DEFAULT_PRICING: PricingSummary = {
   selectedPlanId: "novo-next",
   startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 7 days from now
   paymentFrequency: "Monthly",
-  monthlyPrice: 124,
-  totalForPeriod: 744,
-  downPayment: 248,
+  monthlyPrice: "124",
+  totalForPeriod: "744",
+  downPayment: "248",
 }
 
 export function CoverageForm() {
@@ -58,7 +58,7 @@ export function CoverageForm() {
       glassDeductible: true,
       loanLeasePayoff: false,
       customPartsEquipment: false,
-      customPartsAmount: 0,
+      customPartsAmount: "",
     }))
 
     return {
@@ -92,7 +92,7 @@ export function CoverageForm() {
         glassDeductible: true,
         loanLeasePayoff: false,
         customPartsEquipment: false,
-        customPartsAmount: 0,
+        customPartsAmount: "",
       }))
 
       setCoverage((prev) => ({
